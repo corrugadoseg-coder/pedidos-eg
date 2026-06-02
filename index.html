@@ -492,9 +492,9 @@ function addItemRow(data){
   itemRows.push(id);
   const tr=document.createElement('tr');
   tr.id='item-'+id;
-  tr.innerHTML=`
+    tr.innerHTML=`
     <td><input placeholder="Cliente" value="${d.cliente||''}"></td>
-    <td><input placeholder="N° Caja" value="${d.caja||''}"></td>
+    <td><input placeholder="N° Caja" value="${d.caja||''}" oninput="autocompleteCaja(this, ${id})"></td>
     <td><input placeholder="Tipo material" value="${d.tipo||''}"></td>
     <td><input placeholder="Largo" type="number" value="${d.largo||''}"></td>
     <td><input placeholder="Ancho" type="number" value="${d.ancho||''}"></td>
@@ -504,6 +504,23 @@ function addItemRow(data){
     <td><button class="btn-remove" onclick="removeRow(${id})">✕</button></td>`;
   document.getElementById('items-body').appendChild(tr);
 }
+function autocompleteCaja(input, id){
+  const caja = input.value.trim();
+  if(!caja) return;
+  const match = allData.find(r => String(r['N° Caja']).trim() === caja);
+  if(!match) return;
+  const tr = document.getElementById('item-'+id);
+  if(!tr) return;
+  const inp = tr.querySelectorAll('input');
+  if(!inp[0].value) inp[0].value = match.Cliente || '';
+  inp[2].value = match['Tipo Material'] || '';
+  inp[3].value = match.Largo || '';
+  inp[4].value = match.Ancho || '';
+  inp[5].value = match.Trazados || '';
+  inp[7].value = match.Observaciones || '';
+  inp[6].focus();
+}
+
 function removeRow(id){
   document.getElementById('item-'+id).remove();
   itemRows=itemRows.filter(i=>i!==id);
