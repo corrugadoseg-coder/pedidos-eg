@@ -1,104 +1,606 @@
-E.G. Corrugados S.R.L.
-Sistema de pedidos de materia prima
-🔍 Buscador
-➕ Nuevo pedido
-🏭 Por proveedor
-📋 Historial
-Buscador de pedidos
-Buscar en todos los campos...
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E.G. Corrugados — Pedidos</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#f5f5f0;color:#222;font-size:14px}
+header{background:#1a1a2e;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px}
+header h1{font-size:18px;font-weight:600;letter-spacing:.5px}
+header span{font-size:12px;opacity:.6}
+nav{background:#fff;border-bottom:1px solid #ddd;display:flex;gap:0;padding:0 24px}
+nav button{padding:12px 20px;border:none;background:none;cursor:pointer;font-size:13px;color:#666;border-bottom:2px solid transparent;transition:all .15s}
+nav button.active{color:#1a1a2e;border-bottom-color:#1a1a2e;font-weight:600}
+nav button:hover{color:#1a1a2e;background:#f9f9f9}
+.page{display:none;padding:20px 24px;max-width:1200px;margin:0 auto}
+.page.active{display:block}
+.card{background:#fff;border-radius:8px;border:1px solid #e0e0e0;padding:20px;margin-bottom:16px}
+h2{font-size:16px;font-weight:600;margin-bottom:16px;color:#1a1a2e}
+h3{font-size:14px;font-weight:600;margin-bottom:12px;color:#333}
 
-Todos los proveedores
-Filtrar por:
-Todos
-N° pedido
-Fecha
-Cliente
-Artículo
-⬇ Exportar CSV
-86 resultados de 86 registros
-1340	20/02/26	Argentrade	5094	Pliegos impr. DT 120 Liner	1510	1350	260-830-260	2000	Impresión: JEICO / Entrega: 06/03/26	Idesa
-1341	23/02/26	60x40x40		Liner 110	2040	800	200-400-200	1200	K 110	Idesa
-1342	24/02/26	30x20x125//30x25x20		Liner 90	1140	775	100-125-100//125-200-125	1200		Idesa
-1342	24/02/26	50x40x24		Liner 90	1840	640	200-240-200	820		Idesa
-1342	24/02/26	50x40x30		Liner 90	1840	700	200-300-200	760		Idesa
-1342	24/02/26	60x40x30		Liner 90	2040	700	200-300-200	1000	K 90	Idesa
-1343	24/02/26	Argentrade	5113	Pliegos impr. DT 120 Liner	1510	1350	260-830-260	2400	Nueva Imp: JEICO 29" / Entrega: 12/03/26	Idesa
-1344	26/02/26	Richmond	2574	Microcorr. Liner 90	1090	600	Sin trazar	3300		Idesa
-1345	26/02/26	Autop.fal		Liner 110	1385	1150	260-630-260	700	10 sin imp.	Idesa
-1345	26/02/26	Sew	995/N°3	DT 120 Liner	1740	560	150-260-150	700		Idesa
-1346	02/03/26	Argentrade	5067	Pliegos impr. DT 120 Liner	1810	1370	270-830-270	1550	Impresión RANDERS / Entrega: 25/03/26	Idesa
-1346	02/03/26	Argentrade	5067	Pliegos impr. DT 120 Liner	1810	1370	270-830-270	1550	Impresión RANDERS / Entrega: 01/04/26	Idesa
-1346	02/03/26	Argentrade	5067	Pliegos impr. DT 120 Liner	1810	1370	270-830-270	2350	Impresión RANDERS / Entrega: 08/04/26	Idesa
-1347	02/03/26	Dixter	2726/10737	Kraft 140	1420	584	147-290-147	520	No mas	Idesa
-1348	02/03/26	Compfort		DT 120 Liner	1920	910	235-440-235	200	No mas	Idesa
-1348	02/03/26	Compfort		DT 120 Liner	1175	626	208-210-208	400	No mas	Idesa
-1349	02/03/26	Ritossa	1074	Liner 90	1440	1000	150-250-150//150-150-150	800	40x30x25	Idesa
-1350	05/03/26	Decorac.	4764	Liner 90	1200	400	80-80-80-80	2200	RETIRA NICO	Idesa
-1351	05/03/26	Intex	N°2	Liner 90	1320	410	130-150-130	1000		Idesa
-1353	06/03/26	Dario Díaz	5052	Liner 110	1440	750	50-650-50	1000		Idesa
-1354	06/03/26	stock		Liner 60	1200	1000	Sin trazar	1500		Idesa
-1355	06/03/26	ACA	4955	Cajas DT 470x270x294				3700	LEGADO PRO / Entrega CAMPANA desde 30/03	Idesa
-1356	09/03/26	Staco	2927	DT 120 Liner	1700	805	235-145-240-145-40	1000		Idesa
-1357	10/03/26	40x30x30		DT 120 Liner	1440	600	150-300-150	1500	DT	Idesa
-1358	11/03/26	Autop.fal	4603	Liner 110	1445	581	163-255-163	1250		Idesa
-1359	12/03/26	Estudio Te	5065	DT 120 Liner	1198	1588	257-1074-257	310	Manija troquelada / simil Pedido N°1088	Idesa
-1360	16/03/26	Wolfre	5061	Liner 110	1370	776	333-110-333	500		Idesa
-1361	16/03/26	Ibc	1365	DT120 Liner	1810	606	168-270-168	4400		Idesa
-1361	16/03/26	Ibc	2421	DT 120 Liner	2160	650	210-230-210	2000		Idesa
-1362	17/03/26	Plastipren	1045	DT120 Liner	2040	600	200-200-200	2500		Idesa
-1363	18/03/26	30x20x15//30x20x25		Liner 90	1040	800	100-150-100//100-250-100	1250		Idesa
-1364	18/03/26	60x50x50		DT 120 Liner	1140	1000	250-500-250	500		Idesa
-1364	18/03/26	Dromex	4225	DT 120 Liner	1410	706	148-410-148	6000		Idesa
-1365	18/03/26	stock		Liner 60	1200	1000	Sin trazar	1500		Idesa
-1366	19/03/26	DP.5119	40x30x30	DT 120 Liner	1480	735	Sin trazar	500	No mas	Idesa
-1367	26/03/26	Wolfre	4767	Liner 110	1760	811	203-405-203	360		Idesa
-1368	26/03/26	symonds		Microcorr. Liner 90	480	720	Sin trazar	15000		Idesa
-1369	26/03/26	Igual	4798	Liner 90	1300	480	140-200-140	5000		Idesa
-1370	26/03/26	Casa Manu	5054	Blanco Liner	970	391	108-175-108	2050		Idesa
-1371	27/03/26	Mervick	4316	Liner 90	1390	425	145-135-145	1500		Idesa
-1371	27/03/26	Mervick	4827	DT 120 Liner	1330	451	133-185-133	1500		Idesa
-1372	30/03/26	Dromex		DT 120 Liner	1140	380	Sin trazar	1200		Idesa
-1373	30/03/26	30x30x30//30x20x20		Liner 90	1240	1000	150-300-150//100-200-100	1200		Idesa
-1373	30/03/26	40x30x30		Liner 90	1440	600	150-300-150	1200		Idesa
-1374	30/03/26	Arie	5055	Liner 110	2040	650	200-250-200	500		Idesa
-1375	06/04/26	Aceroac	667	Liner 60	820	820	Sin trazar	2600	Entregar Caracas 2162 CABA / No más	Idesa
-1376	06/04/26	Diral	2748	Liner 90	1840	780	200-380-200	550	No mas	Idesa
-1377	06/04/26	DP World	4471	DT 120 Liner	1205	816	238-340-238	520	NO MAS	Idesa
-1378	06/04/26	40x30x30		DT 120 Liner	1440	600	150-300-150	1500	DT	Idesa
-1379	14/04/26	Burkol	4849	DT 120 Liner	1040	414	97-220-97	650		Idesa
-1379	14/04/26	40x30x30		Liner 90	1440	600	150-300-150	1500		Idesa
-1380	14/04/26	40x30x20		Liner 90	1440	500	150-200-150	1500		Idesa
-1381	15/04/26	ACA	4976	Cajas DT 120L 470x270x294				2600	Caja: TEMPUS / Entrega desde 04/05	Idesa
-1381	15/04/26	ACA	1297	Cajas DT 120L 380x275x255				3100	Caja: SPECTOR 25 / Entrega desde 04/05	Idesa
-1381	15/04/26	ACA	4976	Cajas DT 120L 470x270x294				2600	Caja: DICAMAX 58 / Entrega desde 04/05	Idesa
-1381	15/04/26	ACA	4811	Cajas DT 120L 470x270x294				2100	Caja: CAMBIUM / Entrega desde 04/05	Idesa
-1382	16/04/26	Diral	4566	DT 120 Liner	1890	670	205-260-205	550	No mas	Idesa
-1383	16/04/26	35x30x25//40x25x25		Liner 90	1340	1050	150-250-150//125-250-125	750	No mas	Idesa
-1383	16/04/26	60x40x30		Liner 110	2040	700	200-300-200	800	110	Idesa
-1383	16/04/26	60x40x40		Liner 110	2040	800	200-400-200	1000	110	Idesa
-1383	16/04/26	60x50x50		Liner 110	1140	1000	250-500-250	900		Idesa
-1384	17/04/26	Demiquelli	5121	Liner 90	1250	511	123-265-123	1600	No mas	Idesa
-1385	16/04/26	Casa Manu	5057/5058/5059	Blanco Liner	1000	375	Sin trazar	4700		Idesa
-1386	17/04/26	stock		Liner 60	1200	1000	Sin trazar	1500		Idesa
-1387	20/04/26	Bottcher	4859	DT 120 Liner	1670	560	Sin trazar	550		Idesa
-1387	20/04/26	Bottcher	4906	DT 120 Liner	1950	680	Sin trazar	500		Idesa
-1388	21/04/26	Aut.fal	N°10	Liner 110	1385	1150	260-630-260	1200		Idesa
-1389	21/04/26	Panoni	1243	Liner 110	2040	800	200-400-200	1000		Idesa
-1390	24/04/26	Mervick	4317	Liner 90	1140	396	118-160-118	1100	No mas	Idesa
-1390	24/04/26	Mervick	4842	DT 120 Liner	1480	521	168-185-168	1500		Idesa
-1390	24/04/26	40x30x15		Liner 90	1440	450	150-150-150	1000		Idesa
-1391	24/04/26	Bioars	5060	Liner 110	1960	670	200-270-200	1000		Idesa
-1392	27/04/26	Almar	2915	Liner 110	1720	1560	70-1420-70	500		Idesa
-1393	27/04/26	Monpres	1073	Liner 110	1360	490	165-160-165	620	No mas	Idesa
-1394	28/04/26	ITC	2772	Liner 90	2020	710	170-370-170	1000		Idesa
-1395	29/04/26	Bremet	4991	DT 120 Liner	1440	450	150-150-150	800		Idesa
-1395	29/04/26	40x30x30		DT 120 Liner	1440	600	150-300-150	1500	DT	Idesa
-1396	30/04/26	De aloisio	5122	Liner 90	1720	521	178-165-178	2000		Idesa
-1397	04/05/26	40x30x20		Liner 90	1440	500	150-200-150	1500		Idesa
-1397	04/05/26	50x40x35		DT 120 Liner	1840	750	200-350-200	400	DT	Idesa
-1397	04/05/26	Compuspar	4396/4381	DT 120 Liner	1090	696	Sin trazar	800		Idesa
-1397	04/05/26	Compuepar	5026/4395/4723	DT 120 Liner	1160	910	Sin trazar	750	carricaberry	Idesa
-1398	05/05/26	ACA	4958	Cajas DT 120L 450x275x270				2500	ACA PACK PREMIUM XL / Entrega desde 26/05	Idesa
-1398	05/05/26	ACA	5123	Cajas DT 120L 470x270x294				2300	CELSIUM / Entrega desde 20/05	Idesa
-1399	04/05/26	symonds		Microcorr. Liner 90	480	720	Sin trazar	7500		Idesa
-1400	06/05/26	Panoni	2665	Liner 90	1190	611	153-305-153	1000		Idesa
+/* Search */
+.search-row{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.search-row input{flex:1;min-width:200px;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:13px}
+.search-row select{padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:13px;background:#fff}
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+.filter-row span{font-size:12px;color:#888}
+.fbtn{padding:5px 14px;border:1px solid #ccc;border-radius:20px;background:#fff;font-size:12px;cursor:pointer;color:#555}
+.fbtn.active{background:#1a1a2e;color:#fff;border-color:#1a1a2e}
+.results-info{font-size:12px;color:#888;margin-bottom:8px}
+
+/* Table */
+.tbl-wrap{overflow-x:auto;border:1px solid #e0e0e0;border-radius:8px}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:900px}
+thead th{background:#f0f0ec;color:#555;font-weight:600;padding:9px 10px;text-align:left;border-bottom:1px solid #e0e0e0;white-space:nowrap;cursor:pointer;user-select:none}
+thead th:hover{background:#e8e8e4}
+thead th .sort-icon{margin-left:4px;opacity:.4}
+thead th.sorted .sort-icon{opacity:1}
+tbody tr{border-bottom:1px solid #f0f0f0}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:#fafaf8}
+tbody td{padding:7px 10px;vertical-align:top}
+td.obs{font-size:11px;color:#888;max-width:180px;white-space:normal}
+.badge{background:#e8f0fe;color:#1a56db;font-size:11px;padding:2px 8px;border-radius:12px;font-weight:600;white-space:nowrap}
+.badge.prov{background:#e8f5e9;color:#2e7d32}
+mark{background:#fff3cd;border-radius:2px;padding:0 1px}
+.btn-exp{padding:7px 16px;background:#1a1a2e;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;float:right;margin-bottom:8px}
+.btn-exp:hover{background:#2d2d4e}
+
+/* Form */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-grid.three{grid-template-columns:1fr 1fr 1fr}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group label{font-size:12px;color:#666;font-weight:600}
+.form-group input,.form-group select,.form-group textarea{padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;background:#fff}
+.form-group textarea{resize:vertical;min-height:60px}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:#1a1a2e}
+.form-divider{border:none;border-top:1px solid #eee;margin:16px 0}
+.items-table{width:100%;border-collapse:collapse;margin-bottom:12px}
+.items-table th{background:#f5f5f0;font-size:11px;color:#666;font-weight:600;padding:7px 8px;text-align:left;border:1px solid #e0e0e0}
+.items-table td{padding:5px 4px;border:1px solid #e0e0e0}
+.items-table td input{width:100%;padding:5px 6px;border:1px solid #ddd;border-radius:4px;font-size:12px}
+.btn-add-row{padding:6px 14px;background:#f0f0ec;border:1px solid #ccc;border-radius:6px;cursor:pointer;font-size:12px;margin-bottom:12px}
+.btn-add-row:hover{background:#e8e8e4}
+.btn-remove{background:#fee;border:1px solid #fcc;color:#c00;padding:3px 8px;border-radius:4px;cursor:pointer;font-size:11px}
+.actions-row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.btn-primary{padding:10px 24px;background:#1a1a2e;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600}
+.btn-primary:hover{background:#2d2d4e}
+.btn-secondary{padding:10px 24px;background:#fff;color:#1a1a2e;border:1px solid #1a1a2e;border-radius:6px;cursor:pointer;font-size:13px}
+.btn-copy{padding:10px 24px;background:#2e7d32;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600}
+.btn-copy:hover{background:#1b5e20}
+
+/* Preview */
+.preview-box{background:#f9f9f6;border:1px solid #ddd;border-radius:6px;padding:16px;font-family:monospace;font-size:12px;white-space:pre-wrap;line-height:1.6;margin-top:12px;max-height:300px;overflow-y:auto}
+
+/* Status */
+.status{padding:10px 16px;border-radius:6px;font-size:13px;margin-top:12px;display:none}
+.status.ok{background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;display:block}
+.status.err{background:#ffebee;color:#c62828;border:1px solid #ffcdd2;display:block}
+.status.loading{background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb;display:block}
+
+/* Proveedores tabs */
+.prov-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.ptab{padding:7px 18px;border:1px solid #ddd;border-radius:20px;background:#fff;cursor:pointer;font-size:13px;color:#555}
+.ptab.active{background:#1a1a2e;color:#fff;border-color:#1a1a2e}
+.empty-state{text-align:center;padding:40px;color:#aaa;font-size:13px}
+
+@media(max-width:600px){
+  .form-grid,.form-grid.three{grid-template-columns:1fr}
+  nav button{padding:10px 12px;font-size:12px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>E.G. Corrugados S.R.L.</h1>
+    <span>Sistema de pedidos de materia prima</span>
+  </div>
+</header>
+
+<nav>
+  <button class="active" onclick="goTo('buscar',this)">🔍 Buscador</button>
+  <button onclick="goTo('nuevo',this)">➕ Nuevo pedido</button>
+  <button onclick="goTo('proveedores',this)">🏭 Por proveedor</button>
+  <button onclick="goTo('historial',this)">📋 Historial</button>
+</nav>
+
+<!-- BUSCADOR -->
+<div id="page-buscar" class="page active">
+  <div class="card">
+    <h2>Buscador de pedidos</h2>
+    <div class="search-row">
+      <input type="text" id="q-buscar" placeholder="Buscar en todos los campos..." oninput="renderBuscar()">
+      <select id="prov-filter" onchange="renderBuscar()">
+        <option value="">Todos los proveedores</option>
+      </select>
+    </div>
+    <div class="filter-row">
+      <span>Filtrar por:</span>
+      <button class="fbtn active" onclick="setFB('todos',this)">Todos</button>
+      <button class="fbtn" onclick="setFB('Pedido',this)">N° pedido</button>
+      <button class="fbtn" onclick="setFB('Fecha',this)">Fecha</button>
+      <button class="fbtn" onclick="setFB('Cliente',this)">Cliente</button>
+      <button class="fbtn" onclick="setFB('Tipo Material',this)">Artículo</button>
+    </div>
+    <button class="btn-exp" onclick="exportCSV()">⬇ Exportar CSV</button>
+    <div class="results-info" id="res-info"></div>
+    <div class="tbl-wrap">
+      <table id="tbl-buscar">
+        <thead>
+          <tr>
+            <th onclick="sortBy('Pedido')" title="Ordenar">N° Pedido <span class="sort-icon">↕</span></th>
+            <th onclick="sortBy('Fecha')" title="Ordenar">Fecha <span class="sort-icon">↕</span></th>
+            <th onclick="sortBy('Cliente')" title="Ordenar">Cliente <span class="sort-icon">↕</span></th>
+            <th>N° Caja</th>
+            <th onclick="sortBy('Tipo Material')" title="Ordenar">Tipo material <span class="sort-icon">↕</span></th>
+            <th onclick="sortBy('Largo')" title="Ordenar">Largo <span class="sort-icon">↕</span></th>
+            <th>Ancho</th>
+            <th>Trazados</th>
+            <th onclick="sortBy('Cantidad')" title="Ordenar">Cantidad <span class="sort-icon">↕</span></th>
+            <th>Observaciones</th>
+            <th onclick="sortBy('Proveedor')" title="Ordenar">Proveedor <span class="sort-icon">↕</span></th>
+          </tr>
+        </thead>
+        <tbody id="tbody-buscar"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- NUEVO PEDIDO -->
+<div id="page-nuevo" class="page">
+  <div class="card">
+    <h2>Nuevo pedido</h2>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>N° de Pedido</label>
+        <input type="text" id="f-pedido" placeholder="Ej: 1401">
+      </div>
+      <div class="form-group">
+        <label>Fecha</label>
+        <input type="date" id="f-fecha">
+      </div>
+      <div class="form-group">
+        <label>Proveedor</label>
+        <select id="f-proveedor">
+          <option value="Idesa">Idesa</option>
+          <option value="Otro">Otro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Email del proveedor</label>
+        <input type="email" id="f-email" placeholder="proveedor@email.com">
+      </div>
+    </div>
+    <hr class="form-divider">
+    <h3>Ítems del pedido</h3>
+    <table class="items-table" id="items-table">
+      <thead>
+        <tr>
+          <th>Cliente</th><th>N° Caja</th><th>Tipo material</th>
+          <th>Largo</th><th>Ancho</th><th>Trazados</th>
+          <th>Cantidad</th><th>Observaciones</th><th></th>
+        </tr>
+      </thead>
+      <tbody id="items-body"></tbody>
+    </table>
+    <button class="btn-add-row" onclick="addItemRow()">+ Agregar ítem</button>
+    <hr class="form-divider">
+    <h3>Vista previa del mail</h3>
+    <div id="preview-box" class="preview-box"></div>
+    <div class="actions-row">
+      <button class="btn-primary" onclick="previewMail()">👁 Previsualizar</button>
+      <button class="btn-copy" onclick="copyMail()">📋 Copiar para mail</button>
+      <button class="btn-primary" onclick="guardarPedido()">💾 Guardar pedido</button>
+    </div>
+    <div id="status-nuevo" class="status"></div>
+  </div>
+</div>
+
+<!-- POR PROVEEDOR -->
+<div id="page-proveedores" class="page">
+  <div class="card">
+    <h2>Pedidos por proveedor</h2>
+    <div class="prov-tabs" id="prov-tabs"></div>
+    <div class="results-info" id="res-prov"></div>
+    <div class="tbl-wrap">
+      <table id="tbl-prov">
+        <thead>
+          <tr>
+            <th>N° Pedido</th><th>Fecha</th><th>Cliente</th><th>N° Caja</th>
+            <th>Tipo material</th><th>Largo</th><th>Ancho</th><th>Trazados</th>
+            <th>Cantidad</th><th>Observaciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-prov"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORIAL -->
+<div id="page-historial" class="page">
+  <div class="card">
+    <h2>Historial completo</h2>
+    <div class="search-row">
+      <input type="text" id="q-hist" placeholder="Buscar..." oninput="renderHistorial()">
+    </div>
+    <button class="btn-exp" onclick="exportCSV()">⬇ Exportar CSV</button>
+    <div class="results-info" id="res-hist"></div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th onclick="sortBy('Pedido','hist')">N° Pedido <span class="sort-icon">↕</span></th>
+            <th onclick="sortBy('Fecha','hist')">Fecha <span class="sort-icon">↕</span></th>
+            <th>Cliente</th><th>N° Caja</th><th>Tipo material</th>
+            <th>Largo</th><th>Ancho</th><th>Trazados</th>
+            <th onclick="sortBy('Cantidad','hist')">Cantidad <span class="sort-icon">↕</span></th>
+            <th>Observaciones</th>
+            <th onclick="sortBy('Proveedor','hist')">Proveedor <span class="sort-icon">↕</span></th>
+          </tr>
+        </thead>
+        <tbody id="tbody-hist"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = "https://script.google.com/macros/s/AKfycbxbV8zsJ4o0OnYe3z1E3FvuAUm7Uy1TWTiXpPKstKuBguF5aB9qsEVBb77TvtFIK7mJNQ/exec";
+const COLS = ["Pedido","Fecha","Cliente","N° Caja","Tipo Material","Largo","Ancho","Trazados","Cantidad","Observaciones","Proveedor"];
+
+let allData = [];
+let sortCol = "Pedido";
+let sortDir = 1;
+let filterField = "todos";
+let activeProv = "";
+
+// Datos iniciales de Idesa
+const SEED = [
+["1340","20/02/26","Argentrade","5094","Pliegos impr. DT 120 Liner","1510","1350","260-830-260","2000","Impresión: JEICO / Entrega: 06/03/26","Idesa"],
+["1341","23/02/26","60x40x40","","Liner 110","2040","800","200-400-200","1200","K 110","Idesa"],
+["1342","24/02/26","30x20x125//30x25x20","","Liner 90","1140","775","100-125-100//125-200-125","1200","","Idesa"],
+["1342","24/02/26","50x40x24","","Liner 90","1840","640","200-240-200","820","","Idesa"],
+["1342","24/02/26","50x40x30","","Liner 90","1840","700","200-300-200","760","","Idesa"],
+["1342","24/02/26","60x40x30","","Liner 90","2040","700","200-300-200","1000","K 90","Idesa"],
+["1343","24/02/26","Argentrade","5113","Pliegos impr. DT 120 Liner","1510","1350","260-830-260","2400","Nueva Imp: JEICO 29\" / Entrega: 12/03/26","Idesa"],
+["1344","26/02/26","Richmond","2574","Microcorr. Liner 90","1090","600","Sin trazar","3300","","Idesa"],
+["1345","26/02/26","Autop.fal","","Liner 110","1385","1150","260-630-260","700","10 sin imp.","Idesa"],
+["1345","26/02/26","Sew","995/N°3","DT 120 Liner","1740","560","150-260-150","700","","Idesa"],
+["1346","02/03/26","Argentrade","5067","Pliegos impr. DT 120 Liner","1810","1370","270-830-270","1550","Impresión RANDERS / Entrega: 25/03/26","Idesa"],
+["1346","02/03/26","Argentrade","5067","Pliegos impr. DT 120 Liner","1810","1370","270-830-270","1550","Impresión RANDERS / Entrega: 01/04/26","Idesa"],
+["1346","02/03/26","Argentrade","5067","Pliegos impr. DT 120 Liner","1810","1370","270-830-270","2350","Impresión RANDERS / Entrega: 08/04/26","Idesa"],
+["1347","02/03/26","Dixter","2726/10737","Kraft 140","1420","584","147-290-147","520","No mas","Idesa"],
+["1348","02/03/26","Compfort","","DT 120 Liner","1920","910","235-440-235","200","No mas","Idesa"],
+["1348","02/03/26","Compfort","","DT 120 Liner","1175","626","208-210-208","400","No mas","Idesa"],
+["1349","02/03/26","Ritossa","1074","Liner 90","1440","1000","150-250-150//150-150-150","800","40x30x25","Idesa"],
+["1350","05/03/26","Decorac.","4764","Liner 90","1200","400","80-80-80-80","2200","RETIRA NICO","Idesa"],
+["1351","05/03/26","Intex","N°2","Liner 90","1320","410","130-150-130","1000","","Idesa"],
+["1353","06/03/26","Dario Díaz","5052","Liner 110","1440","750","50-650-50","1000","","Idesa"],
+["1354","06/03/26","stock","","Liner 60","1200","1000","Sin trazar","1500","","Idesa"],
+["1355","06/03/26","ACA","4955","Cajas DT 470x270x294","","","","3700","LEGADO PRO / Entrega CAMPANA desde 30/03","Idesa"],
+["1356","09/03/26","Staco","2927","DT 120 Liner","1700","805","235-145-240-145-40","1000","","Idesa"],
+["1357","10/03/26","40x30x30","","DT 120 Liner","1440","600","150-300-150","1500","DT","Idesa"],
+["1358","11/03/26","Autop.fal","4603","Liner 110","1445","581","163-255-163","1250","","Idesa"],
+["1359","12/03/26","Estudio Te","5065","DT 120 Liner","1198","1588","257-1074-257","310","Manija troquelada / simil Pedido N°1088","Idesa"],
+["1360","16/03/26","Wolfre","5061","Liner 110","1370","776","333-110-333","500","","Idesa"],
+["1361","16/03/26","Ibc","1365","DT120 Liner","1810","606","168-270-168","4400","","Idesa"],
+["1361","16/03/26","Ibc","2421","DT 120 Liner","2160","650","210-230-210","2000","","Idesa"],
+["1362","17/03/26","Plastipren","1045","DT120 Liner","2040","600","200-200-200","2500","","Idesa"],
+["1363","18/03/26","30x20x15//30x20x25","","Liner 90","1040","800","100-150-100//100-250-100","1250","","Idesa"],
+["1364","18/03/26","60x50x50","","DT 120 Liner","1140","1000","250-500-250","500","","Idesa"],
+["1364","18/03/26","Dromex","4225","DT 120 Liner","1410","706","148-410-148","6000","","Idesa"],
+["1365","18/03/26","stock","","Liner 60","1200","1000","Sin trazar","1500","","Idesa"],
+["1366","19/03/26","DP.5119","40x30x30","DT 120 Liner","1480","735","Sin trazar","500","No mas","Idesa"],
+["1367","26/03/26","Wolfre","4767","Liner 110","1760","811","203-405-203","360","","Idesa"],
+["1368","26/03/26","symonds","","Microcorr. Liner 90","480","720","Sin trazar","15000","","Idesa"],
+["1369","26/03/26","Igual","4798","Liner 90","1300","480","140-200-140","5000","","Idesa"],
+["1370","26/03/26","Casa Manu","5054","Blanco Liner","970","391","108-175-108","2050","","Idesa"],
+["1371","27/03/26","Mervick","4316","Liner 90","1390","425","145-135-145","1500","","Idesa"],
+["1371","27/03/26","Mervick","4827","DT 120 Liner","1330","451","133-185-133","1500","","Idesa"],
+["1372","30/03/26","Dromex","","DT 120 Liner","1140","380","Sin trazar","1200","","Idesa"],
+["1373","30/03/26","30x30x30//30x20x20","","Liner 90","1240","1000","150-300-150//100-200-100","1200","","Idesa"],
+["1373","30/03/26","40x30x30","","Liner 90","1440","600","150-300-150","1200","","Idesa"],
+["1374","30/03/26","Arie","5055","Liner 110","2040","650","200-250-200","500","","Idesa"],
+["1375","06/04/26","Aceroac","667","Liner 60","820","820","Sin trazar","2600","Entregar Caracas 2162 CABA / No más","Idesa"],
+["1376","06/04/26","Diral","2748","Liner 90","1840","780","200-380-200","550","No mas","Idesa"],
+["1377","06/04/26","DP World","4471","DT 120 Liner","1205","816","238-340-238","520","NO MAS","Idesa"],
+["1378","06/04/26","40x30x30","","DT 120 Liner","1440","600","150-300-150","1500","DT","Idesa"],
+["1379","14/04/26","Burkol","4849","DT 120 Liner","1040","414","97-220-97","650","","Idesa"],
+["1379","14/04/26","40x30x30","","Liner 90","1440","600","150-300-150","1500","","Idesa"],
+["1380","14/04/26","40x30x20","","Liner 90","1440","500","150-200-150","1500","","Idesa"],
+["1381","15/04/26","ACA","4976","Cajas DT 120L 470x270x294","","","","2600","Caja: TEMPUS / Entrega desde 04/05","Idesa"],
+["1381","15/04/26","ACA","1297","Cajas DT 120L 380x275x255","","","","3100","Caja: SPECTOR 25 / Entrega desde 04/05","Idesa"],
+["1381","15/04/26","ACA","4976","Cajas DT 120L 470x270x294","","","","2600","Caja: DICAMAX 58 / Entrega desde 04/05","Idesa"],
+["1381","15/04/26","ACA","4811","Cajas DT 120L 470x270x294","","","","2100","Caja: CAMBIUM / Entrega desde 04/05","Idesa"],
+["1382","16/04/26","Diral","4566","DT 120 Liner","1890","670","205-260-205","550","No mas","Idesa"],
+["1383","16/04/26","35x30x25//40x25x25","","Liner 90","1340","1050","150-250-150//125-250-125","750","No mas","Idesa"],
+["1383","16/04/26","60x40x30","","Liner 110","2040","700","200-300-200","800","110","Idesa"],
+["1383","16/04/26","60x40x40","","Liner 110","2040","800","200-400-200","1000","110","Idesa"],
+["1383","16/04/26","60x50x50","","Liner 110","1140","1000","250-500-250","900","","Idesa"],
+["1384","17/04/26","Demiquelli","5121","Liner 90","1250","511","123-265-123","1600","No mas","Idesa"],
+["1385","16/04/26","Casa Manu","5057/5058/5059","Blanco Liner","1000","375","Sin trazar","4700","","Idesa"],
+["1386","17/04/26","stock","","Liner 60","1200","1000","Sin trazar","1500","","Idesa"],
+["1387","20/04/26","Bottcher","4859","DT 120 Liner","1670","560","Sin trazar","550","","Idesa"],
+["1387","20/04/26","Bottcher","4906","DT 120 Liner","1950","680","Sin trazar","500","","Idesa"],
+["1388","21/04/26","Aut.fal","N°10","Liner 110","1385","1150","260-630-260","1200","","Idesa"],
+["1389","21/04/26","Panoni","1243","Liner 110","2040","800","200-400-200","1000","","Idesa"],
+["1390","24/04/26","Mervick","4317","Liner 90","1140","396","118-160-118","1100","No mas","Idesa"],
+["1390","24/04/26","Mervick","4842","DT 120 Liner","1480","521","168-185-168","1500","","Idesa"],
+["1390","24/04/26","40x30x15","","Liner 90","1440","450","150-150-150","1000","","Idesa"],
+["1391","24/04/26","Bioars","5060","Liner 110","1960","670","200-270-200","1000","","Idesa"],
+["1392","27/04/26","Almar","2915","Liner 110","1720","1560","70-1420-70","500","","Idesa"],
+["1393","27/04/26","Monpres","1073","Liner 110","1360","490","165-160-165","620","No mas","Idesa"],
+["1394","28/04/26","ITC","2772","Liner 90","2020","710","170-370-170","1000","","Idesa"],
+["1395","29/04/26","Bremet","4991","DT 120 Liner","1440","450","150-150-150","800","","Idesa"],
+["1395","29/04/26","40x30x30","","DT 120 Liner","1440","600","150-300-150","1500","DT","Idesa"],
+["1396","30/04/26","De aloisio","5122","Liner 90","1720","521","178-165-178","2000","","Idesa"],
+["1397","04/05/26","40x30x20","","Liner 90","1440","500","150-200-150","1500","","Idesa"],
+["1397","04/05/26","50x40x35","","DT 120 Liner","1840","750","200-350-200","400","DT","Idesa"],
+["1397","04/05/26","Compuspar","4396/4381","DT 120 Liner","1090","696","Sin trazar","800","","Idesa"],
+["1397","04/05/26","Compuepar","5026/4395/4723","DT 120 Liner","1160","910","Sin trazar","750","carricaberry","Idesa"],
+["1398","05/05/26","ACA","4958","Cajas DT 120L 450x275x270","","","","2500","ACA PACK PREMIUM XL / Entrega desde 26/05","Idesa"],
+["1398","05/05/26","ACA","5123","Cajas DT 120L 470x270x294","","","","2300","CELSIUM / Entrega desde 20/05","Idesa"],
+["1399","04/05/26","symonds","","Microcorr. Liner 90","480","720","Sin trazar","7500","","Idesa"],
+["1400","06/05/26","Panoni","2665","Liner 90","1190","611","153-305-153","1000","","Idesa"]
+];
+
+function rowToObj(arr){ const o={}; COLS.forEach((c,i)=>o[c]=arr[i]||""); return o; }
+function objToRow(o){ return COLS.map(c=>o[c]||""); }
+
+async function loadData(){
+  allData = SEED.map(rowToObj);
+  renderAll();
+  try{
+    const r = await fetch(API);
+    const json = await r.json();
+    if(json.ok && json.data && json.data.length > 0){
+      const remote = json.data.filter(d=>d.Pedido);
+      // Merge: remote overrides seed for same pedido+cliente+tipo
+      const key = d=>`${d.Pedido}|${d.Cliente}|${d['Tipo Material']}`;
+      const seedKeys = new Set(allData.map(key));
+      const newRows = remote.filter(d=>!seedKeys.has(key(d)));
+      allData = [...allData, ...newRows];
+      renderAll();
+    }
+  } catch(e){ console.log("Sin conexión, usando datos locales"); }
+}
+
+function renderAll(){ renderBuscar(); renderProveedores(); renderHistorial(); buildProvFilter(); }
+
+function hl(t,q){
+  if(!q) return String(t||"");
+  const re=new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
+  return String(t||"").replace(re,'<mark>$1</mark>');
+}
+
+function sortBy(col, page){
+  if(sortCol===col) sortDir*=-1; else{ sortCol=col; sortDir=1; }
+  if(page==='hist') renderHistorial(); else renderBuscar();
+}
+
+function getFiltered(q, prov, field){
+  return allData.filter(r=>{
+    const matchProv = !prov || r.Proveedor===prov;
+    if(!q) return matchProv;
+    const qq=q.toLowerCase();
+    const matchQ = field==='todos'
+      ? Object.values(r).some(v=>String(v).toLowerCase().includes(qq))
+      : String(r[field]||"").toLowerCase().includes(qq);
+    return matchProv && matchQ;
+  });
+}
+
+function getSorted(arr){
+  return [...arr].sort((a,b)=>{
+    const va=String(a[sortCol]||""), vb=String(b[sortCol]||"");
+    const na=parseFloat(va), nb=parseFloat(vb);
+    if(!isNaN(na)&&!isNaN(nb)) return (na-nb)*sortDir;
+    return va.localeCompare(vb,'es')*sortDir;
+  });
+}
+
+function makeRow(r,q,showProv){
+  const c=(f)=>hl(r[f],q);
+  return `<tr>
+    <td><span class="badge">${c('Pedido')}</span></td>
+    <td>${c('Fecha')}</td>
+    <td>${c('Cliente')}</td>
+    <td style="color:#888">${c('N° Caja')}</td>
+    <td>${c('Tipo Material')}</td>
+    <td style="color:#888">${c('Largo')}</td>
+    <td style="color:#888">${c('Ancho')}</td>
+    <td style="color:#888;font-size:11px">${c('Trazados')}</td>
+    <td style="font-weight:600">${c('Cantidad')}</td>
+    <td class="obs">${c('Observaciones')}</td>
+    ${showProv?`<td><span class="badge prov">${c('Proveedor')}</span></td>`:''}
+  </tr>`;
+}
+
+function setFB(f,btn){
+  filterField=f;
+  document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderBuscar();
+}
+
+function renderBuscar(){
+  const q=document.getElementById('q-buscar').value.trim().toLowerCase();
+  const prov=document.getElementById('prov-filter').value;
+  const filtered=getSorted(getFiltered(q,prov,filterField));
+  document.getElementById('res-info').textContent=`${filtered.length} resultado${filtered.length!==1?'s':''} de ${allData.length} registros`;
+  const tb=document.getElementById('tbody-buscar');
+  tb.innerHTML=filtered.length
+    ? filtered.map(r=>makeRow(r,q,true)).join('')
+    : '<tr><td colspan="11" class="empty-state">Sin resultados</td></tr>';
+}
+
+function buildProvFilter(){
+  const provs=[...new Set(allData.map(r=>r.Proveedor).filter(Boolean))].sort();
+  const sel=document.getElementById('prov-filter');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">Todos los proveedores</option>'+provs.map(p=>`<option value="${p}"${p===cur?' selected':''}>${p}</option>`).join('');
+}
+
+function renderProveedores(){
+  const provs=[...new Set(allData.map(r=>r.Proveedor).filter(Boolean))].sort();
+  if(!activeProv || !provs.includes(activeProv)) activeProv=provs[0]||"";
+  const tabs=document.getElementById('prov-tabs');
+  tabs.innerHTML=provs.map(p=>`<button class="ptab${p===activeProv?' active':''}" onclick="setProv('${p}')">${p}</button>`).join('');
+  const rows=getSorted(allData.filter(r=>r.Proveedor===activeProv));
+  document.getElementById('res-prov').textContent=`${rows.length} registro${rows.length!==1?'s':''}`;
+  const tb=document.getElementById('tbody-prov');
+  tb.innerHTML=rows.length
+    ? rows.map(r=>makeRow(r,'',false)).join('')
+    : '<tr><td colspan="10" class="empty-state">Sin registros</td></tr>';
+}
+
+function setProv(p){ activeProv=p; renderProveedores(); }
+
+function renderHistorial(){
+  const q=document.getElementById('q-hist').value.trim().toLowerCase();
+  const filtered=getSorted(getFiltered(q,'','todos'));
+  document.getElementById('res-hist').textContent=`${filtered.length} registro${filtered.length!==1?'s':''}`;
+  const tb=document.getElementById('tbody-hist');
+  tb.innerHTML=filtered.length
+    ? filtered.map(r=>makeRow(r,q,true)).join('')
+    : '<tr><td colspan="11" class="empty-state">Sin resultados</td></tr>';
+}
+
+function exportCSV(){
+  const q=document.getElementById('q-buscar')?document.getElementById('q-buscar').value.trim().toLowerCase():'';
+  const prov=document.getElementById('prov-filter')?document.getElementById('prov-filter').value:'';
+  const rows=getSorted(getFiltered(q,prov,filterField));
+  const header=COLS.join(',');
+  const csv=[header,...rows.map(r=>COLS.map(c=>`"${String(r[c]||"").replace(/"/g,'""')}"`).join(','))].join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+  a.download='pedidos_eg_corrugados.csv';
+  a.click();
+}
+
+// FORM
+let itemRows=[];
+function addItemRow(data){
+  const id=Date.now();
+  const d=data||{};
+  itemRows.push(id);
+  const tr=document.createElement('tr');
+  tr.id='item-'+id;
+  tr.innerHTML=`
+    <td><input placeholder="Cliente" value="${d.cliente||''}"></td>
+    <td><input placeholder="N° Caja" value="${d.caja||''}"></td>
+    <td><input placeholder="Tipo material" value="${d.tipo||''}"></td>
+    <td><input placeholder="Largo" type="number" value="${d.largo||''}"></td>
+    <td><input placeholder="Ancho" type="number" value="${d.ancho||''}"></td>
+    <td><input placeholder="Trazados" value="${d.trazados||''}"></td>
+    <td><input placeholder="Cantidad" type="number" value="${d.cantidad||''}"></td>
+    <td><input placeholder="Observaciones" value="${d.obs||''}"></td>
+    <td><button class="btn-remove" onclick="removeRow(${id})">✕</button></td>`;
+  document.getElementById('items-body').appendChild(tr);
+}
+function removeRow(id){
+  document.getElementById('item-'+id).remove();
+  itemRows=itemRows.filter(i=>i!==id);
+}
+function getItems(){
+  return itemRows.map(id=>{
+    const tr=document.getElementById('item-'+id);
+    if(!tr) return null;
+    const inp=tr.querySelectorAll('input');
+    return {cliente:inp[0].value,caja:inp[1].value,tipo:inp[2].value,
+      largo:inp[3].value,ancho:inp[4].value,trazados:inp[5].value,
+      cantidad:inp[6].value,obs:inp[7].value};
+  }).filter(Boolean);
+}
+
+function setToday(){
+  const d=new Date();
+  const dd=String(d.getDate()).padStart(2,'0');
+  const mm=String(d.getMonth()+1).padStart(2,'0');
+  const yy=String(d.getFullYear()).slice(2);
+  return `${dd}/${mm}/${yy}`;
+}
+
+function previewMail(){
+  const ped=document.getElementById('f-pedido').value||'—';
+  const fecha=document.getElementById('f-fecha').value||setToday();
+  const prov=document.getElementById('f-proveedor').value;
+  const items=getItems();
+  if(!items.length){ alert('Agregá al menos un ítem'); return; }
+  const fechaFmt = fecha ? fecha.split('-').reverse().join('/') : setToday();
+  let txt=`GUIDO PEDIDO N° ${ped}\nFecha ${fechaFmt}\n\n`;
+  txt+=`${'N°'.padEnd(4)}${'CANTIDAD'.padEnd(12)}${'TIPO MATERIAL'.padEnd(22)}${'LARGO'.padEnd(8)}${'ANCHO'.padEnd(8)}${'TRAZADOS'.padEnd(22)}${'CLIENTE'.padEnd(20)}OBSERVACIONES\n`;
+  txt+='─'.repeat(110)+'\n';
+  items.forEach((it,i)=>{
+    txt+=`${String(i+1).padEnd(4)}${it.cantidad.padEnd(12)}${it.tipo.padEnd(22)}${it.largo.padEnd(8)}${it.ancho.padEnd(8)}${it.trazados.padEnd(22)}${it.cliente.padEnd(20)}${it.obs}\n`;
+  });
+  txt+=`\nEnviado vía e-mail\nProveedor: ${prov}`;
+  document.getElementById('preview-box').textContent=txt;
+}
+
+function copyMail(){
+  previewMail();
+  const txt=document.getElementById('preview-box').textContent;
+  if(!txt.trim()) return;
+  navigator.clipboard.writeText(txt).then(()=>{
+    const s=document.getElementById('status-nuevo');
+    s.className='status ok'; s.textContent='✓ Texto copiado al portapapeles. Podés pegarlo en el mail.';
+    setTimeout(()=>s.style.display='none',3000);
+  });
+}
+
+async function guardarPedido(){
+  const ped=document.getElementById('f-pedido').value.trim();
+  const fecha=document.getElementById('f-fecha').value;
+  const prov=document.getElementById('f-proveedor').value;
+  const items=getItems();
+  const st=document.getElementById('status-nuevo');
+  if(!ped||!items.length){ st.className='status err'; st.textContent='Completá el N° de pedido y al menos un ítem.'; return; }
+  const fechaFmt = fecha ? fecha.split('-').reverse().join('/') : setToday();
+  st.className='status loading'; st.textContent='Guardando...';
+  let ok=true;
+  for(const it of items){
+    const row={Pedido:ped,Fecha:fechaFmt,Cliente:it.cliente,'N° Caja':it.caja,
+      'Tipo Material':it.tipo,Largo:it.largo,Ancho:it.ancho,Trazados:it.trazados,
+      Cantidad:it.cantidad,Observaciones:it.obs,Proveedor:prov};
+    try{
+      await fetch(API,{method:'POST',body:JSON.stringify({action:'add',row}),headers:{'Content-Type':'application/json'}});
+      allData.push(row);
+    } catch(e){ ok=false; }
+  }
+  if(ok){
+    st.className='status ok'; st.textContent=`✓ Pedido N°${ped} guardado con ${items.length} ítem(s).`;
+    renderAll();
+  } else {
+    st.className='status err'; st.textContent='Hubo un error al guardar. Verificá la conexión.';
+  }
+}
+
+function goTo(page, btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  btn.classList.add('active');
+  if(page==='proveedores') renderProveedores();
+}
+
+// Agregar proveedores al select del form
+function buildProvSelect(){
+  const provs=[...new Set(allData.map(r=>r.Proveedor).filter(Boolean))].sort();
+  const sel=document.getElementById('f-proveedor');
+  sel.innerHTML=provs.map(p=>`<option value="${p}">${p}</option>`).join('')+'<option value="Otro">+ Otro proveedor</option>';
+}
+
+// Init
+addItemRow();
+document.getElementById('f-fecha').valueAsDate=new Date();
+loadData().then(()=>buildProvSelect());
+</script>
+</body>
+</html>
