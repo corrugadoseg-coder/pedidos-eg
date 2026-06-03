@@ -696,10 +696,23 @@ function previewMail() {
 
 function copyMail() {
   previewMail();
-  if (!lastPreviewText) return;
-  navigator.clipboard.writeText(lastPreviewText).then(function() {
-    showStatus("ok", "Texto copiado. Podes pegarlo en el mail.");
-    setTimeout(function() { document.getElementById("status-nuevo").style.display = "none"; }, 3000);
+  var ped = document.getElementById("f-pedido").value || "--";
+  var fecha = fmtDate(document.getElementById("f-fecha").value);
+  var prov = document.getElementById("f-proveedor").value;
+  var items = getItems();
+  if (!items.length) return;
+  var mailCols = getCols(prov).filter(function(c) { return c.mail && c.key !== "Pedido" && c.key !== "Fecha"; });
+  var html = buildPreviewHTML(ped, fecha, prov, items, mailCols);
+  var blob = new Blob([html], {type: "text/html"});
+  var clipItem = new ClipboardItem({"text/html": blob});
+  navigator.clipboard.write([clipItem]).then(function() {
+    showStatus("ok", "Tabla copiada. Pega directamente en Gmail u Outlook y se vera con columnas alineadas.");
+    setTimeout(function() { document.getElementById("status-nuevo").style.display = "none"; }, 4000);
+  }).catch(function() {
+    navigator.clipboard.writeText(lastPreviewText).then(function() {
+      showStatus("ok", "Copiado como texto. Podes pegarlo en el mail.");
+      setTimeout(function() { document.getElementById("status-nuevo").style.display = "none"; }, 3000);
+    });
   });
 }
 
@@ -712,11 +725,17 @@ function printPedido() {
   if (!items.length) { alert("Agrega al menos un item"); return; }
   var mailCols = getCols(prov).filter(function(c) { return c.mail && c.key !== "Pedido" && c.key !== "Fecha"; });
   var html = buildPreviewHTML(ped, fecha, prov, items, mailCols);
-  var w = window.open("", "_blank", "width=800,height=600");
-  w.document.write("<html><head><title>Pedido " + ped + "</title><style>body{font-family:Arial,sans-serif;padding:24px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:7px 10px;font-size:13px}th{background:#f0f0ec}</style></head><body>" + html + "</body></html>");
-  w.document.close();
-  w.focus();
-  setTimeout(function() { w.print(); }, 500);
+  var iframe = document.getElementById("print-iframe");
+  if (!iframe) {
+    iframe = document.createElement("iframe");
+    iframe.id = "print-iframe";
+    iframe.style.cssText = "position:fixed;top:-9999px;left:-9999px;width:800px;height:600px;border:none";
+    document.body.appendChild(iframe);
+  }
+  iframe.contentDocument.open();
+  iframe.contentDocument.write("<html><head><title>Pedido " + ped + "</title><style>body{font-family:Arial,sans-serif;padding:24px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:7px 10px;font-size:13px}th{background:#f0f0ec}</style></head><body>" + html + "</body></html>");
+  iframe.contentDocument.close();
+  setTimeout(function() { iframe.contentWindow.focus(); iframe.contentWindow.print(); }, 500);
 }
 
 function showStatus(type, msg) {
