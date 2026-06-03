@@ -8,99 +8,92 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Arial,sans-serif;background:#f5f5f0;color:#222;font-size:14px}
 header{background:#1a1a2e;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px}
-header h1{font-size:18px;font-weight:600;letter-spacing:.5px}
+header h1{font-size:18px;font-weight:600}
 header span{font-size:12px;opacity:.6}
-nav{background:#fff;border-bottom:1px solid #ddd;display:flex;gap:0;padding:0 24px}
-nav button{padding:12px 20px;border:none;background:none;cursor:pointer;font-size:13px;color:#666;border-bottom:2px solid transparent;transition:all .15s}
+nav{background:#fff;border-bottom:1px solid #ddd;display:flex;gap:0;padding:0 24px;flex-wrap:wrap}
+nav button{padding:12px 18px;border:none;background:none;cursor:pointer;font-size:13px;color:#666;border-bottom:2px solid transparent}
 nav button.active{color:#1a1a2e;border-bottom-color:#1a1a2e;font-weight:600}
 nav button:hover{color:#1a1a2e;background:#f9f9f9}
-.page{display:none;padding:20px 24px;max-width:1200px;margin:0 auto}
+.page{display:none;padding:20px 24px;max-width:1400px;margin:0 auto}
 .page.active{display:block}
 .card{background:#fff;border-radius:8px;border:1px solid #e0e0e0;padding:20px;margin-bottom:16px}
 h2{font-size:16px;font-weight:600;margin-bottom:16px;color:#1a1a2e}
 h3{font-size:14px;font-weight:600;margin-bottom:12px;color:#333}
-
-/* Search */
-.search-row{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap}
-.search-row input{flex:1;min-width:200px;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:13px}
-.search-row select{padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:13px;background:#fff}
+.toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.toolbar input,.toolbar select{padding:7px 11px;border:1px solid #ddd;border-radius:6px;font-size:13px;background:#fff}
+.toolbar input{min-width:220px}
 .filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
 .filter-row span{font-size:12px;color:#888}
 .fbtn{padding:5px 14px;border:1px solid #ccc;border-radius:20px;background:#fff;font-size:12px;cursor:pointer;color:#555}
 .fbtn.active{background:#1a1a2e;color:#fff;border-color:#1a1a2e}
-.results-info{font-size:12px;color:#888;margin-bottom:8px}
-
-/* Table */
+.res-info{font-size:12px;color:#888;margin-bottom:8px}
+.date-range{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.date-range label{font-size:12px;color:#666;font-weight:600}
+.date-range input{padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:12px}
+.btn{padding:7px 16px;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600}
+.btn-dark{background:#1a1a2e;color:#fff}
+.btn-dark:hover{background:#2d2d4e}
+.btn-green{background:#2e7d32;color:#fff}
+.btn-green:hover{background:#1b5e20}
+.btn-outline{background:#fff;color:#1a1a2e;border:1px solid #1a1a2e}
+.btn-sm{padding:4px 10px;font-size:11px;border-radius:4px;border:1px solid #ccc;cursor:pointer;background:#fff}
 .tbl-wrap{overflow-x:auto;border:1px solid #e0e0e0;border-radius:8px}
-table{width:100%;border-collapse:collapse;font-size:12px;min-width:900px}
+table{width:100%;border-collapse:collapse;font-size:12px}
 thead th{background:#f0f0ec;color:#555;font-weight:600;padding:9px 10px;text-align:left;border-bottom:1px solid #e0e0e0;white-space:nowrap;cursor:pointer;user-select:none}
 thead th:hover{background:#e8e8e4}
-thead th .sort-icon{margin-left:4px;opacity:.4}
-thead th.sorted .sort-icon{opacity:1}
 tbody tr{border-bottom:1px solid #f0f0f0}
 tbody tr:last-child{border-bottom:none}
 tbody tr:hover{background:#fafaf8}
-tbody td{padding:7px 10px;vertical-align:top}
-td.obs{font-size:11px;color:#888;max-width:180px;white-space:normal}
+tbody tr.anulado{opacity:.5}
+tbody tr.anulado td{text-decoration:line-through;color:#999}
+tbody td{padding:7px 10px;vertical-align:middle}
 .badge{background:#e8f0fe;color:#1a56db;font-size:11px;padding:2px 8px;border-radius:12px;font-weight:600;white-space:nowrap}
-.badge.prov{background:#e8f5e9;color:#2e7d32}
+.badge-prov{background:#e8f5e9;color:#2e7d32}
+.badge-env{background:#fff3e0;color:#e65100;font-size:11px;padding:2px 8px;border-radius:12px;font-weight:600}
+.badge-rec{background:#e8f5e9;color:#2e7d32;font-size:11px;padding:2px 8px;border-radius:12px;font-weight:600}
+.badge-anu{background:#fce4ec;color:#b71c1c;font-size:11px;padding:2px 8px;border-radius:12px;font-weight:600;text-decoration:line-through}
 mark{background:#fff3cd;border-radius:2px;padding:0 1px}
-.btn-exp{padding:7px 16px;background:#1a1a2e;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;float:right;margin-bottom:8px}
-.btn-exp:hover{background:#2d2d4e}
-
-/* Form */
+.obs-cell{max-width:160px;white-space:normal;font-size:11px;color:#666}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.form-grid.three{grid-template-columns:1fr 1fr 1fr}
 .form-group{display:flex;flex-direction:column;gap:4px}
 .form-group label{font-size:12px;color:#666;font-weight:600}
 .form-group input,.form-group select,.form-group textarea{padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;background:#fff}
-.form-group textarea{resize:vertical;min-height:60px}
+.form-group textarea{resize:vertical;min-height:80px}
 .form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:#1a1a2e}
 .form-divider{border:none;border-top:1px solid #eee;margin:16px 0}
 .items-table{width:100%;border-collapse:collapse;margin-bottom:12px}
 .items-table th{background:#f5f5f0;font-size:11px;color:#666;font-weight:600;padding:7px 8px;text-align:left;border:1px solid #e0e0e0}
-.items-table td{padding:5px 4px;border:1px solid #e0e0e0}
-.items-table td input{width:100%;padding:5px 6px;border:1px solid #ddd;border-radius:4px;font-size:12px}
-.btn-add-row{padding:6px 14px;background:#f0f0ec;border:1px solid #ccc;border-radius:6px;cursor:pointer;font-size:12px;margin-bottom:12px}
-.btn-add-row:hover{background:#e8e8e4}
+.items-table td{padding:4px;border:1px solid #e0e0e0;vertical-align:middle}
+.items-table td input,.items-table td select,.items-table td textarea{width:100%;padding:5px 6px;border:1px solid #ddd;border-radius:4px;font-size:12px;background:#fff}
+.items-table td textarea{min-height:60px;resize:vertical}
 .btn-remove{background:#fee;border:1px solid #fcc;color:#c00;padding:3px 8px;border-radius:4px;cursor:pointer;font-size:11px}
 .actions-row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
-.btn-primary{padding:10px 24px;background:#1a1a2e;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600}
-.btn-primary:hover{background:#2d2d4e}
-.btn-secondary{padding:10px 24px;background:#fff;color:#1a1a2e;border:1px solid #1a1a2e;border-radius:6px;cursor:pointer;font-size:13px}
-.btn-copy{padding:10px 24px;background:#2e7d32;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600}
-.btn-copy:hover{background:#1b5e20}
-
-/* Preview */
 .preview-box{background:#f9f9f6;border:1px solid #ddd;border-radius:6px;padding:16px;font-family:monospace;font-size:12px;white-space:pre-wrap;line-height:1.6;margin-top:12px;max-height:300px;overflow-y:auto}
-
-/* Status */
 .status{padding:10px 16px;border-radius:6px;font-size:13px;margin-top:12px;display:none}
 .status.ok{background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;display:block}
 .status.err{background:#ffebee;color:#c62828;border:1px solid #ffcdd2;display:block}
 .status.loading{background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb;display:block}
-
-/* Proveedores tabs */
 .prov-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
 .ptab{padding:7px 18px;border:1px solid #ddd;border-radius:20px;background:#fff;cursor:pointer;font-size:13px;color:#555}
 .ptab.active{background:#1a1a2e;color:#fff;border-color:#1a1a2e}
 .empty-state{text-align:center;padding:40px;color:#aaa;font-size:13px}
-
-@media(max-width:600px){
-  .form-grid,.form-grid.three{grid-template-columns:1fr}
-  nav button{padding:10px 12px;font-size:12px}
+.print-header{display:none;margin-bottom:16px}
+@media print{
+  header,nav,.toolbar,.filter-row,.date-range,.actions-row,.btn,.fbtn,.res-info,.no-print{display:none!important}
+  .page{display:block!important;padding:0}
+  .card{border:none;padding:0}
+  body{background:#fff}
+  .print-header{display:block!important}
 }
 </style>
 </head>
 <body>
-
 <header>
   <div>
     <h1>E.G. Corrugados S.R.L.</h1>
     <span>Sistema de pedidos de materia prima</span>
   </div>
 </header>
-
 <nav>
   <button class="active" onclick="goTo('buscar',this)">🔍 Buscador</button>
   <button onclick="goTo('nuevo',this)">➕ Nuevo pedido</button>
@@ -108,15 +101,13 @@ mark{background:#fff3cd;border-radius:2px;padding:0 1px}
   <button onclick="goTo('historial',this)">📋 Historial</button>
 </nav>
 
-<!-- BUSCADOR -->
 <div id="page-buscar" class="page active">
   <div class="card">
     <h2>Buscador de pedidos</h2>
-    <div class="search-row">
+    <div class="toolbar">
       <input type="text" id="q-buscar" placeholder="Buscar en todos los campos..." oninput="renderBuscar()">
-      <select id="prov-filter" onchange="renderBuscar()">
-        <option value="">Todos los proveedores</option>
-      </select>
+      <select id="prov-filter-b" onchange="renderBuscar()"><option value="">Todos los proveedores</option></select>
+      <button class="btn btn-dark no-print" onclick="exportCSV('buscar')">⬇ Exportar CSV</button>
     </div>
     <div class="filter-row">
       <span>Filtrar por:</span>
@@ -126,498 +117,609 @@ mark{background:#fff3cd;border-radius:2px;padding:0 1px}
       <button class="fbtn" onclick="setFB('Cliente',this)">Cliente</button>
       <button class="fbtn" onclick="setFB('Tipo Material',this)">Artículo</button>
     </div>
-    <button class="btn-exp" onclick="exportCSV()">⬇ Exportar CSV</button>
-    <div class="results-info" id="res-info"></div>
-    <div class="tbl-wrap">
-      <table id="tbl-buscar">
-        <thead>
-          <tr>
-            <th onclick="sortBy('Pedido')" title="Ordenar">N° Pedido <span class="sort-icon">↕</span></th>
-            <th onclick="sortBy('Fecha')" title="Ordenar">Fecha <span class="sort-icon">↕</span></th>
-            <th onclick="sortBy('Cliente')" title="Ordenar">Cliente <span class="sort-icon">↕</span></th>
-            <th>N° Caja</th>
-            <th onclick="sortBy('Tipo Material')" title="Ordenar">Tipo material <span class="sort-icon">↕</span></th>
-            <th onclick="sortBy('Largo')" title="Ordenar">Largo <span class="sort-icon">↕</span></th>
-            <th>Ancho</th>
-            <th>Trazados</th>
-            <th onclick="sortBy('Cantidad')" title="Ordenar">Cantidad <span class="sort-icon">↕</span></th>
-            <th>Observaciones</th>
-            <th onclick="sortBy('Proveedor')" title="Ordenar">Proveedor <span class="sort-icon">↕</span></th>
-          </tr>
-        </thead>
-        <tbody id="tbody-buscar"></tbody>
-      </table>
-    </div>
+    <div class="res-info" id="res-buscar"></div>
+    <div class="tbl-wrap"><table><thead><tr id="thead-buscar"></tr></thead><tbody id="tbody-buscar"></tbody></table></div>
   </div>
 </div>
 
-<!-- NUEVO PEDIDO -->
 <div id="page-nuevo" class="page">
   <div class="card">
     <h2>Nuevo pedido</h2>
     <div class="form-grid">
-      <div class="form-group">
-        <label>N° de Pedido</label>
-        <input type="text" id="f-pedido" placeholder="Ej: 1401">
-      </div>
-      <div class="form-group">
-        <label>Fecha</label>
-        <input type="date" id="f-fecha">
-      </div>
-      <div class="form-group">
-        <label>Proveedor</label>
-        <select id="f-proveedor">
-          <option value="Idesa">Idesa</option>
-          <option value="Otro">Otro</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Email del proveedor</label>
-        <input type="email" id="f-email" placeholder="proveedor@email.com">
-      </div>
+      <div class="form-group"><label>N° de Pedido</label><input type="text" id="f-pedido" placeholder="Ej: 1401"></div>
+      <div class="form-group"><label>Fecha</label><input type="date" id="f-fecha"></div>
+      <div class="form-group"><label>Proveedor</label><select id="f-proveedor" onchange="updateProvFields()"></select></div>
+      <div class="form-group"><label>Email del proveedor</label><input type="email" id="f-email" placeholder="proveedor@email.com"></div>
     </div>
     <hr class="form-divider">
     <h3>Ítems del pedido</h3>
-    <table class="items-table" id="items-table">
-      <thead>
-        <tr>
-          <th>Cliente</th><th>N° Caja</th><th>Tipo material</th>
-          <th>Largo</th><th>Ancho</th><th>Trazados</th>
-          <th>Cantidad</th><th>Observaciones</th><th></th>
-        </tr>
-      </thead>
-      <tbody id="items-body"></tbody>
-    </table>
-    <button class="btn-add-row" onclick="addItemRow()">+ Agregar ítem</button>
+    <div style="overflow-x:auto">
+      <table class="items-table"><thead id="items-thead"></thead><tbody id="items-body"></tbody></table>
+    </div>
+    <button class="btn btn-outline no-print" style="margin-bottom:12px" onclick="addItemRow()">+ Agregar ítem</button>
     <hr class="form-divider">
-    <h3>Vista previa del mail</h3>
+    <h3>Vista previa del mail <span style="font-size:11px;color:#888;font-weight:400">(sin datos internos)</span></h3>
     <div id="preview-box" class="preview-box"></div>
     <div class="actions-row">
-      <button class="btn-primary" onclick="previewMail()">👁 Previsualizar</button>
-      <button class="btn-copy" onclick="copyMail()">📋 Copiar para mail</button>
-      <button class="btn-primary" onclick="guardarPedido()">💾 Guardar pedido</button>
+      <button class="btn btn-dark" onclick="previewMail()">👁 Previsualizar</button>
+      <button class="btn btn-green" onclick="copyMail()">📋 Copiar para mail</button>
+      <button class="btn btn-dark" onclick="window.print()">🖨 Imprimir pedido</button>
+      <button class="btn btn-dark" onclick="guardarPedido()">💾 Guardar pedido</button>
     </div>
     <div id="status-nuevo" class="status"></div>
   </div>
 </div>
 
-<!-- POR PROVEEDOR -->
 <div id="page-proveedores" class="page">
   <div class="card">
     <h2>Pedidos por proveedor</h2>
     <div class="prov-tabs" id="prov-tabs"></div>
-    <div class="results-info" id="res-prov"></div>
-    <div class="tbl-wrap">
-      <table id="tbl-prov">
-        <thead>
-          <tr>
-            <th>N° Pedido</th><th>Fecha</th><th>Cliente</th><th>N° Caja</th>
-            <th>Tipo material</th><th>Largo</th><th>Ancho</th><th>Trazados</th>
-            <th>Cantidad</th><th>Observaciones</th>
-          </tr>
-        </thead>
-        <tbody id="tbody-prov"></tbody>
-      </table>
+    <div class="toolbar no-print">
+      <button class="btn btn-dark" onclick="window.print()">🖨 Imprimir</button>
+      <button class="btn btn-dark" onclick="exportCSV('prov')">⬇ Exportar CSV</button>
     </div>
+    <div class="res-info" id="res-prov"></div>
+    <div class="print-header" id="print-header-prov"></div>
+    <div class="tbl-wrap"><table><thead><tr id="thead-prov"></tr></thead><tbody id="tbody-prov"></tbody></table></div>
   </div>
 </div>
 
-<!-- HISTORIAL -->
 <div id="page-historial" class="page">
   <div class="card">
     <h2>Historial completo</h2>
-    <div class="search-row">
+    <div class="toolbar">
       <input type="text" id="q-hist" placeholder="Buscar..." oninput="renderHistorial()">
+      <select id="prov-filter-h" onchange="renderHistorial()"><option value="">Todos los proveedores</option></select>
+      <button class="btn btn-dark no-print" onclick="exportCSV('hist')">⬇ Exportar CSV</button>
     </div>
-    <button class="btn-exp" onclick="exportCSV()">⬇ Exportar CSV</button>
-    <div class="results-info" id="res-hist"></div>
-    <div class="tbl-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th onclick="sortBy('Pedido','hist')">N° Pedido <span class="sort-icon">↕</span></th>
-            <th onclick="sortBy('Fecha','hist')">Fecha <span class="sort-icon">↕</span></th>
-            <th>Cliente</th><th>N° Caja</th><th>Tipo material</th>
-            <th>Largo</th><th>Ancho</th><th>Trazados</th>
-            <th onclick="sortBy('Cantidad','hist')">Cantidad <span class="sort-icon">↕</span></th>
-            <th>Observaciones</th>
-            <th onclick="sortBy('Proveedor','hist')">Proveedor <span class="sort-icon">↕</span></th>
-          </tr>
-        </thead>
-        <tbody id="tbody-hist"></tbody>
-      </table>
+    <div class="date-range">
+      <label>Desde:</label><input type="text" id="h-desde" placeholder="01/01/26" oninput="renderHistorial()" style="width:90px">
+      <label>Hasta:</label><input type="text" id="h-hasta" placeholder="31/12/26" oninput="renderHistorial()" style="width:90px">
+      <label>N° pedido desde:</label><input type="text" id="h-ped-desde" placeholder="001" oninput="renderHistorial()" style="width:80px">
+      <label>hasta:</label><input type="text" id="h-ped-hasta" placeholder="999" oninput="renderHistorial()" style="width:80px">
+      <button class="btn-sm no-print" onclick="clearHistFilters()">✕ Limpiar</button>
     </div>
+    <div class="res-info" id="res-hist"></div>
+    <div class="tbl-wrap"><table><thead><tr id="thead-hist"></tr></thead><tbody id="tbody-hist"></tbody></table></div>
   </div>
 </div>
 
 <script>
 const API = "https://script.google.com/macros/s/AKfycbxbV8zsJ4o0OnYe3z1E3FvuAUm7Uy1TWTiXpPKstKuBguF5aB9qsEVBb77TvtFIK7mJNQ/exec";
-const COLS = ["Pedido","Fecha","Cliente","N° Caja","Tipo Material","Largo","Ancho","Trazados","Cantidad","Observaciones","Proveedor"];
+const COLS_ALL = ["Pedido","Fecha","Cliente","N° Caja","Tipo Material","Largo","Ancho","Trazados","Cantidad","Observaciones","Estado","Anotaciones","Proveedor"];
 
-let allData = [];
-let sortCol = "Pedido";
-let sortDir = 1;
-let filterField = "todos";
-let activeProv = "";
+const MAT_IDESA = ["Liner 60","Liner 90","Liner 110","Blanco Liner","DT Ondas B + Micro","DT 120 Liner","DT Blanco","Kraft 140","DT 150 con 1 puro","Otro (especificar)"];
+const MAT_MICROMONT = ["Simple Faz Marrón-Marrón","Simple Faz Blanco-Marrón","Simple Faz Blanco-Blanco","Simple Faz Liner-Marrón","Simple Faz Marrón-Liner con Liner en la Onda","Micro Marrón-Marrón-Marrón","Micro Blanco-Marrón-Marrón","Micro Blanco-Marrón-Blanco","Micro Liner-Marrón-Marrón","Onda B Marrón-Marrón-Marrón","Onda B Blanco-Marrón-Marrón","Onda B Blanco-Marrón-Blanco","Onda B Liner-Marrón-Marrón","Otro (especificar)"];
+const MAT_ASERPEL = ["BCC 655 C","BCT 753 C","BCK 898 T","BCK 922 K","Otro (especificar)"];
+const MAT_ROLPEL_R = ["0.90 x 25mts","1.00 x 25mts","1.20 x 25mts","1.40 x 25mts","1.60 x 25mts","Otro (especificar)"];
+const MAT_ROLPEL_P = ["Liner Sub 70","Liner 70","Liner 90","Liner 100","Liner 110","Liner 120","Liner 150","Otro (especificar)"];
 
-// Datos iniciales de Idesa
-const SEED = [
-["1340","20/02/26","Argentrade","5094","Pliegos impr. DT 120 Liner","1510","1350","260-830-260","2000","Impresión: JEICO / Entrega: 06/03/26","Idesa"],
-["1341","23/02/26","60x40x40","","Liner 110","2040","800","200-400-200","1200","K 110","Idesa"],
-["1342","24/02/26","30x20x125//30x25x20","","Liner 90","1140","775","100-125-100//125-200-125","1200","","Idesa"],
-["1342","24/02/26","50x40x24","","Liner 90","1840","640","200-240-200","820","","Idesa"],
-["1342","24/02/26","50x40x30","","Liner 90","1840","700","200-300-200","760","","Idesa"],
-["1342","24/02/26","60x40x30","","Liner 90","2040","700","200-300-200","1000","K 90","Idesa"],
-["1343","24/02/26","Argentrade","5113","Pliegos impr. DT 120 Liner","1510","1350","260-830-260","2400","Nueva Imp: JEICO 29\" / Entrega: 12/03/26","Idesa"],
-["1344","26/02/26","Richmond","2574","Microcorr. Liner 90","1090","600","Sin trazar","3300","","Idesa"],
-["1345","26/02/26","Autop.fal","","Liner 110","1385","1150","260-630-260","700","10 sin imp.","Idesa"],
-["1345","26/02/26","Sew","995/N°3","DT 120 Liner","1740","560","150-260-150","700","","Idesa"],
-["1346","02/03/26","Argentrade","5067","Pliegos impr. DT 120 Liner","1810","1370","270-830-270","1550","Impresión RANDERS / Entrega: 25/03/26","Idesa"],
-["1346","02/03/26","Argentrade","5067","Pliegos impr. DT 120 Liner","1810","1370","270-830-270","1550","Impresión RANDERS / Entrega: 01/04/26","Idesa"],
-["1346","02/03/26","Argentrade","5067","Pliegos impr. DT 120 Liner","1810","1370","270-830-270","2350","Impresión RANDERS / Entrega: 08/04/26","Idesa"],
-["1347","02/03/26","Dixter","2726/10737","Kraft 140","1420","584","147-290-147","520","No mas","Idesa"],
-["1348","02/03/26","Compfort","","DT 120 Liner","1920","910","235-440-235","200","No mas","Idesa"],
-["1348","02/03/26","Compfort","","DT 120 Liner","1175","626","208-210-208","400","No mas","Idesa"],
-["1349","02/03/26","Ritossa","1074","Liner 90","1440","1000","150-250-150//150-150-150","800","40x30x25","Idesa"],
-["1350","05/03/26","Decorac.","4764","Liner 90","1200","400","80-80-80-80","2200","RETIRA NICO","Idesa"],
-["1351","05/03/26","Intex","N°2","Liner 90","1320","410","130-150-130","1000","","Idesa"],
-["1353","06/03/26","Dario Díaz","5052","Liner 110","1440","750","50-650-50","1000","","Idesa"],
-["1354","06/03/26","stock","","Liner 60","1200","1000","Sin trazar","1500","","Idesa"],
-["1355","06/03/26","ACA","4955","Cajas DT 470x270x294","","","","3700","LEGADO PRO / Entrega CAMPANA desde 30/03","Idesa"],
-["1356","09/03/26","Staco","2927","DT 120 Liner","1700","805","235-145-240-145-40","1000","","Idesa"],
-["1357","10/03/26","40x30x30","","DT 120 Liner","1440","600","150-300-150","1500","DT","Idesa"],
-["1358","11/03/26","Autop.fal","4603","Liner 110","1445","581","163-255-163","1250","","Idesa"],
-["1359","12/03/26","Estudio Te","5065","DT 120 Liner","1198","1588","257-1074-257","310","Manija troquelada / simil Pedido N°1088","Idesa"],
-["1360","16/03/26","Wolfre","5061","Liner 110","1370","776","333-110-333","500","","Idesa"],
-["1361","16/03/26","Ibc","1365","DT120 Liner","1810","606","168-270-168","4400","","Idesa"],
-["1361","16/03/26","Ibc","2421","DT 120 Liner","2160","650","210-230-210","2000","","Idesa"],
-["1362","17/03/26","Plastipren","1045","DT120 Liner","2040","600","200-200-200","2500","","Idesa"],
-["1363","18/03/26","30x20x15//30x20x25","","Liner 90","1040","800","100-150-100//100-250-100","1250","","Idesa"],
-["1364","18/03/26","60x50x50","","DT 120 Liner","1140","1000","250-500-250","500","","Idesa"],
-["1364","18/03/26","Dromex","4225","DT 120 Liner","1410","706","148-410-148","6000","","Idesa"],
-["1365","18/03/26","stock","","Liner 60","1200","1000","Sin trazar","1500","","Idesa"],
-["1366","19/03/26","DP.5119","40x30x30","DT 120 Liner","1480","735","Sin trazar","500","No mas","Idesa"],
-["1367","26/03/26","Wolfre","4767","Liner 110","1760","811","203-405-203","360","","Idesa"],
-["1368","26/03/26","symonds","","Microcorr. Liner 90","480","720","Sin trazar","15000","","Idesa"],
-["1369","26/03/26","Igual","4798","Liner 90","1300","480","140-200-140","5000","","Idesa"],
-["1370","26/03/26","Casa Manu","5054","Blanco Liner","970","391","108-175-108","2050","","Idesa"],
-["1371","27/03/26","Mervick","4316","Liner 90","1390","425","145-135-145","1500","","Idesa"],
-["1371","27/03/26","Mervick","4827","DT 120 Liner","1330","451","133-185-133","1500","","Idesa"],
-["1372","30/03/26","Dromex","","DT 120 Liner","1140","380","Sin trazar","1200","","Idesa"],
-["1373","30/03/26","30x30x30//30x20x20","","Liner 90","1240","1000","150-300-150//100-200-100","1200","","Idesa"],
-["1373","30/03/26","40x30x30","","Liner 90","1440","600","150-300-150","1200","","Idesa"],
-["1374","30/03/26","Arie","5055","Liner 110","2040","650","200-250-200","500","","Idesa"],
-["1375","06/04/26","Aceroac","667","Liner 60","820","820","Sin trazar","2600","Entregar Caracas 2162 CABA / No más","Idesa"],
-["1376","06/04/26","Diral","2748","Liner 90","1840","780","200-380-200","550","No mas","Idesa"],
-["1377","06/04/26","DP World","4471","DT 120 Liner","1205","816","238-340-238","520","NO MAS","Idesa"],
-["1378","06/04/26","40x30x30","","DT 120 Liner","1440","600","150-300-150","1500","DT","Idesa"],
-["1379","14/04/26","Burkol","4849","DT 120 Liner","1040","414","97-220-97","650","","Idesa"],
-["1379","14/04/26","40x30x30","","Liner 90","1440","600","150-300-150","1500","","Idesa"],
-["1380","14/04/26","40x30x20","","Liner 90","1440","500","150-200-150","1500","","Idesa"],
-["1381","15/04/26","ACA","4976","Cajas DT 120L 470x270x294","","","","2600","Caja: TEMPUS / Entrega desde 04/05","Idesa"],
-["1381","15/04/26","ACA","1297","Cajas DT 120L 380x275x255","","","","3100","Caja: SPECTOR 25 / Entrega desde 04/05","Idesa"],
-["1381","15/04/26","ACA","4976","Cajas DT 120L 470x270x294","","","","2600","Caja: DICAMAX 58 / Entrega desde 04/05","Idesa"],
-["1381","15/04/26","ACA","4811","Cajas DT 120L 470x270x294","","","","2100","Caja: CAMBIUM / Entrega desde 04/05","Idesa"],
-["1382","16/04/26","Diral","4566","DT 120 Liner","1890","670","205-260-205","550","No mas","Idesa"],
-["1383","16/04/26","35x30x25//40x25x25","","Liner 90","1340","1050","150-250-150//125-250-125","750","No mas","Idesa"],
-["1383","16/04/26","60x40x30","","Liner 110","2040","700","200-300-200","800","110","Idesa"],
-["1383","16/04/26","60x40x40","","Liner 110","2040","800","200-400-200","1000","110","Idesa"],
-["1383","16/04/26","60x50x50","","Liner 110","1140","1000","250-500-250","900","","Idesa"],
-["1384","17/04/26","Demiquelli","5121","Liner 90","1250","511","123-265-123","1600","No mas","Idesa"],
-["1385","16/04/26","Casa Manu","5057/5058/5059","Blanco Liner","1000","375","Sin trazar","4700","","Idesa"],
-["1386","17/04/26","stock","","Liner 60","1200","1000","Sin trazar","1500","","Idesa"],
-["1387","20/04/26","Bottcher","4859","DT 120 Liner","1670","560","Sin trazar","550","","Idesa"],
-["1387","20/04/26","Bottcher","4906","DT 120 Liner","1950","680","Sin trazar","500","","Idesa"],
-["1388","21/04/26","Aut.fal","N°10","Liner 110","1385","1150","260-630-260","1200","","Idesa"],
-["1389","21/04/26","Panoni","1243","Liner 110","2040","800","200-400-200","1000","","Idesa"],
-["1390","24/04/26","Mervick","4317","Liner 90","1140","396","118-160-118","1100","No mas","Idesa"],
-["1390","24/04/26","Mervick","4842","DT 120 Liner","1480","521","168-185-168","1500","","Idesa"],
-["1390","24/04/26","40x30x15","","Liner 90","1440","450","150-150-150","1000","","Idesa"],
-["1391","24/04/26","Bioars","5060","Liner 110","1960","670","200-270-200","1000","","Idesa"],
-["1392","27/04/26","Almar","2915","Liner 110","1720","1560","70-1420-70","500","","Idesa"],
-["1393","27/04/26","Monpres","1073","Liner 110","1360","490","165-160-165","620","No mas","Idesa"],
-["1394","28/04/26","ITC","2772","Liner 90","2020","710","170-370-170","1000","","Idesa"],
-["1395","29/04/26","Bremet","4991","DT 120 Liner","1440","450","150-150-150","800","","Idesa"],
-["1395","29/04/26","40x30x30","","DT 120 Liner","1440","600","150-300-150","1500","DT","Idesa"],
-["1396","30/04/26","De aloisio","5122","Liner 90","1720","521","178-165-178","2000","","Idesa"],
-["1397","04/05/26","40x30x20","","Liner 90","1440","500","150-200-150","1500","","Idesa"],
-["1397","04/05/26","50x40x35","","DT 120 Liner","1840","750","200-350-200","400","DT","Idesa"],
-["1397","04/05/26","Compuspar","4396/4381","DT 120 Liner","1090","696","Sin trazar","800","","Idesa"],
-["1397","04/05/26","Compuepar","5026/4395/4723","DT 120 Liner","1160","910","Sin trazar","750","carricaberry","Idesa"],
-["1398","05/05/26","ACA","4958","Cajas DT 120L 450x275x270","","","","2500","ACA PACK PREMIUM XL / Entrega desde 26/05","Idesa"],
-["1398","05/05/26","ACA","5123","Cajas DT 120L 470x270x294","","","","2300","CELSIUM / Entrega desde 20/05","Idesa"],
-["1399","04/05/26","symonds","","Microcorr. Liner 90","480","720","Sin trazar","7500","","Idesa"],
-["1400","06/05/26","Panoni","2665","Liner 90","1190","611","153-305-153","1000","","Idesa"]
+const C_BASE = function(mat) {
+  return [
+    {key:"Pedido",label:"N° Pedido",mail:true,type:"text"},
+    {key:"Fecha",label:"Fecha",mail:true,type:"text"},
+    {key:"Cantidad",label:"Cantidad",mail:true,type:"number"},
+    {key:"Tipo Material",label:"Tipo de Material",mail:true,type:"dropdown",options:mat},
+    {key:"Largo",label:"Largo",mail:true,type:"number"},
+    {key:"Ancho",label:"Ancho",mail:true,type:"number"},
+    {key:"Trazados",label:"Trazados",mail:true,type:"text"},
+    {key:"Observaciones",label:"Observaciones",mail:true,type:"textarea"},
+    {key:"Cliente",label:"Cliente",mail:false,type:"text"},
+    {key:"N° Caja",label:"N° Caja",mail:false,type:"text"},
+    {key:"Estado",label:"Estado",mail:false,type:"dropdown",options:["Enviado","Recibido","Anulado"]},
+    {key:"Anotaciones",label:"Anotaciones",mail:false,type:"textarea"}
+  ];
+};
+
+const PROV_COLS = {
+  "Idesa": C_BASE(MAT_IDESA),
+  "Micromont": C_BASE(MAT_MICROMONT),
+  "Aserpel": C_BASE(MAT_ASERPEL),
+  "Rol Pel — Planchas": C_BASE(MAT_ROLPEL_P),
+  "Rol Pel — Rollos": [
+    {key:"Pedido",label:"N° Pedido",mail:true,type:"text"},
+    {key:"Fecha",label:"Fecha",mail:true,type:"text"},
+    {key:"Cantidad",label:"Cantidad",mail:true,type:"number"},
+    {key:"Tipo Material",label:"Medida de Rollo",mail:true,type:"dropdown",options:MAT_ROLPEL_R},
+    {key:"Observaciones",label:"Observaciones",mail:true,type:"textarea"},
+    {key:"Cliente",label:"Cliente / Destino",mail:false,type:"text"},
+    {key:"Estado",label:"Estado",mail:false,type:"dropdown",options:["Enviado","Recibido","Anulado"]},
+    {key:"Anotaciones",label:"Anotaciones",mail:false,type:"textarea"}
+  ],
+  "Empaquetecnia": [
+    {key:"Pedido",label:"N° Pedido",mail:true,type:"text"},
+    {key:"Fecha",label:"Fecha",mail:true,type:"text"},
+    {key:"Cantidad",label:"Cantidad",mail:true,type:"number"},
+    {key:"Tipo Material",label:"Medida de Caja",mail:true,type:"text"},
+    {key:"Observaciones",label:"Observaciones",mail:true,type:"textarea"},
+    {key:"Cliente",label:"Cliente",mail:false,type:"text"},
+    {key:"N° Caja",label:"N° Caja",mail:false,type:"text"},
+    {key:"Estado",label:"Estado",mail:false,type:"dropdown",options:["Enviado","Recibido","Anulado"]},
+    {key:"Anotaciones",label:"Anotaciones",mail:false,type:"textarea"}
+  ]
+};
+
+function r2o(arr){ var o={}; COLS_ALL.forEach(function(c,i){ o[c]=arr[i]||""; }); return o; }
+function getCols(p){ return PROV_COLS[p]||PROV_COLS["Idesa"]; }
+
+var SEED_IDESA = [
+["1340","20/02/26","Argentrade","5094","Pliegos impr. DT 120 Liner","1510","1350","260-830-260","2000","Impresión: JEICO / Entrega: 06/03/26","Enviado","","Idesa"],
+["1341","23/02/26","60x40x40","","Liner 110","2040","800","200-400-200","1200","K 110","Enviado","","Idesa"],
+["1342","24/02/26","30x20x125//30x25x20","","Liner 90","1140","775","100-125-100//125-200-125","1200","","Enviado","","Idesa"],
+["1342","24/02/26","50x40x24","","Liner 90","1840","640","200-240-200","820","","Enviado","","Idesa"],
+["1342","24/02/26","50x40x30","","Liner 90","1840","700","200-300-200","760","","Enviado","","Idesa"],
+["1342","24/02/26","60x40x30","","Liner 90","2040","700","200-300-200","1000","K 90","Enviado","","Idesa"],
+["1343","24/02/26","Argentrade","5113","Pliegos impr. DT 120 Liner","1510","1350","260-830-260","2400","Nueva Imp: JEICO 29","Enviado","","Idesa"],
+["1344","26/02/26","Richmond","2574","Microcorr. Liner 90","1090","600","Sin trazar","3300","","Enviado","","Idesa"],
+["1345","26/02/26","Autop.fal","","Liner 110","1385","1150","260-630-260","700","10 sin imp.","Enviado","","Idesa"],
+["1345","26/02/26","Sew","995/N3","DT 120 Liner","1740","560","150-260-150","700","","Enviado","","Idesa"],
+["1346","02/03/26","Argentrade","5067","Pliegos impr. DT 120 Liner","1810","1370","270-830-270","1550","Impresión RANDERS / Entrega: 25/03/26","Enviado","","Idesa"],
+["1346","02/03/26","Argentrade","5067","Pliegos impr. DT 120 Liner","1810","1370","270-830-270","1550","Impresión RANDERS / Entrega: 01/04/26","Enviado","","Idesa"],
+["1346","02/03/26","Argentrade","5067","Pliegos impr. DT 120 Liner","1810","1370","270-830-270","2350","Impresión RANDERS / Entrega: 08/04/26","Enviado","","Idesa"],
+["1347","02/03/26","Dixter","2726/10737","Kraft 140","1420","584","147-290-147","520","No mas","Enviado","","Idesa"],
+["1348","02/03/26","Compfort","","DT 120 Liner","1920","910","235-440-235","200","No mas","Enviado","","Idesa"],
+["1348","02/03/26","Compfort","","DT 120 Liner","1175","626","208-210-208","400","No mas","Enviado","","Idesa"],
+["1349","02/03/26","Ritossa","1074","Liner 90","1440","1000","150-250-150//150-150-150","800","40x30x25","Enviado","","Idesa"],
+["1350","05/03/26","Decorac.","4764","Liner 90","1200","400","80-80-80-80","2200","RETIRA NICO","Enviado","","Idesa"],
+["1351","05/03/26","Intex","N2","Liner 90","1320","410","130-150-130","1000","","Enviado","","Idesa"],
+["1353","06/03/26","Dario Díaz","5052","Liner 110","1440","750","50-650-50","1000","","Enviado","","Idesa"],
+["1354","06/03/26","stock","","Liner 60","1200","1000","Sin trazar","1500","","Enviado","","Idesa"],
+["1355","06/03/26","ACA","4955","Cajas DT 470x270x294","","","","3700","LEGADO PRO / Entrega CAMPANA","Enviado","","Idesa"],
+["1356","09/03/26","Staco","2927","DT 120 Liner","1700","805","235-145-240-145-40","1000","","Enviado","","Idesa"],
+["1357","10/03/26","40x30x30","","DT 120 Liner","1440","600","150-300-150","1500","DT","Enviado","","Idesa"],
+["1358","11/03/26","Autop.fal","4603","Liner 110","1445","581","163-255-163","1250","","Enviado","","Idesa"],
+["1359","12/03/26","Estudio Te","5065","DT 120 Liner","1198","1588","257-1074-257","310","Manija troquelada","Enviado","","Idesa"],
+["1360","16/03/26","Wolfre","5061","Liner 110","1370","776","333-110-333","500","","Enviado","","Idesa"],
+["1361","16/03/26","Ibc","1365","DT120 Liner","1810","606","168-270-168","4400","","Enviado","","Idesa"],
+["1361","16/03/26","Ibc","2421","DT 120 Liner","2160","650","210-230-210","2000","","Enviado","","Idesa"],
+["1362","17/03/26","Plastipren","1045","DT120 Liner","2040","600","200-200-200","2500","","Enviado","","Idesa"],
+["1363","18/03/26","30x20x15//30x20x25","","Liner 90","1040","800","100-150-100//100-250-100","1250","","Enviado","","Idesa"],
+["1364","18/03/26","60x50x50","","DT 120 Liner","1140","1000","250-500-250","500","","Enviado","","Idesa"],
+["1364","18/03/26","Dromex","4225","DT 120 Liner","1410","706","148-410-148","6000","","Enviado","","Idesa"],
+["1365","18/03/26","stock","","Liner 60","1200","1000","Sin trazar","1500","","Enviado","","Idesa"],
+["1366","19/03/26","DP.5119","40x30x30","DT 120 Liner","1480","735","Sin trazar","500","No mas","Enviado","","Idesa"],
+["1367","26/03/26","Wolfre","4767","Liner 110","1760","811","203-405-203","360","","Enviado","","Idesa"],
+["1368","26/03/26","symonds","","Microcorr. Liner 90","480","720","Sin trazar","15000","","Enviado","","Idesa"],
+["1369","26/03/26","Igual","4798","Liner 90","1300","480","140-200-140","5000","","Enviado","","Idesa"],
+["1370","26/03/26","Casa Manu","5054","Blanco Liner","970","391","108-175-108","2050","","Enviado","","Idesa"],
+["1371","27/03/26","Mervick","4316","Liner 90","1390","425","145-135-145","1500","","Enviado","","Idesa"],
+["1371","27/03/26","Mervick","4827","DT 120 Liner","1330","451","133-185-133","1500","","Enviado","","Idesa"],
+["1372","30/03/26","Dromex","","DT 120 Liner","1140","380","Sin trazar","1200","","Enviado","","Idesa"],
+["1373","30/03/26","30x30x30//30x20x20","","Liner 90","1240","1000","150-300-150//100-200-100","1200","","Enviado","","Idesa"],
+["1373","30/03/26","40x30x30","","Liner 90","1440","600","150-300-150","1200","","Enviado","","Idesa"],
+["1374","30/03/26","Arie","5055","Liner 110","2040","650","200-250-200","500","","Enviado","","Idesa"],
+["1375","06/04/26","Aceroac","667","Liner 60","820","820","Sin trazar","2600","Entregar Caracas 2162 CABA","Enviado","","Idesa"],
+["1376","06/04/26","Diral","2748","Liner 90","1840","780","200-380-200","550","No mas","Enviado","","Idesa"],
+["1377","06/04/26","DP World","4471","DT 120 Liner","1205","816","238-340-238","520","NO MAS","Enviado","","Idesa"],
+["1378","06/04/26","40x30x30","","DT 120 Liner","1440","600","150-300-150","1500","DT","Enviado","","Idesa"],
+["1379","14/04/26","Burkol","4849","DT 120 Liner","1040","414","97-220-97","650","","Enviado","","Idesa"],
+["1379","14/04/26","40x30x30","","Liner 90","1440","600","150-300-150","1500","","Enviado","","Idesa"],
+["1380","14/04/26","40x30x20","","Liner 90","1440","500","150-200-150","1500","","Enviado","","Idesa"],
+["1381","15/04/26","ACA","4976","Cajas DT 120L 470x270x294","","","","2600","Caja: TEMPUS","Enviado","","Idesa"],
+["1381","15/04/26","ACA","1297","Cajas DT 120L 380x275x255","","","","3100","Caja: SPECTOR 25","Enviado","","Idesa"],
+["1381","15/04/26","ACA","4976","Cajas DT 120L 470x270x294","","","","2600","Caja: DICAMAX 58","Enviado","","Idesa"],
+["1381","15/04/26","ACA","4811","Cajas DT 120L 470x270x294","","","","2100","Caja: CAMBIUM","Enviado","","Idesa"],
+["1382","16/04/26","Diral","4566","DT 120 Liner","1890","670","205-260-205","550","No mas","Enviado","","Idesa"],
+["1383","16/04/26","35x30x25//40x25x25","","Liner 90","1340","1050","150-250-150//125-250-125","750","No mas","Enviado","","Idesa"],
+["1383","16/04/26","60x40x30","","Liner 110","2040","700","200-300-200","800","110","Enviado","","Idesa"],
+["1383","16/04/26","60x40x40","","Liner 110","2040","800","200-400-200","1000","110","Enviado","","Idesa"],
+["1383","16/04/26","60x50x50","","Liner 110","1140","1000","250-500-250","900","","Enviado","","Idesa"],
+["1384","17/04/26","Demiquelli","5121","Liner 90","1250","511","123-265-123","1600","No mas","Enviado","","Idesa"],
+["1385","16/04/26","Casa Manu","5057/5058/5059","Blanco Liner","1000","375","Sin trazar","4700","","Enviado","","Idesa"],
+["1386","17/04/26","stock","","Liner 60","1200","1000","Sin trazar","1500","","Enviado","","Idesa"],
+["1387","20/04/26","Bottcher","4859","DT 120 Liner","1670","560","Sin trazar","550","","Enviado","","Idesa"],
+["1387","20/04/26","Bottcher","4906","DT 120 Liner","1950","680","Sin trazar","500","","Enviado","","Idesa"],
+["1388","21/04/26","Aut.fal","N10","Liner 110","1385","1150","260-630-260","1200","","Enviado","","Idesa"],
+["1389","21/04/26","Panoni","1243","Liner 110","2040","800","200-400-200","1000","","Enviado","","Idesa"],
+["1390","24/04/26","Mervick","4317","Liner 90","1140","396","118-160-118","1100","No mas","Enviado","","Idesa"],
+["1390","24/04/26","Mervick","4842","DT 120 Liner","1480","521","168-185-168","1500","","Enviado","","Idesa"],
+["1390","24/04/26","40x30x15","","Liner 90","1440","450","150-150-150","1000","","Enviado","","Idesa"],
+["1391","24/04/26","Bioars","5060","Liner 110","1960","670","200-270-200","1000","","Enviado","","Idesa"],
+["1392","27/04/26","Almar","2915","Liner 110","1720","1560","70-1420-70","500","","Enviado","","Idesa"],
+["1393","27/04/26","Monpres","1073","Liner 110","1360","490","165-160-165","620","No mas","Enviado","","Idesa"],
+["1394","28/04/26","ITC","2772","Liner 90","2020","710","170-370-170","1000","","Enviado","","Idesa"],
+["1395","29/04/26","Bremet","4991","DT 120 Liner","1440","450","150-150-150","800","","Enviado","","Idesa"],
+["1395","29/04/26","40x30x30","","DT 120 Liner","1440","600","150-300-150","1500","DT","Enviado","","Idesa"],
+["1396","30/04/26","De aloisio","5122","Liner 90","1720","521","178-165-178","2000","","Enviado","","Idesa"],
+["1397","04/05/26","40x30x20","","Liner 90","1440","500","150-200-150","1500","","Enviado","","Idesa"],
+["1397","04/05/26","50x40x35","","DT 120 Liner","1840","750","200-350-200","400","DT","Enviado","","Idesa"],
+["1397","04/05/26","Compuspar","4396/4381","DT 120 Liner","1090","696","Sin trazar","800","","Enviado","","Idesa"],
+["1397","04/05/26","Compuepar","5026/4395/4723","DT 120 Liner","1160","910","Sin trazar","750","carricaberry","Enviado","","Idesa"],
+["1398","05/05/26","ACA","4958","Cajas DT 120L 450x275x270","","","","2500","ACA PACK PREMIUM XL","Enviado","","Idesa"],
+["1398","05/05/26","ACA","5123","Cajas DT 120L 470x270x294","","","","2300","CELSIUM","Enviado","","Idesa"],
+["1399","04/05/26","symonds","","Microcorr. Liner 90","480","720","Sin trazar","7500","","Enviado","","Idesa"],
+["1400","06/05/26","Panoni","2665","Liner 90","1190","611","153-305-153","1000","","Enviado","","Idesa"]
 ];
 
-function rowToObj(arr){ const o={}; COLS.forEach((c,i)=>o[c]=arr[i]||""); return o; }
-function objToRow(o){ return COLS.map(c=>o[c]||""); }
+var SEED_MICROMONT = [
+["562","21/01/26","15x15x10","","Onda B Blanco-Marrón-Marrón","660","280","","2000","","Enviado","","Micromont"],
+["562","21/01/26","20x20x10","","Onda B Blanco-Marrón-Marrón","870","330","","2000","","Enviado","","Micromont"],
+["562","21/01/26","20x..x20","","Onda B Blanco-Marrón-Marrón","870","430","","1000","","Enviado","","Micromont"],
+["563","05/03/26","richmond","","Micro Liner-Marrón-Marrón","600","1090","","3300","","Enviado","","Micromont"],
+["564","09/03/26","Symonds","4248","Micro Liner-Marrón-Marrón","480","720","","6500","","Enviado","","Micromont"],
+["565","13/03/26","Dealer","","Micro Liner-Marrón-Marrón","480","720","","2700","","Enviado","","Micromont"],
+["565","13/03/26","martin","","Micro Liner-Marrón-Marrón","320","380","","3100","","Enviado","","Micromont"],
+["566","14/04/26","15x15x10","","Onda B Blanco-Marrón-Marrón","280","660","","1500","","Enviado","","Micromont"],
+["566","14/04/26","Martín Rotzajt","","Micro Liner-Marrón-Marrón","320","380","","5100","","Enviado","","Micromont"],
+["567","16/04/26","20x20x15","","Micro Blanco-Marrón-Marrón","380","870","","1500","","Enviado","","Micromont"],
+["568","23/04/26","Luis Ordoñez","4812","Micro Liner-Marrón-Marrón","500","600","","1000","Papel el mas oscuro posible","Enviado","","Micromont"],
+["568","23/04/26","Luis Ordoñez","4843","Micro Liner-Marrón-Marrón","570","660","","550","Papel lo mas oscuro posible","Enviado","","Micromont"],
+["569","28/04/26","División Richmond","","Micro Marrón-Marrón-Marrón","550","280","","4000","","Enviado","","Micromont"],
+["569","28/04/26","stock","","Micro Liner-Marrón-Marrón","750","1500","","1000","Papel lo mas oscuro posible","Enviado","","Micromont"],
+["570","19/05/26","Muskoka","","Micro Liner-Marrón-Marrón","450","660","","2600","","Enviado","","Micromont"],
+["570","19/05/26","Muskoka","","Micro Liner-Marrón-Marrón","550","540","","2600","","Enviado","","Micromont"],
+["571","01/06/26","wolfre","","Micro Liner-Marrón-Marrón","620","640","","2500","","Enviado","","Micromont"],
+["572","03/06/26","Compani","4917","Micro Liner-Marrón-Marrón","540","850","","3200","","Enviado","","Micromont"]
+];
 
-async function loadData(){
-  allData = SEED.map(rowToObj);
+var SEED_ASERPEL = [
+["001","20/05/26","Stock DT 403030","","DT BCC 655 C","1440","600","150-300-150","1700","Precio acordado: $988,50 el metro cuadrado","Enviado","","Aserpel"]
+];
+
+var SEED_ROLPEL = [
+["001","29/01/26","Warnes Plaza","2824","Liner 110","1420","575","90-75-245-75-90","1600","","Enviado","","Rol Pel — Planchas"],
+["002","03/02/26","45x35x35","","Liner 110","1640","700","175-350-175","1000","","Enviado","","Rol Pel — Planchas"],
+["005","18/02/26","Stock 60x40x40","","Liner 90","","","","1000","Precio acordado 23/01: $1.052 c/u","Enviado","","Rol Pel — Planchas"],
+["006","06/03/26","ACA","5033","Liner 70","1200","1000","Sin trazar","2000","Sin impresión","Enviado","","Rol Pel — Planchas"],
+["003","05/02/26","Stock","","1.20 x 25mts","","","","30","","Enviado","","Rol Pel — Rollos"],
+["003","05/02/26","Stock","","1.60 x 25mts","","","","30","","Enviado","","Rol Pel — Rollos"],
+["003","05/02/26","Stock","","1.20 x 25mts","","","","30","","Enviado","","Rol Pel — Rollos"],
+["004","11/02/26","Stock","","1.20 x 25mts","","","","60","","Enviado","","Rol Pel — Rollos"],
+["004","11/02/26","Stock","","1.00 x 25mts","","","","20","","Enviado","","Rol Pel — Rollos"],
+["004","11/02/26","Stock","","1.40 x 25mts","","","","10","","Enviado","","Rol Pel — Rollos"],
+["007","09/03/26","Stock","","1.20 x 25mts","","","","15","Enviar junto al pedido n 006 del 6/03/26","Enviado","","Rol Pel — Rollos"],
+["007","09/03/26","Stock","","1.40 x 25mts","","","","20","Enviar junto al pedido n 006 del 6/03/26","Enviado","","Rol Pel — Rollos"],
+["008","11/03/26","Stock","","0.90 x 25mts","","","","50","Enviar junto al pedido n 006 del 6/03/26","Enviado","","Rol Pel — Rollos"],
+["008","11/03/26","Stock","","1.20 x 25mts","","","","20","Enviar junto al pedido n 006 del 6/03/26","Enviado","","Rol Pel — Rollos"],
+["008","11/03/26","Stock","","1.60 x 25mts","","","","15","Enviar junto al pedido n 006 del 6/03/26","Enviado","","Rol Pel — Rollos"],
+["009","23/04/26","Stock","","1.00 x 25mts","","","","30","","Enviado","","Rol Pel — Rollos"],
+["009","23/04/26","Stock","","1.20 x 25mts","","","","50","","Enviado","","Rol Pel — Rollos"],
+["009","23/04/26","Stock","","1.40 x 25mts","","","","20","","Enviado","","Rol Pel — Rollos"],
+["009","23/04/26","Stock","","1.60 x 25mts","","","","10","","Enviado","","Rol Pel — Rollos"]
+];
+
+var allData = [];
+var sortCol = "Pedido", sortDir = 1;
+var filterField = "todos";
+var activeProv = "Idesa";
+var itemRows = [];
+
+function loadData(){
+  allData = SEED_IDESA.map(r2o).concat(SEED_MICROMONT.map(r2o)).concat(SEED_ASERPEL.map(r2o)).concat(SEED_ROLPEL.map(r2o));
   renderAll();
-  try{
-    const r = await fetch(API);
-    const json = await r.json();
-    if(json.ok && json.data && json.data.length > 0){
-      const remote = json.data.filter(d=>d.Pedido);
-      // Merge: remote overrides seed for same pedido+cliente+tipo
-      const key = d=>`${d.Pedido}|${d.Cliente}|${d['Tipo Material']}`;
-      const seedKeys = new Set(allData.map(key));
-      const newRows = remote.filter(d=>!seedKeys.has(key(d)));
-      allData = [...allData, ...newRows];
+  fetch(API).then(function(r){ return r.json(); }).then(function(json){
+    if(json.ok && json.data && json.data.length){
+      var key = function(d){ return d.Pedido+"|"+d.Cliente+"|"+d["Tipo Material"]+"|"+d.Proveedor; };
+      var sk = new Set(allData.map(key));
+      var nr = json.data.filter(function(d){ return d.Pedido && !sk.has(key(d)); });
+      allData = allData.concat(nr);
       renderAll();
     }
-  } catch(e){ console.log("Sin conexión, usando datos locales"); }
+  }).catch(function(){});
 }
 
-function renderAll(){ renderBuscar(); renderProveedores(); renderHistorial(); buildProvFilter(); }
+function renderAll(){ renderBuscar(); renderProveedores(); renderHistorial(); buildProvFilters(); buildProvSelect(); }
 
 function hl(t,q){
   if(!q) return String(t||"");
-  const re=new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
-  return String(t||"").replace(re,'<mark>$1</mark>');
+  var re = new RegExp("("+q.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+")","gi");
+  return String(t||"").replace(re,"<mark>$1</mark>");
 }
 
-function sortBy(col, page){
-  if(sortCol===col) sortDir*=-1; else{ sortCol=col; sortDir=1; }
-  if(page==='hist') renderHistorial(); else renderBuscar();
+function sortBy(col){ if(sortCol===col)sortDir*=-1; else{sortCol=col;sortDir=1;} renderAll(); }
+
+function parseDate(s){
+  if(!s) return null;
+  var p=s.split("/");
+  if(p.length===3) return new Date(2000+parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
+  return null;
 }
 
-function getFiltered(q, prov, field){
-  return allData.filter(r=>{
-    const matchProv = !prov || r.Proveedor===prov;
-    if(!q) return matchProv;
-    const qq=q.toLowerCase();
-    const matchQ = field==='todos'
-      ? Object.values(r).some(v=>String(v).toLowerCase().includes(qq))
-      : String(r[field]||"").toLowerCase().includes(qq);
-    return matchProv && matchQ;
+function getFiltered(q,prov,field,desde,hasta,pd,ph){
+  return allData.filter(function(r){
+    if(prov && r.Proveedor!==prov) return false;
+    if(q){
+      var qq=q.toLowerCase();
+      var m = field==="todos"
+        ? Object.values(r).some(function(v){ return String(v).toLowerCase().includes(qq); })
+        : String(r[field]||"").toLowerCase().includes(qq);
+      if(!m) return false;
+    }
+    if(desde||hasta){
+      var rd=parseDate(r.Fecha);
+      if(desde && rd && rd<parseDate(desde)) return false;
+      if(hasta && rd && rd>parseDate(hasta)) return false;
+    }
+    if(pd && parseInt(r.Pedido)<parseInt(pd)) return false;
+    if(ph && parseInt(r.Pedido)>parseInt(ph)) return false;
+    return true;
   });
 }
 
 function getSorted(arr){
-  return [...arr].sort((a,b)=>{
-    const va=String(a[sortCol]||""), vb=String(b[sortCol]||"");
-    const na=parseFloat(va), nb=parseFloat(vb);
+  return arr.slice().sort(function(a,b){
+    var va=String(a[sortCol]||""), vb=String(b[sortCol]||"");
+    var na=parseFloat(va), nb=parseFloat(vb);
     if(!isNaN(na)&&!isNaN(nb)) return (na-nb)*sortDir;
-    return va.localeCompare(vb,'es')*sortDir;
+    return va.localeCompare(vb,"es")*sortDir;
   });
 }
 
-function makeRow(r,q,showProv){
-  const c=(f)=>hl(r[f],q);
-  return `<tr>
-    <td><span class="badge">${c('Pedido')}</span></td>
-    <td>${c('Fecha')}</td>
-    <td>${c('Cliente')}</td>
-    <td style="color:#888">${c('N° Caja')}</td>
-    <td>${c('Tipo Material')}</td>
-    <td style="color:#888">${c('Largo')}</td>
-    <td style="color:#888">${c('Ancho')}</td>
-    <td style="color:#888;font-size:11px">${c('Trazados')}</td>
-    <td style="font-weight:600">${c('Cantidad')}</td>
-    <td class="obs">${c('Observaciones')}</td>
-    ${showProv?`<td><span class="badge prov">${c('Proveedor')}</span></td>`:''}
-  </tr>`;
+function estadoBadge(e){
+  if(e==="Recibido") return '<span class="badge-rec">Recibido</span>';
+  if(e==="Anulado") return '<span class="badge-anu">Anulado</span>';
+  return '<span class="badge-env">Enviado</span>';
+}
+
+function makeHead(cols, showProv){
+  var h = cols.map(function(c){
+    return '<th onclick="sortBy(\''+c.key+'\')">'+c.label+' <span style="opacity:.4">↕</span></th>';
+  }).join("");
+  if(showProv) h += '<th onclick="sortBy(\'Proveedor\')">Proveedor <span style="opacity:.4">↕</span></th>';
+  return h;
+}
+
+function makeRow(r, q, cols, showProv){
+  var cells = cols.map(function(c){
+    var v = r[c.key]||"";
+    if(c.key==="Estado") return "<td>"+estadoBadge(v)+"</td>";
+    if(c.key==="Pedido") return '<td><span class="badge">'+hl(v,q)+"</span></td>";
+    if(c.key==="Observaciones"||c.key==="Anotaciones") return '<td class="obs-cell">'+hl(v,q)+"</td>";
+    if(c.key==="Cantidad") return '<td style="font-weight:600">'+hl(v,q)+"</td>";
+    return "<td>"+hl(v,q)+"</td>";
+  }).join("");
+  if(showProv) cells += '<td><span class="badge badge-prov">'+(r.Proveedor||"")+"</span></td>";
+  var cls = r.Estado==="Anulado" ? ' class="anulado"' : "";
+  return "<tr"+cls+">"+cells+"</tr>";
 }
 
 function setFB(f,btn){
   filterField=f;
-  document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
+  document.querySelectorAll(".fbtn").forEach(function(b){ b.classList.remove("active"); });
+  btn.classList.add("active");
   renderBuscar();
 }
 
 function renderBuscar(){
-  const q=document.getElementById('q-buscar').value.trim().toLowerCase();
-  const prov=document.getElementById('prov-filter').value;
-  const filtered=getSorted(getFiltered(q,prov,filterField));
-  document.getElementById('res-info').textContent=`${filtered.length} resultado${filtered.length!==1?'s':''} de ${allData.length} registros`;
-  const tb=document.getElementById('tbody-buscar');
-  tb.innerHTML=filtered.length
-    ? filtered.map(r=>makeRow(r,q,true)).join('')
-    : '<tr><td colspan="11" class="empty-state">Sin resultados</td></tr>';
+  var q=document.getElementById("q-buscar").value.trim().toLowerCase();
+  var prov=document.getElementById("prov-filter-b").value;
+  var cols=getCols(prov||"Idesa");
+  var filtered=getSorted(getFiltered(q,prov,filterField,"","","",""));
+  document.getElementById("res-buscar").textContent=filtered.length+" resultado"+(filtered.length!==1?"s":"")+" de "+allData.length+" registros";
+  document.getElementById("thead-buscar").innerHTML=makeHead(cols,true);
+  var tb=document.getElementById("tbody-buscar");
+  tb.innerHTML=filtered.length ? filtered.map(function(r){ return makeRow(r,q,cols,true); }).join("") : '<tr><td colspan="20" class="empty-state">Sin resultados</td></tr>';
 }
 
-function buildProvFilter(){
-  const provs=[...new Set(allData.map(r=>r.Proveedor).filter(Boolean))].sort();
-  const sel=document.getElementById('prov-filter');
-  const cur=sel.value;
-  sel.innerHTML='<option value="">Todos los proveedores</option>'+provs.map(p=>`<option value="${p}"${p===cur?' selected':''}>${p}</option>`).join('');
+function buildProvFilters(){
+  var provs=[...new Set(allData.map(function(r){ return r.Proveedor; }).filter(Boolean))].sort();
+  ["prov-filter-b","prov-filter-h"].forEach(function(id){
+    var sel=document.getElementById(id);
+    if(!sel) return;
+    var cur=sel.value;
+    sel.innerHTML='<option value="">Todos los proveedores</option>'+provs.map(function(p){ return '<option value="'+p+'"'+(p===cur?" selected":"")+">"+p+"</option>"; }).join("");
+  });
 }
 
 function renderProveedores(){
-  const provs=[...new Set(allData.map(r=>r.Proveedor).filter(Boolean))].sort();
-  if(!activeProv || !provs.includes(activeProv)) activeProv=provs[0]||"";
-  const tabs=document.getElementById('prov-tabs');
-  tabs.innerHTML=provs.map(p=>`<button class="ptab${p===activeProv?' active':''}" onclick="setProv('${p}')">${p}</button>`).join('');
-  const rows=getSorted(allData.filter(r=>r.Proveedor===activeProv));
-  document.getElementById('res-prov').textContent=`${rows.length} registro${rows.length!==1?'s':''}`;
-  const tb=document.getElementById('tbody-prov');
-  tb.innerHTML=rows.length
-    ? rows.map(r=>makeRow(r,'',false)).join('')
-    : '<tr><td colspan="10" class="empty-state">Sin registros</td></tr>';
+  var provs=[...new Set(allData.map(function(r){ return r.Proveedor; }).filter(Boolean))].sort();
+  if(!activeProv||!provs.includes(activeProv)) activeProv=provs[0]||"";
+  document.getElementById("prov-tabs").innerHTML=provs.map(function(p){
+    return '<button class="ptab'+(p===activeProv?" active":"")+'" onclick="setProv(\''+p+'\')">'+p+"</button>";
+  }).join("");
+  var cols=getCols(activeProv);
+  var rows=getSorted(allData.filter(function(r){ return r.Proveedor===activeProv; }));
+  document.getElementById("res-prov").textContent=rows.length+" registro"+(rows.length!==1?"s":"");
+  document.getElementById("print-header-prov").innerHTML="<h2>Pedidos — "+activeProv+"</h2><p>Total: "+rows.length+" registros</p>";
+  document.getElementById("thead-prov").innerHTML=makeHead(cols,false);
+  var tb=document.getElementById("tbody-prov");
+  tb.innerHTML=rows.length ? rows.map(function(r){ return makeRow(r,"",cols,false); }).join("") : '<tr><td colspan="15" class="empty-state">Sin registros</td></tr>';
 }
 
 function setProv(p){ activeProv=p; renderProveedores(); }
 
 function renderHistorial(){
-  const q=document.getElementById('q-hist').value.trim().toLowerCase();
-  const filtered=getSorted(getFiltered(q,'','todos'));
-  document.getElementById('res-hist').textContent=`${filtered.length} registro${filtered.length!==1?'s':''}`;
-  const tb=document.getElementById('tbody-hist');
-  tb.innerHTML=filtered.length
-    ? filtered.map(r=>makeRow(r,q,true)).join('')
-    : '<tr><td colspan="11" class="empty-state">Sin resultados</td></tr>';
+  var q=document.getElementById("q-hist").value.trim().toLowerCase();
+  var prov=document.getElementById("prov-filter-h").value;
+  var desde=document.getElementById("h-desde").value.trim();
+  var hasta=document.getElementById("h-hasta").value.trim();
+  var pd=document.getElementById("h-ped-desde").value.trim();
+  var ph=document.getElementById("h-ped-hasta").value.trim();
+  var cols=getCols(prov||"Idesa");
+  var filtered=getSorted(getFiltered(q,prov,"todos",desde,hasta,pd,ph));
+  document.getElementById("res-hist").textContent=filtered.length+" registro"+(filtered.length!==1?"s":"");
+  document.getElementById("thead-hist").innerHTML=makeHead(cols,true);
+  var tb=document.getElementById("tbody-hist");
+  tb.innerHTML=filtered.length ? filtered.map(function(r){ return makeRow(r,q,cols,true); }).join("") : '<tr><td colspan="20" class="empty-state">Sin resultados</td></tr>';
 }
 
-function exportCSV(){
-  const q=document.getElementById('q-buscar')?document.getElementById('q-buscar').value.trim().toLowerCase():'';
-  const prov=document.getElementById('prov-filter')?document.getElementById('prov-filter').value:'';
-  const rows=getSorted(getFiltered(q,prov,filterField));
-  const header=COLS.join(',');
-  const csv=[header,...rows.map(r=>COLS.map(c=>`"${String(r[c]||"").replace(/"/g,'""')}"`).join(','))].join('\n');
-  const a=document.createElement('a');
-  a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
-  a.download='pedidos_eg_corrugados.csv';
-  a.click();
+function clearHistFilters(){
+  ["h-desde","h-hasta","h-ped-desde","h-ped-hasta","q-hist"].forEach(function(id){ document.getElementById(id).value=""; });
+  renderHistorial();
 }
 
-// FORM
-let itemRows=[];
+function exportCSV(page){
+  var rows=[];
+  if(page==="buscar"){
+    var q=document.getElementById("q-buscar").value.trim().toLowerCase();
+    var prov=document.getElementById("prov-filter-b").value;
+    rows=getSorted(getFiltered(q,prov,filterField,"","","",""));
+  } else if(page==="prov"){
+    rows=getSorted(allData.filter(function(r){ return r.Proveedor===activeProv; }));
+  } else {
+    rows=getSorted(allData);
+  }
+  var csv=[COLS_ALL.join(",")].concat(rows.map(function(r){
+    return COLS_ALL.map(function(c){ return '"'+String(r[c]||"").replace(/"/g,'""')+'"'; }).join(",");
+  })).join("\n");
+  var a=document.createElement("a");
+  a.href="data:text/csv;charset=utf-8,\uFEFF"+encodeURIComponent(csv);
+  a.download="pedidos_eg.csv"; a.click();
+}
+
+function updateProvFields(){
+  var prov=document.getElementById("f-proveedor").value;
+  var cols=getCols(prov).filter(function(c){ return !["Pedido","Fecha","Estado","Proveedor"].includes(c.key); });
+  document.getElementById("items-thead").innerHTML="<tr>"+cols.map(function(c){ return "<th>"+c.label+"</th>"; }).join("")+"<th></th></tr>";
+  document.getElementById("items-body").innerHTML="";
+  itemRows=[];
+  addItemRow();
+  var peds=allData.filter(function(r){ return r.Proveedor===prov; }).map(function(r){ return parseInt(r.Pedido); }).filter(function(n){ return !isNaN(n); });
+  var sig=peds.length ? Math.max.apply(null,peds)+1 : 1;
+  var inp=document.getElementById("f-pedido");
+  inp.value=String(sig).padStart(3,"0");
+  inp.style.background="#f0f7ff";
+}
+
 function addItemRow(data){
-  const id=Date.now();
-  const d=data||{};
+  var prov=document.getElementById("f-proveedor").value;
+  var cols=getCols(prov).filter(function(c){ return !["Pedido","Fecha","Estado","Proveedor"].includes(c.key); });
+  var id="item_"+Date.now()+"_"+Math.floor(Math.random()*9999);
   itemRows.push(id);
-  const tr=document.createElement('tr');
-  tr.id='item-'+id;
-    tr.innerHTML=`
-    <td><input placeholder="Cliente" value="${d.cliente||''}"></td>
-    <td><input placeholder="N° Caja" value="${d.caja||''}" oninput="autocompleteCaja(this, ${id})"></td>
-    <td><input placeholder="Tipo material" value="${d.tipo||''}"></td>
-    <td><input placeholder="Largo" type="number" value="${d.largo||''}"></td>
-    <td><input placeholder="Ancho" type="number" value="${d.ancho||''}"></td>
-    <td><input placeholder="Trazados" value="${d.trazados||''}"></td>
-    <td><input placeholder="Cantidad" type="number" value="${d.cantidad||''}"></td>
-    <td><input placeholder="Observaciones" value="${d.obs||''}"></td>
-    <td><button class="btn-remove" onclick="removeRow(${id})">✕</button></td>`;
-  document.getElementById('items-body').appendChild(tr);
-}
-function autocompleteCaja(input, id){
-  const caja = input.value.trim();
-  if(!caja) return;
-  const match = allData.find(r => String(r['N° Caja']).trim() === caja);
-  if(!match) return;
-  const tr = document.getElementById('item-'+id);
-  if(!tr) return;
-  const inp = tr.querySelectorAll('input');
-  if(!inp[0].value) inp[0].value = match.Cliente || '';
-  inp[2].value = match['Tipo Material'] || '';
-  inp[3].value = match.Largo || '';
-  inp[4].value = match.Ancho || '';
-  inp[5].value = match.Trazados || '';
-  inp[7].value = match.Observaciones || '';
-  inp[6].focus();
+  var d=data||{};
+  var tr=document.createElement("tr");
+  tr.id=id;
+  var cells=cols.map(function(c){
+    var v=d[c.key]||"";
+    if(c.type==="dropdown"){
+      var opts=c.options.map(function(o){ return "<option"+(o===v?" selected":"")+">"+o+"</option>"; }).join("");
+      var onch=c.key==="Tipo Material" ? ' onchange="toggleOtro(this)"' : "";
+      var extra='<input type="text" placeholder="Especificar..." style="margin-top:4px;display:none" class="otro-input">';
+      return "<td><select"+onch+">"+opts+"</select>"+extra+"</td>";
+    }
+    if(c.type==="textarea") return "<td><textarea rows='4'>"+v+"</textarea></td>";
+    var onin = c.key==="N° Caja" ? " oninput=\"autocompleteCaja(this,'"+id+"')\"" : "";
+    return '<td><input type="'+(c.type||"text")+'" placeholder="'+c.label+'" value="'+v+'"'+onin+"></td>";
+  }).join("");
+  tr.innerHTML=cells+'<td><button class="btn-remove" onclick="removeRow(\''+id+'\')">✕</button></td>';
+  document.getElementById("items-body").appendChild(tr);
 }
 
 function removeRow(id){
-  document.getElementById('item-'+id).remove();
-  itemRows=itemRows.filter(i=>i!==id);
+  var el=document.getElementById(id);
+  if(el) el.remove();
+  itemRows=itemRows.filter(function(i){ return i!==id; });
 }
+
+function toggleOtro(sel){
+  var extra=sel.parentElement.querySelector(".otro-input");
+  if(!extra) return;
+  extra.style.display=sel.value==="Otro (especificar)"?"block":"none";
+  if(sel.value!=="Otro (especificar)") extra.value="";
+}
+
+function autocompleteCaja(input,id){
+  var caja=input.value.trim();
+  if(!caja) return;
+  var match=allData.find(function(r){ return String(r["N° Caja"]).trim()===caja; });
+  if(!match) return;
+  var prov=document.getElementById("f-proveedor").value;
+  var cols=getCols(prov).filter(function(c){ return !["Pedido","Fecha","Estado","Proveedor"].includes(c.key); });
+  var tr=document.getElementById(id);
+  if(!tr) return;
+  var inputs=tr.querySelectorAll("input,select,textarea");
+  cols.forEach(function(c,i){
+    if(c.key==="N° Caja") return;
+    if(match[c.key] && inputs[i]) inputs[i].value=match[c.key];
+  });
+}
+
 function getItems(){
-  return itemRows.map(id=>{
-    const tr=document.getElementById('item-'+id);
+  var prov=document.getElementById("f-proveedor").value;
+  var cols=getCols(prov).filter(function(c){ return !["Pedido","Fecha","Estado","Proveedor"].includes(c.key); });
+  return itemRows.map(function(id){
+    var tr=document.getElementById(id);
     if(!tr) return null;
-    const inp=tr.querySelectorAll('input');
-    return {cliente:inp[0].value,caja:inp[1].value,tipo:inp[2].value,
-      largo:inp[3].value,ancho:inp[4].value,trazados:inp[5].value,
-      cantidad:inp[6].value,obs:inp[7].value};
+    var inputs=tr.querySelectorAll("input,select,textarea");
+    var obj={};
+    cols.forEach(function(c,i){
+      if(!inputs[i]) return;
+      if(c.key==="Tipo Material" && inputs[i].value==="Otro (especificar)"){
+        var extra=inputs[i].parentElement.querySelector(".otro-input");
+        obj[c.key]=extra&&extra.value ? extra.value : inputs[i].value;
+      } else {
+        obj[c.key]=inputs[i].value;
+      }
+    });
+    return obj;
   }).filter(Boolean);
 }
 
-function setToday(){
-  const d=new Date();
-  const dd=String(d.getDate()).padStart(2,'0');
-  const mm=String(d.getMonth()+1).padStart(2,'0');
-  const yy=String(d.getFullYear()).slice(2);
-  return `${dd}/${mm}/${yy}`;
+function fmtDate(v){
+  if(!v) return new Date().toLocaleDateString("es-AR");
+  return v.split("-").reverse().join("/");
 }
 
 function previewMail(){
-  const ped=document.getElementById('f-pedido').value||'—';
-  const fecha=document.getElementById('f-fecha').value||setToday();
-  const prov=document.getElementById('f-proveedor').value;
-  const items=getItems();
-  if(!items.length){ alert('Agregá al menos un ítem'); return; }
-  const fechaFmt = fecha ? fecha.split('-').reverse().join('/') : setToday();
-  let txt=`GUIDO PEDIDO N° ${ped}\nFecha ${fechaFmt}\n\n`;
-  txt+=`${'N°'.padEnd(4)}${'CANTIDAD'.padEnd(12)}${'TIPO MATERIAL'.padEnd(22)}${'LARGO'.padEnd(8)}${'ANCHO'.padEnd(8)}${'TRAZADOS'.padEnd(22)}${'CLIENTE'.padEnd(20)}OBSERVACIONES\n`;
-  txt+='─'.repeat(110)+'\n';
-  items.forEach((it,i)=>{
-    txt+=`${String(i+1).padEnd(4)}${it.cantidad.padEnd(12)}${it.tipo.padEnd(22)}${it.largo.padEnd(8)}${it.ancho.padEnd(8)}${it.trazados.padEnd(22)}${it.cliente.padEnd(20)}${it.obs}\n`;
+  var ped=document.getElementById("f-pedido").value||"—";
+  var fecha=fmtDate(document.getElementById("f-fecha").value);
+  var prov=document.getElementById("f-proveedor").value;
+  var items=getItems();
+  if(!items.length){ alert("Agregá al menos un ítem"); return; }
+  var mailCols=getCols(prov).filter(function(c){ return c.mail && c.key!=="Pedido" && c.key!=="Fecha"; });
+  var txt="E.G. CORRUGADOS S.R.L.\nGUIDO PEDIDO N° "+ped+"\nFecha "+fecha+"\nProveedor: "+prov+"\n\n";
+  var w=14;
+  txt+=mailCols.map(function(c){ return c.label.substring(0,w).padEnd(w); }).join(" ")+"\n";
+  txt+="─".repeat(mailCols.length*(w+1))+"\n";
+  items.forEach(function(it){
+    txt+=mailCols.map(function(c){ return String(it[c.key]||"").substring(0,w).padEnd(w); }).join(" ")+"\n";
   });
-  txt+=`\nEnviado vía e-mail\nProveedor: ${prov}`;
-  document.getElementById('preview-box').textContent=txt;
+  txt+="\nENVIADO VÍA E-MAIL";
+  document.getElementById("preview-box").textContent=txt;
 }
 
 function copyMail(){
   previewMail();
-  const txt=document.getElementById('preview-box').textContent;
+  var txt=document.getElementById("preview-box").textContent;
   if(!txt.trim()) return;
-  navigator.clipboard.writeText(txt).then(()=>{
-    const s=document.getElementById('status-nuevo');
-    s.className='status ok'; s.textContent='✓ Texto copiado al portapapeles. Podés pegarlo en el mail.';
-    setTimeout(()=>s.style.display='none',3000);
+  navigator.clipboard.writeText(txt).then(function(){
+    showStatus("ok","✓ Texto copiado. Podés pegarlo en el mail.");
+    setTimeout(function(){ document.getElementById("status-nuevo").style.display="none"; },3000);
   });
 }
 
+function showStatus(type,msg){
+  var s=document.getElementById("status-nuevo");
+  s.className="status "+type; s.textContent=msg;
+}
+
 async function guardarPedido(){
-  const ped=document.getElementById('f-pedido').value.trim();
-  const fecha=document.getElementById('f-fecha').value;
-  const prov=document.getElementById('f-proveedor').value;
-  const items=getItems();
-  const st=document.getElementById('status-nuevo');
-  if(!ped||!items.length){ st.className='status err'; st.textContent='Completá el N° de pedido y al menos un ítem.'; return; }
-  const fechaFmt = fecha ? fecha.split('-').reverse().join('/') : setToday();
-  st.className='status loading'; st.textContent='Guardando...';
-  let ok=true;
-  for(const it of items){
-    const row={Pedido:ped,Fecha:fechaFmt,Cliente:it.cliente,'N° Caja':it.caja,
-      'Tipo Material':it.tipo,Largo:it.largo,Ancho:it.ancho,Trazados:it.trazados,
-      Cantidad:it.cantidad,Observaciones:it.obs,Proveedor:prov};
+  var ped=document.getElementById("f-pedido").value.trim();
+  var fecha=fmtDate(document.getElementById("f-fecha").value);
+  var prov=document.getElementById("f-proveedor").value;
+  var items=getItems();
+  if(!ped||!items.length){ showStatus("err","Completá el N° de pedido y al menos un ítem."); return; }
+  showStatus("loading","Guardando...");
+  var ok=true;
+  for(var i=0;i<items.length;i++){
+    var row=Object.assign({},items[i],{Pedido:ped,Fecha:fecha,Estado:"Enviado",Proveedor:prov});
     try{
-      await fetch(API,{method:'POST',body:JSON.stringify({action:'add',row}),headers:{'Content-Type':'application/json'}});
+      await fetch(API,{method:"POST",body:JSON.stringify({action:"add",row:row}),headers:{"Content-Type":"application/json"}});
       allData.push(row);
     } catch(e){ ok=false; }
   }
-  if(ok){
-    st.className='status ok'; st.textContent=`✓ Pedido N°${ped} guardado con ${items.length} ítem(s).`;
-    renderAll();
-  } else {
-    st.className='status err'; st.textContent='Hubo un error al guardar. Verificá la conexión.';
-  }
+  if(ok){ showStatus("ok","✓ Pedido N°"+ped+" guardado con "+items.length+" ítem(s)."); renderAll(); }
+  else showStatus("err","Error al guardar. Verificá la conexión.");
 }
 
-function goTo(page, btn){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
-  document.getElementById('page-'+page).classList.add('active');
-  btn.classList.add('active');
-  if(page==='proveedores') renderProveedores();
-}
-
-// Agregar proveedores al select del form
 function buildProvSelect(){
-  const provs=[...new Set(allData.map(r=>r.Proveedor).filter(Boolean))].sort();
-  const sel=document.getElementById('f-proveedor');
-  sel.innerHTML=provs.map(p=>`<option value="${p}">${p}</option>`).join('')+'<option value="Otro">+ Otro proveedor</option>';
+  var provs=Object.keys(PROV_COLS);
+  var sel=document.getElementById("f-proveedor");
+  sel.innerHTML=provs.map(function(p){ return '<option value="'+p+'">'+p+"</option>"; }).join("");
 }
 
-// Init
-addItemRow();
-document.getElementById('f-fecha').valueAsDate=new Date();
-loadData().then(()=>buildProvSelect());
+function goTo(page,btn){
+  document.querySelectorAll(".page").forEach(function(p){ p.classList.remove("active"); });
+  document.querySelectorAll("nav button").forEach(function(b){ b.classList.remove("active"); });
+  document.getElementById("page-"+page).classList.add("active");
+  btn.classList.add("active");
+  if(page==="proveedores") renderProveedores();
+}
+
+document.getElementById("f-fecha").valueAsDate=new Date();
+buildProvSelect();
+updateProvFields();
+loadData();
 </script>
 </body>
 </html>
