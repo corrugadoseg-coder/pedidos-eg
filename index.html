@@ -81,6 +81,10 @@ mark{background:#fff3cd;border-radius:2px;padding:0 1px}
 .ptab.active{background:#1a1a2e;color:#fff;border-color:#1a1a2e}
 .empty-state{text-align:center;padding:40px;color:#aaa;font-size:13px}
 .print-header{display:none;margin-bottom:16px}
+.estado-sel{font-size:11px;padding:3px 6px;border-radius:12px;border:1px solid #ccc;font-weight:600;cursor:pointer;background:#fff}
+.estado-sel.sel-env{background:#fff3e0;color:#e65100;border-color:#ffe0b2}
+.estado-sel.sel-rec{background:#e8f5e9;color:#2e7d32;border-color:#c8e6c9}
+.estado-sel.sel-anu{background:#fce4ec;color:#b71c1c;border-color:#f8bbd0}
 </style>
 </head>
 <body>
@@ -180,7 +184,7 @@ mark{background:#fff3cd;border-radius:2px;padding:0 1px}
 
 <script>
 var API = "https://script.google.com/macros/s/AKfycbxbV8zsJ4o0OnYe3z1E3FvuAUm7Uy1TWTiXpPKstKuBguF5aB9qsEVBb77TvtFIK7mJNQ/exec";
-var COLS_ALL = ["Pedido","Fecha","Cliente","N Caja","Tipo Material","Largo","Ancho","Trazados","Cantidad","Observaciones","Estado","Anotaciones","Proveedor"];
+var COLS_ALL = ["Pedido","Fecha","Cliente","N Caja","Tipo Material","Largo","Ancho","Trazados","Cantidad","Observaciones","Estado","Anotaciones","Proveedor","ID"];
 
 var MAT_IDESA = ["Liner 60","Liner 90","Liner 110","Blanco Liner","DT Ondas B + Micro","DT 120 Liner","DT Blanco","Kraft 140","DT 150 con 1 puro","Otro (especificar)"];
 var MAT_MICROMONT = ["Simple Faz Marron-Marron","Simple Faz Blanco-Marron","Simple Faz Blanco-Blanco","Simple Faz Liner-Marron","Simple Faz Marron-Liner con Liner en la Onda","Micro Marron-Marron-Marron","Micro Blanco-Marron-Marron","Micro Blanco-Marron-Blanco","Micro Liner-Marron-Marron","Onda B Marron-Marron-Marron","Onda B Blanco-Marron-Marron","Onda B Blanco-Marron-Blanco","Onda B Liner-Marron-Marron","Otro (especificar)"];
@@ -241,141 +245,10 @@ function r2o(arr) {
 
 function getCols(p) { return PROV_COLS[p] || PROV_COLS["Idesa"]; }
 
-var SEED_IDESA = [
-["1340","20/02/26","Argentrade","5094","Pliegos impr. DT 120 Liner","1510","1350","260-830-260","2000","Impresion: JEICO / Entrega: 06/03/26","Enviado","","Idesa"],
-["1341","23/02/26","60x40x40","","Liner 110","2040","800","200-400-200","1200","K 110","Enviado","","Idesa"],
-["1342","24/02/26","30x20x125/30x25x20","","Liner 90","1140","775","100-125-100/125-200-125","1200","","Enviado","","Idesa"],
-["1342","24/02/26","50x40x24","","Liner 90","1840","640","200-240-200","820","","Enviado","","Idesa"],
-["1342","24/02/26","50x40x30","","Liner 90","1840","700","200-300-200","760","","Enviado","","Idesa"],
-["1342","24/02/26","60x40x30","","Liner 90","2040","700","200-300-200","1000","K 90","Enviado","","Idesa"],
-["1343","24/02/26","Argentrade","5113","Pliegos impr. DT 120 Liner","1510","1350","260-830-260","2400","Nueva Imp: JEICO 29","Enviado","","Idesa"],
-["1344","26/02/26","Richmond","2574","Microcorr. Liner 90","1090","600","Sin trazar","3300","","Enviado","","Idesa"],
-["1345","26/02/26","Autop.fal","","Liner 110","1385","1150","260-630-260","700","10 sin imp.","Enviado","","Idesa"],
-["1345","26/02/26","Sew","995/N3","DT 120 Liner","1740","560","150-260-150","700","","Enviado","","Idesa"],
-["1346","02/03/26","Argentrade","5067","Pliegos impr. DT 120 Liner","1810","1370","270-830-270","1550","Impresion RANDERS / Entrega: 25/03/26","Enviado","","Idesa"],
-["1346","02/03/26","Argentrade","5067","Pliegos impr. DT 120 Liner","1810","1370","270-830-270","1550","Impresion RANDERS / Entrega: 01/04/26","Enviado","","Idesa"],
-["1346","02/03/26","Argentrade","5067","Pliegos impr. DT 120 Liner","1810","1370","270-830-270","2350","Impresion RANDERS / Entrega: 08/04/26","Enviado","","Idesa"],
-["1347","02/03/26","Dixter","2726/10737","Kraft 140","1420","584","147-290-147","520","No mas","Enviado","","Idesa"],
-["1348","02/03/26","Compfort","","DT 120 Liner","1920","910","235-440-235","200","No mas","Enviado","","Idesa"],
-["1348","02/03/26","Compfort","","DT 120 Liner","1175","626","208-210-208","400","No mas","Enviado","","Idesa"],
-["1349","02/03/26","Ritossa","1074","Liner 90","1440","1000","150-250-150/150-150-150","800","40x30x25","Enviado","","Idesa"],
-["1350","05/03/26","Decorac.","4764","Liner 90","1200","400","80-80-80-80","2200","RETIRA NICO","Enviado","","Idesa"],
-["1351","05/03/26","Intex","N2","Liner 90","1320","410","130-150-130","1000","","Enviado","","Idesa"],
-["1353","06/03/26","Dario Diaz","5052","Liner 110","1440","750","50-650-50","1000","","Enviado","","Idesa"],
-["1354","06/03/26","stock","","Liner 60","1200","1000","Sin trazar","1500","","Enviado","","Idesa"],
-["1355","06/03/26","ACA","4955","Cajas DT 470x270x294","","","","3700","LEGADO PRO / Entrega CAMPANA","Enviado","","Idesa"],
-["1356","09/03/26","Staco","2927","DT 120 Liner","1700","805","235-145-240-145-40","1000","","Enviado","","Idesa"],
-["1357","10/03/26","40x30x30","","DT 120 Liner","1440","600","150-300-150","1500","DT","Enviado","","Idesa"],
-["1358","11/03/26","Autop.fal","4603","Liner 110","1445","581","163-255-163","1250","","Enviado","","Idesa"],
-["1359","12/03/26","Estudio Te","5065","DT 120 Liner","1198","1588","257-1074-257","310","Manija troquelada","Enviado","","Idesa"],
-["1360","16/03/26","Wolfre","5061","Liner 110","1370","776","333-110-333","500","","Enviado","","Idesa"],
-["1361","16/03/26","Ibc","1365","DT120 Liner","1810","606","168-270-168","4400","","Enviado","","Idesa"],
-["1361","16/03/26","Ibc","2421","DT 120 Liner","2160","650","210-230-210","2000","","Enviado","","Idesa"],
-["1362","17/03/26","Plastipren","1045","DT120 Liner","2040","600","200-200-200","2500","","Enviado","","Idesa"],
-["1363","18/03/26","30x20x15/30x20x25","","Liner 90","1040","800","100-150-100/100-250-100","1250","","Enviado","","Idesa"],
-["1364","18/03/26","60x50x50","","DT 120 Liner","1140","1000","250-500-250","500","","Enviado","","Idesa"],
-["1364","18/03/26","Dromex","4225","DT 120 Liner","1410","706","148-410-148","6000","","Enviado","","Idesa"],
-["1365","18/03/26","stock","","Liner 60","1200","1000","Sin trazar","1500","","Enviado","","Idesa"],
-["1366","19/03/26","DP.5119","40x30x30","DT 120 Liner","1480","735","Sin trazar","500","No mas","Enviado","","Idesa"],
-["1367","26/03/26","Wolfre","4767","Liner 110","1760","811","203-405-203","360","","Enviado","","Idesa"],
-["1368","26/03/26","symonds","","Microcorr. Liner 90","480","720","Sin trazar","15000","","Enviado","","Idesa"],
-["1369","26/03/26","Igual","4798","Liner 90","1300","480","140-200-140","5000","","Enviado","","Idesa"],
-["1370","26/03/26","Casa Manu","5054","Blanco Liner","970","391","108-175-108","2050","","Enviado","","Idesa"],
-["1371","27/03/26","Mervick","4316","Liner 90","1390","425","145-135-145","1500","","Enviado","","Idesa"],
-["1371","27/03/26","Mervick","4827","DT 120 Liner","1330","451","133-185-133","1500","","Enviado","","Idesa"],
-["1372","30/03/26","Dromex","","DT 120 Liner","1140","380","Sin trazar","1200","","Enviado","","Idesa"],
-["1373","30/03/26","30x30x30/30x20x20","","Liner 90","1240","1000","150-300-150/100-200-100","1200","","Enviado","","Idesa"],
-["1373","30/03/26","40x30x30","","Liner 90","1440","600","150-300-150","1200","","Enviado","","Idesa"],
-["1374","30/03/26","Arie","5055","Liner 110","2040","650","200-250-200","500","","Enviado","","Idesa"],
-["1375","06/04/26","Aceroac","667","Liner 60","820","820","Sin trazar","2600","Entregar Caracas 2162 CABA","Enviado","","Idesa"],
-["1376","06/04/26","Diral","2748","Liner 90","1840","780","200-380-200","550","No mas","Enviado","","Idesa"],
-["1377","06/04/26","DP World","4471","DT 120 Liner","1205","816","238-340-238","520","NO MAS","Enviado","","Idesa"],
-["1378","06/04/26","40x30x30","","DT 120 Liner","1440","600","150-300-150","1500","DT","Enviado","","Idesa"],
-["1379","14/04/26","Burkol","4849","DT 120 Liner","1040","414","97-220-97","650","","Enviado","","Idesa"],
-["1379","14/04/26","40x30x30","","Liner 90","1440","600","150-300-150","1500","","Enviado","","Idesa"],
-["1380","14/04/26","40x30x20","","Liner 90","1440","500","150-200-150","1500","","Enviado","","Idesa"],
-["1381","15/04/26","ACA","4976","Cajas DT 120L 470x270x294","","","","2600","Caja: TEMPUS","Enviado","","Idesa"],
-["1381","15/04/26","ACA","1297","Cajas DT 120L 380x275x255","","","","3100","Caja: SPECTOR 25","Enviado","","Idesa"],
-["1381","15/04/26","ACA","4976","Cajas DT 120L 470x270x294","","","","2600","Caja: DICAMAX 58","Enviado","","Idesa"],
-["1381","15/04/26","ACA","4811","Cajas DT 120L 470x270x294","","","","2100","Caja: CAMBIUM","Enviado","","Idesa"],
-["1382","16/04/26","Diral","4566","DT 120 Liner","1890","670","205-260-205","550","No mas","Enviado","","Idesa"],
-["1383","16/04/26","35x30x25/40x25x25","","Liner 90","1340","1050","150-250-150/125-250-125","750","No mas","Enviado","","Idesa"],
-["1383","16/04/26","60x40x30","","Liner 110","2040","700","200-300-200","800","110","Enviado","","Idesa"],
-["1383","16/04/26","60x40x40","","Liner 110","2040","800","200-400-200","1000","110","Enviado","","Idesa"],
-["1383","16/04/26","60x50x50","","Liner 110","1140","1000","250-500-250","900","","Enviado","","Idesa"],
-["1384","17/04/26","Demiquelli","5121","Liner 90","1250","511","123-265-123","1600","No mas","Enviado","","Idesa"],
-["1385","16/04/26","Casa Manu","5057/5058/5059","Blanco Liner","1000","375","Sin trazar","4700","","Enviado","","Idesa"],
-["1386","17/04/26","stock","","Liner 60","1200","1000","Sin trazar","1500","","Enviado","","Idesa"],
-["1387","20/04/26","Bottcher","4859","DT 120 Liner","1670","560","Sin trazar","550","","Enviado","","Idesa"],
-["1387","20/04/26","Bottcher","4906","DT 120 Liner","1950","680","Sin trazar","500","","Enviado","","Idesa"],
-["1388","21/04/26","Aut.fal","N10","Liner 110","1385","1150","260-630-260","1200","","Enviado","","Idesa"],
-["1389","21/04/26","Panoni","1243","Liner 110","2040","800","200-400-200","1000","","Enviado","","Idesa"],
-["1390","24/04/26","Mervick","4317","Liner 90","1140","396","118-160-118","1100","No mas","Enviado","","Idesa"],
-["1390","24/04/26","Mervick","4842","DT 120 Liner","1480","521","168-185-168","1500","","Enviado","","Idesa"],
-["1390","24/04/26","40x30x15","","Liner 90","1440","450","150-150-150","1000","","Enviado","","Idesa"],
-["1391","24/04/26","Bioars","5060","Liner 110","1960","670","200-270-200","1000","","Enviado","","Idesa"],
-["1392","27/04/26","Almar","2915","Liner 110","1720","1560","70-1420-70","500","","Enviado","","Idesa"],
-["1393","27/04/26","Monpres","1073","Liner 110","1360","490","165-160-165","620","No mas","Enviado","","Idesa"],
-["1394","28/04/26","ITC","2772","Liner 90","2020","710","170-370-170","1000","","Enviado","","Idesa"],
-["1395","29/04/26","Bremet","4991","DT 120 Liner","1440","450","150-150-150","800","","Enviado","","Idesa"],
-["1395","29/04/26","40x30x30","","DT 120 Liner","1440","600","150-300-150","1500","DT","Enviado","","Idesa"],
-["1396","30/04/26","De aloisio","5122","Liner 90","1720","521","178-165-178","2000","","Enviado","","Idesa"],
-["1397","04/05/26","40x30x20","","Liner 90","1440","500","150-200-150","1500","","Enviado","","Idesa"],
-["1397","04/05/26","50x40x35","","DT 120 Liner","1840","750","200-350-200","400","DT","Enviado","","Idesa"],
-["1397","04/05/26","Compuspar","4396/4381","DT 120 Liner","1090","696","Sin trazar","800","","Enviado","","Idesa"],
-["1397","04/05/26","Compuepar","5026/4395/4723","DT 120 Liner","1160","910","Sin trazar","750","carricaberry","Enviado","","Idesa"],
-["1398","05/05/26","ACA","4958","Cajas DT 120L 450x275x270","","","","2500","ACA PACK PREMIUM XL","Enviado","","Idesa"],
-["1398","05/05/26","ACA","5123","Cajas DT 120L 470x270x294","","","","2300","CELSIUM","Enviado","","Idesa"],
-["1399","04/05/26","symonds","","Microcorr. Liner 90","480","720","Sin trazar","7500","","Enviado","","Idesa"],
-["1400","06/05/26","Panoni","2665","Liner 90","1190","611","153-305-153","1000","","Enviado","","Idesa"]
-];
-
-var SEED_MICROMONT = [
-["562","21/01/26","15x15x10","","Onda B Blanco-Marron-Marron","660","280","","2000","","Enviado","","Micromont"],
-["562","21/01/26","20x20x10","","Onda B Blanco-Marron-Marron","870","330","","2000","","Enviado","","Micromont"],
-["562","21/01/26","20x..x20","","Onda B Blanco-Marron-Marron","870","430","","1000","","Enviado","","Micromont"],
-["563","05/03/26","richmond","","Micro Liner-Marron-Marron","600","1090","","3300","","Enviado","","Micromont"],
-["564","09/03/26","Symonds","4248","Micro Liner-Marron-Marron","480","720","","6500","","Enviado","","Micromont"],
-["565","13/03/26","Dealer","","Micro Liner-Marron-Marron","480","720","","2700","","Enviado","","Micromont"],
-["565","13/03/26","martin","","Micro Liner-Marron-Marron","320","380","","3100","","Enviado","","Micromont"],
-["566","14/04/26","15x15x10","","Onda B Blanco-Marron-Marron","280","660","","1500","","Enviado","","Micromont"],
-["566","14/04/26","Martin Rotzajt","","Micro Liner-Marron-Marron","320","380","","5100","","Enviado","","Micromont"],
-["567","16/04/26","20x20x15","","Micro Blanco-Marron-Marron","380","870","","1500","","Enviado","","Micromont"],
-["568","23/04/26","Luis Ordonez","4812","Micro Liner-Marron-Marron","500","600","","1000","Papel el mas oscuro posible","Enviado","","Micromont"],
-["568","23/04/26","Luis Ordonez","4843","Micro Liner-Marron-Marron","570","660","","550","Papel lo mas oscuro posible","Enviado","","Micromont"],
-["569","28/04/26","Division Richmond","","Micro Marron-Marron-Marron","550","280","","4000","","Enviado","","Micromont"],
-["569","28/04/26","stock","","Micro Liner-Marron-Marron","750","1500","","1000","Papel lo mas oscuro posible","Enviado","","Micromont"],
-["570","19/05/26","Muskoka","","Micro Liner-Marron-Marron","450","660","","2600","","Enviado","","Micromont"],
-["570","19/05/26","Muskoka","","Micro Liner-Marron-Marron","550","540","","2600","","Enviado","","Micromont"],
-["571","01/06/26","wolfre","","Micro Liner-Marron-Marron","620","640","","2500","","Enviado","","Micromont"],
-["572","03/06/26","Compani","4917","Micro Liner-Marron-Marron","540","850","","3200","","Enviado","","Micromont"]
-];
-
-var SEED_ASERPEL = [
-["001","20/05/26","Stock DT 403030","","DT BCC 655 C","1440","600","150-300-150","1700","Precio acordado: $988,50 el metro cuadrado","Enviado","","Aserpel"]
-];
-
-var SEED_ROLPEL = [
-["001","29/01/26","Warnes Plaza","2824","Liner 110","1420","575","90-75-245-75-90","1600","","Enviado","","Rol Pel Planchas"],
-["002","03/02/26","45x35x35","","Liner 110","1640","700","175-350-175","1000","","Enviado","","Rol Pel Planchas"],
-["005","18/02/26","Stock 60x40x40","","Liner 90","","","","1000","Precio acordado 23/01: $1.052 c/u","Enviado","","Rol Pel Planchas"],
-["006","06/03/26","ACA","5033","Liner 70","1200","1000","Sin trazar","2000","Sin impresion","Enviado","","Rol Pel Planchas"],
-["003","05/02/26","Stock","","1.20 x 25mts","","","","30","","Enviado","","Rol Pel Rollos"],
-["003","05/02/26","Stock","","1.60 x 25mts","","","","30","","Enviado","","Rol Pel Rollos"],
-["003","05/02/26","Stock","","1.20 x 25mts","","","","30","","Enviado","","Rol Pel Rollos"],
-["004","11/02/26","Stock","","1.20 x 25mts","","","","60","","Enviado","","Rol Pel Rollos"],
-["004","11/02/26","Stock","","1.00 x 25mts","","","","20","","Enviado","","Rol Pel Rollos"],
-["004","11/02/26","Stock","","1.40 x 25mts","","","","10","","Enviado","","Rol Pel Rollos"],
-["007","09/03/26","Stock","","1.20 x 25mts","","","","15","Enviar junto al pedido 006 del 6/03/26","Enviado","","Rol Pel Rollos"],
-["007","09/03/26","Stock","","1.40 x 25mts","","","","20","Enviar junto al pedido 006 del 6/03/26","Enviado","","Rol Pel Rollos"],
-["008","11/03/26","Stock","","0.90 x 25mts","","","","50","Enviar junto al pedido 006 del 6/03/26","Enviado","","Rol Pel Rollos"],
-["008","11/03/26","Stock","","1.20 x 25mts","","","","20","Enviar junto al pedido 006 del 6/03/26","Enviado","","Rol Pel Rollos"],
-["008","11/03/26","Stock","","1.60 x 25mts","","","","15","Enviar junto al pedido 006 del 6/03/26","Enviado","","Rol Pel Rollos"],
-["009","23/04/26","Stock","","1.00 x 25mts","","","","30","","Enviado","","Rol Pel Rollos"],
-["009","23/04/26","Stock","","1.20 x 25mts","","","","50","","Enviado","","Rol Pel Rollos"],
-["009","23/04/26","Stock","","1.40 x 25mts","","","","20","","Enviado","","Rol Pel Rollos"],
-["009","23/04/26","Stock","","1.60 x 25mts","","","","10","","Enviado","","Rol Pel Rollos"]
-];
+var SEED_IDESA = [];
+var SEED_MICROMONT = [];
+var SEED_ASERPEL = [];
+var SEED_ROLPEL = [];
 
 var allData = [];
 var sortCol = "Pedido", sortDir = 1;
@@ -455,6 +328,17 @@ function estadoBadge(e) {
   return '<span class="badge-env">Enviado</span>';
 }
 
+function estadoSelect(r) {
+  var id = r.ID || "";
+  var e = r.Estado || "Enviado";
+  if (!id) { return estadoBadge(e); }
+  var opts = ["Enviado","Recibido","Anulado"].map(function(o){
+    return '<option value="'+o+'"'+(o===e?' selected':'')+'>'+o+'</option>';
+  }).join("");
+  var cls = e==="Recibido"?"sel-rec":(e==="Anulado"?"sel-anu":"sel-env");
+  return '<select class="estado-sel '+cls+'" data-id="'+id+'" onchange="cambiarEstado(this)">'+opts+'</select>';
+}
+
 function makeHead(cols, showProv) {
   var h = cols.map(function(c) {
     return '<th onclick="sortBy(\'' + c.key + '\')">' + c.label + ' <span style="opacity:.4">&#8597;</span></th>';
@@ -466,7 +350,7 @@ function makeHead(cols, showProv) {
 function makeRow(r, q, cols, showProv) {
   var cells = cols.map(function(c) {
     var v = r[c.key] || "";
-    if (c.key === "Estado") return "<td>" + estadoBadge(v) + "</td>";
+    if (c.key === "Estado") return "<td>" + estadoSelect(r) + "</td>";
     if (c.key === "Pedido") return '<td><span class="badge">' + hl(v, q) + "</span></td>";
     if (c.key === "Observaciones" || c.key === "Anotaciones") return '<td class="obs-cell">' + hl(v, q) + "</td>";
     if (c.key === "Cantidad") return '<td style="font-weight:600">' + hl(v, q) + "</td>";
@@ -761,6 +645,25 @@ async function guardarPedido() {
   }
   if (ok) { showStatus("ok", "Pedido N " + ped + " guardado con " + items.length + " item(s)."); renderAll(); }
   else showStatus("err", "Error al guardar. Verifica la conexion.");
+}
+
+async function cambiarEstado(sel) {
+  var id = sel.getAttribute("data-id");
+  var nuevo = sel.value;
+  if (!id) return;
+  var anterior = sel.getAttribute("data-prev") || "";
+  sel.disabled = true;
+  try {
+    await fetch(API, {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"}, body: JSON.stringify({action: "updateEstado", id: id, estado: nuevo})});
+    var rec = allData.find(function(r){ return String(r.ID) === String(id); });
+    if (rec) rec.Estado = nuevo;
+    sel.className = "estado-sel " + (nuevo==="Recibido"?"sel-rec":(nuevo==="Anulado"?"sel-anu":"sel-env"));
+    var tr = sel.closest("tr");
+    if (tr) { if (nuevo==="Anulado") tr.classList.add("anulado"); else tr.classList.remove("anulado"); }
+  } catch(e) {
+    alert("No se pudo cambiar el estado. Revisa la conexion.");
+  }
+  sel.disabled = false;
 }
 
 function buildProvSelect() {
