@@ -528,7 +528,22 @@ function autocompleteCaja(input, id) {
     // El campo principal de la celda es el primer input/select/textarea.
     var campo = celda.querySelector("select, textarea, input");
     if (!campo) return;
-    campo.value = match[c.key];
+    var valor = match[c.key];
+    // Si es un desplegable (select) y el valor no esta entre las opciones,
+    // lo agregamos como opcion para poder seleccionarlo igual.
+    if (campo.tagName === "SELECT") {
+      var existe = false;
+      for (var j = 0; j < campo.options.length; j++) {
+        if (campo.options[j].value === valor) { existe = true; break; }
+      }
+      if (!existe) {
+        var opt = document.createElement("option");
+        opt.value = valor;
+        opt.textContent = valor;
+        campo.appendChild(opt);
+      }
+    }
+    campo.value = valor;
   });
 }
 
