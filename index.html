@@ -385,7 +385,7 @@ var itemRows = [];
 var lastPreviewText = "";
 
 function loadData() {
-  allData = SEED_IDESA.map(r2o).concat(SEED_MICROMONT.map(r2o)).concat(SEED_ASERPEL.map(r2o)).concat(SEED_ROLPEL.map(r2o));
+ allData = [];
   renderAll();
   fetch(API).then(function(r) { return r.json(); }).then(function(json) {
     if (json.ok && json.data && json.data.length) {
