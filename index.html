@@ -392,6 +392,7 @@ function loadData() {
       var key = function(d) { return d.Pedido+"|"+d.Cliente+"|"+d["Tipo Material"]+"|"+d.Proveedor; };
       var sk = new Set(allData.map(key));
       var nr = json.data.filter(function(d) { return d.Pedido && !sk.has(key(d)); });
+      nr.forEach(function(d){ if(d.Fecha && String(d.Fecha).indexOf("T")>=0){ var dt=new Date(d.Fecha); d.Fecha=("0"+dt.getDate()).slice(-2)+"/"+("0"+(dt.getMonth()+1)).slice(-2)+"/"+String(dt.getFullYear()).slice(-2); } });
       allData = allData.concat(nr);
       renderAll();
     }
