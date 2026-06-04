@@ -503,16 +503,30 @@ function toggleOtro(sel) {
 function autocompleteCaja(input, id) {
   var caja = input.value.trim();
   if (!caja) return;
-  var match = allData.find(function(r) { return String(r["N Caja"]).trim() === caja; });
-  if (!match) return;
+  // Buscar TODOS los pedidos con ese N Caja y quedarse con el mas reciente
+  // (mayor numero de pedido). Compara como numero cuando se puede.
+  var matches = allData.filter(function(r) { return String(r["N Caja"]).trim() === caja && String(r["N Caja"]).trim() !== ""; });
+  if (!matches.length) return;
+  matches.sort(function(a, b) {
+    var na = parseFloat(a.Pedido), nb = parseFloat(b.Pedido);
+    if (!isNaN(na) && !isNaN(nb)) return nb - na;
+    return String(b.Pedido).localeCompare(String(a.Pedido), "es");
+  });
+  var match = matches[0];
   var prov = document.getElementById("f-proveedor").value;
   var cols = getCols(prov).filter(function(c) { return !["Pedido", "Fecha", "Estado", "Proveedor"].includes(c.key); });
   var tr = document.getElementById(id);
   if (!tr) return;
   var inputs = tr.querySelectorAll("input,select,textarea");
+  // Asignar por NOMBRE de campo (no por posicion), solo los campos deseados.
+  var rellenar = ["Cliente", "Tipo Material", "Largo", "Ancho", "Trazados", "Observaciones"];
   cols.forEach(function(c, i) {
+    if (!inputs[i]) return;
     if (c.key === "N Caja") return;
-    if (match[c.key] && inputs[i]) inputs[i].value = match[c.key];
+    if (rellenar.indexOf(c.key) === -1) return;
+    if (match[c.key] === undefined || match[c.key] === "") return;
+    inputs[i].value = match[c.key];
+    // Si es el dropdown de material y el valor no esta en la lista, no rompe: queda como esta.
   });
 }
 
