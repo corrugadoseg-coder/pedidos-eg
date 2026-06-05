@@ -260,7 +260,7 @@ var SEED_ASERPEL = [];
 var SEED_ROLPEL = [];
 
 var allData = [];
-var sortCol = "Pedido", sortDir = 1;
+var sortCol = "Fecha", sortDir = -1;
 var filterField = "todos";
 var activeProv = "Idesa";
 var itemRows = [];
@@ -325,6 +325,14 @@ function getFiltered(q, prov, field, desde, hasta, pd, ph) {
 function getSorted(arr) {
   return arr.slice().sort(function(a, b) {
     var va = String(a[sortCol] || ""), vb = String(b[sortCol] || "");
+    // Si ordenamos por Fecha, comparar como fechas reales (dd/mm/aa)
+    if (sortCol === "Fecha") {
+      var da = parseDate(va), db = parseDate(vb);
+      if (da && db) return (da - db) * sortDir;
+      if (da && !db) return -1 * sortDir;
+      if (!da && db) return 1 * sortDir;
+      return 0;
+    }
     var na = parseFloat(va), nb = parseFloat(vb);
     if (!isNaN(na) && !isNaN(nb)) return (na - nb) * sortDir;
     return va.localeCompare(vb, "es") * sortDir;
