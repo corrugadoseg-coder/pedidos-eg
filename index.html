@@ -324,17 +324,21 @@ function getFiltered(q, prov, field, desde, hasta, pd, ph) {
 
 function getSorted(arr) {
   return arr.slice().sort(function(a, b) {
-    var va = String(a[sortCol] || ""), vb = String(b[sortCol] || "");
-    // Si ordenamos por Fecha, comparar como fechas reales (dd/mm/aa)
+    // Orden por defecto (por Fecha): 3 niveles -> Fecha desc, Proveedor, Pedido desc
     if (sortCol === "Fecha") {
-      var da = parseDate(va), db = parseDate(vb);
-      if (da && db) return (da - db) * sortDir;
-      if (da && !db) return -1 * sortDir;
-      if (!da && db) return 1 * sortDir;
-      return 0;
+      var da = parseDate(String(a.Fecha || "")), db = parseDate(String(b.Fecha || ""));
+      var ta = da ? da.getTime() : -Infinity, tb = db ? db.getTime() : -Infinity;
+      if (ta !== tb) return (tb - ta);                       // fecha mas nueva primero
+      var pa = String(a.Proveedor || ""), pb = String(b.Proveedor || "");
+      if (pa !== pb) return pa.localeCompare(pb, "es");       // agrupar por proveedor
+      var na = parseFloat(a.Pedido), nb = parseFloat(b.Pedido);
+      if (!isNaN(na) && !isNaN(nb)) return nb - na;           // numero mayor a menor
+      return String(b.Pedido).localeCompare(String(a.Pedido), "es");
     }
-    var na = parseFloat(va), nb = parseFloat(vb);
-    if (!isNaN(na) && !isNaN(nb)) return (na - nb) * sortDir;
+    // Orden manual (clic en una columna): comportamiento simple de siempre
+    var va = String(a[sortCol] || ""), vb = String(b[sortCol] || "");
+    var na2 = parseFloat(va), nb2 = parseFloat(vb);
+    if (!isNaN(na2) && !isNaN(nb2)) return (na2 - nb2) * sortDir;
     return va.localeCompare(vb, "es") * sortDir;
   });
 }
