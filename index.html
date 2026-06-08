@@ -170,7 +170,7 @@ tbody tr.prov-Idesa:hover,tbody tr.prov-Micromont:hover,tbody tr.prov-Aserpel:ho
       <button class="btn btn-green" onclick="copyMail()">Copiar para mail</button>
       <button class="btn btn-green" onclick="copiarYabrirOutlook()">Copiar pedido + abrir Outlook</button>
       <button class="btn btn-dark" onclick="printPedido()">Imprimir pedido</button>
-      <button class="btn btn-dark" onclick="guardarPedido()">Guardar pedido</button>
+      <button class="btn btn-dark" id="btn-guardar" onclick="guardarPedido()">Guardar pedido</button>
     </div>
     <div id="status-nuevo" class="status"></div>
   </div>
@@ -534,6 +534,7 @@ function renderHistorial() {
   document.getElementById("thead-hist").innerHTML = makeHead(cols, true);
   var tb = document.getElementById("tbody-hist");
   tb.innerHTML = filtered.length ? filtered.map(function(r) { return makeRow(r, q, cols, true); }).join("") : '<tr><td colspan="20" class="empty-state">Sin resultados</td></tr>';
+  setTimeout(function(){ syncScroll("stop-hist", "twrap-hist"); }, 50);
 }
 
 function clearHistFilters() {
@@ -820,12 +821,18 @@ function showStatus(type, msg) {
   s.textContent = msg;
 }
 
+var guardando = false;
 async function guardarPedido() {
+  // Proteccion anti-doble-guardado: si ya esta guardando, ignorar nuevos clics.
+  if (guardando) return;
   var ped = document.getElementById("f-pedido").value.trim();
   var fecha = fmtDate(document.getElementById("f-fecha").value);
   var prov = document.getElementById("f-proveedor").value;
   var items = getItems();
   if (!ped || !items.length) { showStatus("err", "Completa el N de pedido y al menos un item."); return; }
+  guardando = true;
+  var btn = document.getElementById("btn-guardar");
+  if (btn) { btn.disabled = true; btn.textContent = "Guardando..."; btn.style.opacity = "0.6"; }
   showStatus("loading", "Guardando...");
   var ok = true;
   for (var i = 0; i < items.length; i++) {
@@ -836,6 +843,9 @@ async function guardarPedido() {
   }
   if (ok) { showStatus("ok", "Pedido N " + ped + " guardado con " + items.length + " item(s)."); renderAll(); }
   else showStatus("err", "Error al guardar. Verifica la conexion.");
+  // Reactivar el boton al terminar
+  guardando = false;
+  if (btn) { btn.disabled = false; btn.textContent = "Guardar pedido"; btn.style.opacity = "1"; }
 }
 
 async function cambiarEstado(sel) {
@@ -924,6 +934,7 @@ function goTo(page, btn) {
   document.getElementById("page-" + page).classList.add("active");
   btn.classList.add("active");
   if (page === "proveedores") renderProveedores();
+  setTimeout(syncAllScrolls, 60);
 }
 
 document.getElementById("f-fecha").valueAsDate = new Date();
