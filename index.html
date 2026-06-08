@@ -81,6 +81,15 @@ mark{background:#fff3cd;border-radius:2px;padding:0 1px}
 .ptab.active{background:#1a1a2e;color:#fff;border-color:#1a1a2e}
 .empty-state{text-align:center;padding:40px;color:#aaa;font-size:13px}
 .print-header{display:none;margin-bottom:16px}
+.btn-editar{background:#fff;border:1px solid #ccc;border-radius:4px;cursor:pointer;font-size:13px;padding:2px 7px;color:#555}
+.btn-editar:hover{background:#f0f0ec;border-color:#999}
+.modal-bg{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal-box{background:#fff;border-radius:10px;padding:22px;width:90%;max-width:460px;box-shadow:0 10px 40px rgba(0,0,0,.2)}
+.modal-box h3{margin-bottom:14px}
+.modal-box label{font-size:12px;color:#666;font-weight:600;display:block;margin-bottom:4px;margin-top:10px}
+.modal-box textarea{width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;min-height:70px;resize:vertical;font-family:Arial,sans-serif}
+.modal-actions{display:flex;gap:10px;margin-top:18px;justify-content:flex-end}
 .prov-Idesa{background:#dbeafe}
 .prov-Micromont{background:#d7f0db}
 .prov-Aserpel{background:#fdf0c4}
@@ -199,6 +208,21 @@ tbody tr.prov-Idesa:hover,tbody tr.prov-Micromont:hover,tbody tr.prov-Aserpel:ho
     <div class="res-info" id="res-contactos">Cargando contactos...</div>
     <div class="tbl-wrap"><table><thead><tr id="thead-contactos"></tr></thead><tbody id="tbody-contactos"></tbody></table></div>
     <p style="font-size:12px;color:#888;margin-top:12px">Para editar estos datos, modifica la hoja "Proveedores" en la planilla de Google.</p>
+  </div>
+</div>
+
+<div id="modal-editar" class="modal-bg">
+  <div class="modal-box">
+    <h3>Editar pedido <span id="modal-ped-num" style="color:#888;font-weight:400"></span></h3>
+    <label>Observaciones</label>
+    <textarea id="modal-obs"></textarea>
+    <label>Anotaciones</label>
+    <textarea id="modal-ano"></textarea>
+    <div id="modal-status" style="font-size:12px;margin-top:10px;display:none"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="cerrarEditar()">Cancelar</button>
+      <button class="btn btn-dark" id="modal-guardar" onclick="guardarNotas()">Guardar</button>
+    </div>
   </div>
 </div>
 
@@ -420,6 +444,7 @@ function makeHead(cols, showProv) {
     return '<th onclick="sortBy(\'' + c.key + '\')">' + c.label + ' <span style="opacity:.4">&#8597;</span></th>';
   }).join("");
   if (showProv) h += '<th onclick="sortBy(\'Proveedor\')">Proveedor <span style="opacity:.4">&#8597;</span></th>';
+  h += '<th></th>';
   return h;
 }
 
@@ -433,6 +458,8 @@ function makeRow(r, q, cols, showProv) {
     return "<td>" + hl(v, q) + "</td>";
   }).join("");
   if (showProv) cells += '<td><span class="badge badge-prov">' + (r.Proveedor || "") + "</span></td>";
+  if (r.ID) { cells += '<td><button class="btn-editar" title="Editar notas" onclick="abrirEditar(\'' + String(r.ID).replace(/'/g, "") + '\')">&#9998;</button></td>'; }
+  else { cells += "<td></td>"; }
   var provClase = "prov-" + String(r.Proveedor || "").replace(/ /g, "");
   var clsList = [provClase];
   if (r.Estado === "Anulado") clsList.push("anulado");
@@ -820,6 +847,42 @@ async function cambiarEstado(sel) {
     alert("No se pudo cambiar el estado. Revisa la conexion.");
   }
   sel.disabled = false;
+}
+
+var editId = null;
+function abrirEditar(id) {
+  editId = id;
+  var rec = allData.find(function(r){ return String(r.ID) === String(id); });
+  if (!rec) return;
+  document.getElementById("modal-ped-num").textContent = "N° " + (rec.Pedido || "") + " - " + (rec.Cliente || rec["Tipo Material"] || "");
+  document.getElementById("modal-obs").value = rec.Observaciones || "";
+  document.getElementById("modal-ano").value = rec.Anotaciones || "";
+  var st = document.getElementById("modal-status"); st.style.display = "none";
+  document.getElementById("modal-editar").classList.add("open");
+}
+function cerrarEditar() {
+  document.getElementById("modal-editar").classList.remove("open");
+  editId = null;
+}
+async function guardarNotas() {
+  if (!editId) return;
+  var obs = document.getElementById("modal-obs").value;
+  var ano = document.getElementById("modal-ano").value;
+  var btn = document.getElementById("modal-guardar");
+  var st = document.getElementById("modal-status");
+  btn.disabled = true;
+  st.style.display = "block"; st.style.color = "#1565c0"; st.textContent = "Guardando...";
+  try {
+    await fetch(API, {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"}, body: JSON.stringify({action: "updateNotas", id: editId, observaciones: obs, anotaciones: ano})});
+    var rec = allData.find(function(r){ return String(r.ID) === String(editId); });
+    if (rec) { rec.Observaciones = obs; rec.Anotaciones = ano; }
+    st.style.color = "#2e7d32"; st.textContent = "Guardado.";
+    renderAll();
+    setTimeout(cerrarEditar, 700);
+  } catch(e) {
+    st.style.color = "#c62828"; st.textContent = "Error al guardar. Revisa la conexion.";
+  }
+  btn.disabled = false;
 }
 
 function buildProvSelect() {
