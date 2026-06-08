@@ -830,15 +830,30 @@ async function guardarPedido() {
   var prov = document.getElementById("f-proveedor").value;
   var items = getItems();
   if (!ped || !items.length) { showStatus("err", "Completa el N de pedido y al menos un item."); return; }
-  // Aviso si ya existe un pedido con ese numero y proveedor (evita duplicados)
-  var yaExiste = allData.some(function(r){
-    return String(r.Pedido).trim() === ped && String(r.Proveedor).trim() === String(prov).trim();
-  });
+  // Verificar contra la planilla (datos frescos) si ya existe ese pedido+proveedor.
+  guardando = true;
+  var btnChk = document.getElementById("btn-guardar");
+  if (btnChk) { btnChk.disabled = true; btnChk.textContent = "Verificando..."; btnChk.style.opacity = "0.6"; }
+  showStatus("loading", "Verificando si el pedido ya existe...");
+  var yaExiste = false;
+  try {
+    var resp = await fetch(API);
+    var json = await resp.json();
+    if (json.ok && json.data) {
+      yaExiste = json.data.some(function(r){
+        return String(r.Pedido).trim() === ped && String(r.Proveedor).trim() === String(prov).trim();
+      });
+    }
+  } catch(e) {
+    // Si falla la verificacion, seguimos igual (no bloqueamos por un error de red)
+  }
   if (yaExiste) {
+    if (btnChk) { btnChk.disabled = false; btnChk.textContent = "Guardar pedido"; btnChk.style.opacity = "1"; }
+    guardando = false;
     var seguir = window.confirm("Ya existe un pedido N° " + ped + " de " + prov + ".\n\n¿Guardarlo de todas formas?");
     if (!seguir) { showStatus("err", "Guardado cancelado: el pedido ya existia."); return; }
+    guardando = true;
   }
-  guardando = true;
   var btn = document.getElementById("btn-guardar");
   if (btn) { btn.disabled = true; btn.textContent = "Guardando..."; btn.style.opacity = "0.6"; }
   showStatus("loading", "Guardando...");
