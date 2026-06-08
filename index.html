@@ -38,6 +38,11 @@ h3{font-size:14px;font-weight:600;margin-bottom:12px;color:#333}
 .btn-outline{background:#fff;color:#1a1a2e;border:1px solid #1a1a2e}
 .btn-sm{padding:4px 10px;font-size:11px;border-radius:4px;border:1px solid #ccc;cursor:pointer;background:#fff}
 .tbl-wrap{overflow-x:auto;border:1px solid #e0e0e0;border-radius:8px}
+.scroll-top{overflow-x:auto;overflow-y:hidden;height:14px}
+.scroll-top div{height:1px}
+.obs-cell{max-width:150px}
+.btn-editar{white-space:nowrap}
+th:last-child,td:last-child{white-space:nowrap}
 table{width:100%;border-collapse:collapse;font-size:12px}
 thead th{background:#f0f0ec;color:#555;font-weight:600;padding:9px 10px;text-align:left;border-bottom:1px solid #e0e0e0;white-space:nowrap;cursor:pointer;user-select:none}
 thead th:hover{background:#e8e8e4}
@@ -137,7 +142,8 @@ tbody tr.prov-Idesa:hover,tbody tr.prov-Micromont:hover,tbody tr.prov-Aserpel:ho
       <button class="fbtn" onclick="setFB('Tipo Material',this)">Articulo</button>
     </div>
     <div class="res-info" id="res-buscar"></div>
-    <div class="tbl-wrap"><table><thead><tr id="thead-buscar"></tr></thead><tbody id="tbody-buscar"></tbody></table></div>
+    <div class="scroll-top" id="stop-buscar"><div></div></div>
+    <div class="tbl-wrap" id="twrap-buscar"><table><thead><tr id="thead-buscar"></tr></thead><tbody id="tbody-buscar"></tbody></table></div>
   </div>
 </div>
 
@@ -178,7 +184,8 @@ tbody tr.prov-Idesa:hover,tbody tr.prov-Micromont:hover,tbody tr.prov-Aserpel:ho
       <button class="btn btn-dark" onclick="exportCSV('prov')">Exportar CSV</button>
     </div>
     <div class="res-info" id="res-prov"></div>
-    <div class="tbl-wrap"><table><thead><tr id="thead-prov"></tr></thead><tbody id="tbody-prov"></tbody></table></div>
+    <div class="scroll-top" id="stop-prov"><div></div></div>
+    <div class="tbl-wrap" id="twrap-prov"><table><thead><tr id="thead-prov"></tr></thead><tbody id="tbody-prov"></tbody></table></div>
   </div>
 </div>
 
@@ -198,7 +205,8 @@ tbody tr.prov-Idesa:hover,tbody tr.prov-Micromont:hover,tbody tr.prov-Aserpel:ho
       <button class="btn-sm" onclick="clearHistFilters()">Limpiar</button>
     </div>
     <div class="res-info" id="res-hist"></div>
-    <div class="tbl-wrap"><table><thead><tr id="thead-hist"></tr></thead><tbody id="tbody-hist"></tbody></table></div>
+    <div class="scroll-top" id="stop-hist"><div></div></div>
+    <div class="tbl-wrap" id="twrap-hist"><table><thead><tr id="thead-hist"></tr></thead><tbody id="tbody-hist"></tbody></table></div>
   </div>
 </div>
 
@@ -360,7 +368,7 @@ function renderContactos() {
   }
 }
 
-function renderAll() { renderBuscar(); renderProveedores(); renderHistorial(); buildProvFilters(); buildProvSelect(); }
+function renderAll() { renderBuscar(); renderProveedores(); renderHistorial(); buildProvFilters(); buildProvSelect(); setTimeout(syncAllScrolls, 50); }
 
 function hl(t, q) {
   if (!q) return String(t || "");
@@ -847,6 +855,25 @@ async function cambiarEstado(sel) {
     alert("No se pudo cambiar el estado. Revisa la conexion.");
   }
   sel.disabled = false;
+}
+
+function syncScroll(topId, wrapId) {
+  var top = document.getElementById(topId);
+  var wrap = document.getElementById(wrapId);
+  if (!top || !wrap) return;
+  var table = wrap.querySelector("table");
+  if (!table) return;
+  // Ajustar el ancho del contenido falso de la barra superior al ancho real de la tabla
+  top.firstElementChild.style.width = table.scrollWidth + "px";
+  // Sincronizar movimiento entre las dos barras (evitando bucle)
+  var lock = false;
+  top.onscroll = function(){ if(lock) return; lock=true; wrap.scrollLeft = top.scrollLeft; lock=false; };
+  wrap.onscroll = function(){ if(lock) return; lock=true; top.scrollLeft = wrap.scrollLeft; lock=false; };
+}
+function syncAllScrolls() {
+  syncScroll("stop-buscar", "twrap-buscar");
+  syncScroll("stop-prov", "twrap-prov");
+  syncScroll("stop-hist", "twrap-hist");
 }
 
 var editId = null;
