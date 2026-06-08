@@ -830,6 +830,14 @@ async function guardarPedido() {
   var prov = document.getElementById("f-proveedor").value;
   var items = getItems();
   if (!ped || !items.length) { showStatus("err", "Completa el N de pedido y al menos un item."); return; }
+  // Aviso si ya existe un pedido con ese numero y proveedor (evita duplicados)
+  var yaExiste = allData.some(function(r){
+    return String(r.Pedido).trim() === ped && String(r.Proveedor).trim() === String(prov).trim();
+  });
+  if (yaExiste) {
+    var seguir = window.confirm("Ya existe un pedido N° " + ped + " de " + prov + ".\n\n¿Guardarlo de todas formas?");
+    if (!seguir) { showStatus("err", "Guardado cancelado: el pedido ya existia."); return; }
+  }
   guardando = true;
   var btn = document.getElementById("btn-guardar");
   if (btn) { btn.disabled = true; btn.textContent = "Guardando..."; btn.style.opacity = "0.6"; }
