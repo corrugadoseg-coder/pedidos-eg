@@ -873,9 +873,18 @@ function syncScroll(topId, wrapId) {
   if (!top || !wrap) return;
   var table = wrap.querySelector("table");
   if (!table) return;
-  // Ajustar el ancho del contenido falso de la barra superior al ancho real de la tabla
-  top.firstElementChild.style.width = table.scrollWidth + "px";
-  // Sincronizar movimiento entre las dos barras (evitando bucle)
+  // Solo tiene sentido si la tabla es mas ancha que el contenedor (hay scroll horizontal)
+  function ajustar() {
+    var ancho = table.scrollWidth;
+    top.firstElementChild.style.width = ancho + "px";
+    // Si la tabla entra completa, ocultar la barra de arriba (no hace falta)
+    if (ancho <= wrap.clientWidth + 2) { top.style.display = "none"; }
+    else { top.style.display = "block"; }
+  }
+  ajustar();
+  // Reintentar un par de veces por si la tabla recien se hizo visible (medidas en 0)
+  setTimeout(ajustar, 150);
+  setTimeout(ajustar, 400);
   var lock = false;
   top.onscroll = function(){ if(lock) return; lock=true; wrap.scrollLeft = top.scrollLeft; lock=false; };
   wrap.onscroll = function(){ if(lock) return; lock=true; top.scrollLeft = wrap.scrollLeft; lock=false; };
@@ -934,7 +943,8 @@ function goTo(page, btn) {
   document.getElementById("page-" + page).classList.add("active");
   btn.classList.add("active");
   if (page === "proveedores") renderProveedores();
-  setTimeout(syncAllScrolls, 60);
+  setTimeout(syncAllScrolls, 80);
+  setTimeout(syncAllScrolls, 300);
 }
 
 document.getElementById("f-fecha").valueAsDate = new Date();
