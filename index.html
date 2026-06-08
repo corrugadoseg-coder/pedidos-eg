@@ -81,12 +81,12 @@ mark{background:#fff3cd;border-radius:2px;padding:0 1px}
 .ptab.active{background:#1a1a2e;color:#fff;border-color:#1a1a2e}
 .empty-state{text-align:center;padding:40px;color:#aaa;font-size:13px}
 .print-header{display:none;margin-bottom:16px}
-.prov-Idesa{background:#eef4fb}
-.prov-Micromont{background:#eef7ef}
-.prov-Aserpel{background:#fdf7e8}
-.prov-RolPelPlanchas{background:#f3eefa}
-.prov-RolPelRollos{background:#fdf0e9}
-.prov-Empaquetecnia{background:#eef1f4}
+.prov-Idesa{background:#dbeafe}
+.prov-Micromont{background:#d7f0db}
+.prov-Aserpel{background:#fdf0c4}
+.prov-RolPelPlanchas{background:#e9def8}
+.prov-RolPelRollos{background:#ffe2cc}
+.prov-Empaquetecnia{background:#e3e6ea}
 tbody tr.prov-Idesa:hover,tbody tr.prov-Micromont:hover,tbody tr.prov-Aserpel:hover,tbody tr.prov-RolPelPlanchas:hover,tbody tr.prov-RolPelRollos:hover,tbody tr.prov-Empaquetecnia:hover{filter:brightness(0.97)}
 
 .estado-sel{font-size:11px;padding:3px 6px;border-radius:12px;border:1px solid #ccc;font-weight:600;cursor:pointer;background:#fff}
@@ -108,6 +108,7 @@ tbody tr.prov-Idesa:hover,tbody tr.prov-Micromont:hover,tbody tr.prov-Aserpel:ho
   <button onclick="goTo('nuevo',this)">Nuevo pedido</button>
   <button onclick="goTo('proveedores',this)">Por proveedor</button>
   <button onclick="goTo('historial',this)">Historial</button>
+  <button onclick="goTo('contactos',this)">Contactos</button>
 </nav>
 
 <div id="page-buscar" class="page active">
@@ -188,6 +189,15 @@ tbody tr.prov-Idesa:hover,tbody tr.prov-Micromont:hover,tbody tr.prov-Aserpel:ho
     </div>
     <div class="res-info" id="res-hist"></div>
     <div class="tbl-wrap"><table><thead><tr id="thead-hist"></tr></thead><tbody id="tbody-hist"></tbody></table></div>
+  </div>
+</div>
+
+<div id="page-contactos" class="page">
+  <div class="card">
+    <h2>Contactos de proveedores</h2>
+    <div class="res-info" id="res-contactos">Cargando contactos...</div>
+    <div class="tbl-wrap"><table><thead><tr id="thead-contactos"></tr></thead><tbody id="tbody-contactos"></tbody></table></div>
+    <p style="font-size:12px;color:#888;margin-top:12px">Para editar estos datos, modifica la hoja "Proveedores" en la planilla de Google.</p>
   </div>
 </div>
 
@@ -279,6 +289,50 @@ function loadData() {
       renderAll();
     }
   }).catch(function() {});
+  loadProveedores();
+}
+
+var provData = [];
+function loadProveedores() {
+  fetch(API + "?tipo=proveedores").then(function(r){ return r.json(); }).then(function(json){
+    if (json.ok && json.data) { provData = json.data; renderContactos(); }
+  }).catch(function(){});
+}
+
+function renderContactos() {
+  var cont = provData.filter(function(p){ return p["Proveedor"]; });
+  var info = document.getElementById("res-contactos");
+  var thead = document.getElementById("thead-contactos");
+  var tbody = document.getElementById("tbody-contactos");
+  if (!cont.length) {
+    if (info) info.textContent = "No hay contactos cargados todavia.";
+    if (thead) thead.innerHTML = "";
+    if (tbody) tbody.innerHTML = "";
+    return;
+  }
+  if (info) info.textContent = cont.length + " proveedor" + (cont.length !== 1 ? "es" : "");
+  var cols = ["Proveedor","Mail","WhatsApp","Telefono","Contacto"];
+  var labels = {"Proveedor":"Proveedor","Mail":"Mail","WhatsApp":"WhatsApp","Telefono":"Telefono","Contacto":"Contacto"};
+  // Detectar el nombre real de la columna telefono (puede tener tilde)
+  var keys = Object.keys(cont[0]);
+  var telKey = keys.filter(function(k){ return k.toLowerCase().indexOf("tel") === 0; })[0] || "Telefono";
+  if (thead) {
+    thead.innerHTML = "<th>Proveedor</th><th>Mail</th><th>WhatsApp</th><th>Telefono</th><th>Contacto</th>";
+  }
+  if (tbody) {
+    tbody.innerHTML = cont.map(function(p){
+      var mail = p["Mail"] || "";
+      var wa = p["WhatsApp"] || "";
+      var tel = p[telKey] || "";
+      var contacto = p["Contacto"] || "";
+      var prov = p["Proveedor"] || "";
+      var provClase = "prov-" + String(prov).replace(/ /g, "");
+      var mailCell = mail ? '<a href="mailto:'+mail+'">'+mail+'</a>' : "";
+      var waDigits = String(wa).replace(/[^0-9]/g, "");
+      var waCell = wa ? (waDigits ? '<a href="https://wa.me/54'+waDigits+'" target="_blank">'+wa+'</a>' : wa) : "";
+      return '<tr class="'+provClase+'"><td><strong>'+prov+'</strong></td><td>'+mailCell+'</td><td>'+waCell+'</td><td>'+tel+'</td><td>'+contacto+'</td></tr>';
+    }).join("");
+  }
 }
 
 function renderAll() { renderBuscar(); renderProveedores(); renderHistorial(); buildProvFilters(); buildProvSelect(); }
