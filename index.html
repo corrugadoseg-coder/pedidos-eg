@@ -153,6 +153,7 @@ tbody tr.prov-Idesa:hover,tbody tr.prov-Micromont:hover,tbody tr.prov-Aserpel:ho
     <div class="actions-row">
       <button class="btn btn-dark" onclick="previewMail()">Previsualizar</button>
       <button class="btn btn-green" onclick="copyMail()">Copiar para mail</button>
+      <button class="btn btn-green" onclick="copiarYabrirOutlook()">Copiar pedido + abrir Outlook</button>
       <button class="btn btn-dark" onclick="printPedido()">Imprimir pedido</button>
       <button class="btn btn-dark" onclick="guardarPedido()">Guardar pedido</button>
     </div>
@@ -539,6 +540,12 @@ function updateProvFields() {
   var inp = document.getElementById("f-pedido");
   inp.value = String(sig).padStart(3, "0");
   inp.style.background = "#f0f7ff";
+  // Completar el mail del proveedor desde la agenda de contactos
+  var emailInp = document.getElementById("f-email");
+  if (emailInp) {
+    var pc = (provData || []).filter(function(x){ return String(x["Proveedor"]||"").trim() === String(prov).trim(); })[0];
+    emailInp.value = pc && pc["Mail"] ? pc["Mail"] : "";
+  }
 }
 
 function addItemRow(data) {
@@ -713,6 +720,41 @@ function copyMail() {
       setTimeout(function() { document.getElementById("status-nuevo").style.display = "none"; }, 3000);
     });
   });
+}
+
+function copiarYabrirOutlook() {
+  previewMail();
+  var ped = document.getElementById("f-pedido").value || "--";
+  var fecha = fmtDate(document.getElementById("f-fecha").value);
+  var prov = document.getElementById("f-proveedor").value;
+  var items = getItems();
+  if (!items.length) { showStatus("err", "Agrega al menos un item."); return; }
+  var mailCols = getCols(prov).filter(function(c) { return c.mail && c.key !== "Pedido" && c.key !== "Fecha"; });
+  var html = buildPreviewHTML(ped, fecha, prov, items, mailCols);
+  // Destinatario: el mail del proveedor (campo f-email, que ya viene de la agenda)
+  var destino = (document.getElementById("f-email").value || "").trim();
+  var asunto = "PEDIDO N° " + ped;
+  // 1) Copiar la tabla con formato al portapapeles
+  function abrirOutlook() {
+    var url = "mailto:" + encodeURIComponent(destino) + "?subject=" + encodeURIComponent(asunto);
+    window.location.href = url;
+  }
+  try {
+    var blob = new Blob([html], {type: "text/html"});
+    var clipItem = new ClipboardItem({"text/html": blob});
+    navigator.clipboard.write([clipItem]).then(function() {
+      showStatus("ok", "Pedido copiado. Se abre el mail: hace clic derecho > Pegar en el cuerpo.");
+      abrirOutlook();
+      setTimeout(function() { document.getElementById("status-nuevo").style.display = "none"; }, 6000);
+    }).catch(function() {
+      navigator.clipboard.writeText(lastPreviewText).then(function() {
+        showStatus("ok", "Pedido copiado como texto. Se abre el mail: clic derecho > Pegar.");
+        abrirOutlook();
+      }).catch(function(){ abrirOutlook(); });
+    });
+  } catch(e) {
+    abrirOutlook();
+  }
 }
 
 function printPedido() {
