@@ -800,8 +800,14 @@ function printPedido() {
   var prov = document.getElementById("f-proveedor").value;
   var items = getItems();
   if (!items.length) { alert("Agrega al menos un item"); return; }
-  var mailCols = getCols(prov).filter(function(c) { return c.mail && c.key !== "Pedido" && c.key !== "Fecha"; });
-  var html = buildPreviewHTML(ped, fecha, prov, items, mailCols);
+  // Para IMPRIMIR mostramos TODOS los datos utiles (incluye Cliente y Anotaciones).
+  var printCols = getCols(prov).filter(function(c) {
+    return ["Cantidad","Tipo Material","Largo","Ancho","Trazados","Observaciones","Cliente","Anotaciones"].indexOf(c.key) !== -1;
+  });
+  // Ordenarlas en el orden deseado
+  var orden = ["Cantidad","Tipo Material","Largo","Ancho","Trazados","Observaciones","Cliente","Anotaciones"];
+  printCols.sort(function(a,b){ return orden.indexOf(a.key) - orden.indexOf(b.key); });
+  var html = buildPreviewHTML(ped, fecha, prov, items, printCols);
   var iframe = document.getElementById("print-iframe");
   if (!iframe) {
     iframe = document.createElement("iframe");
