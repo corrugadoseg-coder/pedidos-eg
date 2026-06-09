@@ -624,8 +624,14 @@ function toggleOtro(sel) {
 function autocompleteCaja(input, id) {
   var caja = input.value.trim();
   if (!caja) return;
-  // Buscar TODOS los pedidos con ese N Caja y quedarse con el mas reciente
-  var matches = allData.filter(function(r) { return String(r["N Caja"]).trim() === caja && String(r["N Caja"]).trim() !== ""; });
+  // El N Caja de un pedido viejo puede tener VARIOS codigos separados por "/"
+  // (ej: "140/128/230"). Coincide si el codigo escrito esta entre ellos.
+  function tieneCodigo(valorCaja, buscado) {
+    if (!valorCaja) return false;
+    var lista = String(valorCaja).split(/[\/,;]/).map(function(x){ return x.trim(); });
+    return lista.indexOf(String(buscado).trim()) !== -1;
+  }
+  var matches = allData.filter(function(r) { return tieneCodigo(r["N Caja"], caja); });
   if (!matches.length) return;
   matches.sort(function(a, b) {
     var na = parseFloat(a.Pedido), nb = parseFloat(b.Pedido);
