@@ -100,8 +100,9 @@ mark{background:#fff3cd;border-radius:2px;padding:0 1px}
 .prov-Aserpel{background:#fdf0c4}
 .prov-RolPelPlanchas{background:#e9def8}
 .prov-RolPelRollos{background:#ffe2cc}
+.prov-RolPel{background:#e9def8}
 .prov-Empaquetecnia{background:#e3e6ea}
-tbody tr.prov-Idesa:hover,tbody tr.prov-Micromont:hover,tbody tr.prov-Aserpel:hover,tbody tr.prov-RolPelPlanchas:hover,tbody tr.prov-RolPelRollos:hover,tbody tr.prov-Empaquetecnia:hover{filter:brightness(0.97)}
+tbody tr.prov-Idesa:hover,tbody tr.prov-Micromont:hover,tbody tr.prov-Aserpel:hover,tbody tr.prov-RolPelPlanchas:hover,tbody tr.prov-RolPelRollos:hover,tbody tr.prov-RolPel:hover,tbody tr.prov-Empaquetecnia:hover{filter:brightness(0.97)}
 
 .estado-sel{font-size:11px;padding:3px 6px;border-radius:12px;border:1px solid #ccc;font-weight:600;cursor:pointer;background:#fff}
 .estado-sel.sel-env{background:#fff3e0;color:#e65100;border-color:#ffe0b2}
@@ -153,7 +154,8 @@ tbody tr.prov-Idesa:hover,tbody tr.prov-Micromont:hover,tbody tr.prov-Aserpel:ho
     <div class="form-grid">
       <div class="form-group"><label>N de Pedido</label><input type="text" id="f-pedido" placeholder="Ej: 1401"></div>
       <div class="form-group"><label>Fecha</label><input type="date" id="f-fecha"></div>
-      <div class="form-group"><label>Proveedor</label><select id="f-proveedor" onchange="updateProvFields()"></select></div>
+      <div class="form-group"><label>Proveedor</label><select id="f-proveedor" onchange="onProvChange()"></select></div>
+      <div class="form-group"><label>Tipo de art\u00edculo</label><select id="f-tipo" onchange="updateProvFields()" disabled><option value="">- Eleg\u00ed proveedor -</option></select></div>
       <div class="form-group"><label>Email del proveedor</label><input type="email" id="f-email" placeholder="proveedor@email.com"></div>
     </div>
     <hr class="form-divider">
@@ -244,12 +246,15 @@ var MAT_ASERPEL = ["BCC 655 C","BCT 753 C","BCK 898 T","BCK 922 K","Otro (especi
 var MAT_ROLPEL_R = ["0.90 x 25mts","1.00 x 25mts","1.20 x 25mts","1.40 x 25mts","1.60 x 25mts","Otro (especificar)"];
 var MAT_ROLPEL_P = ["Liner Sub 70","Liner 70","Liner 90","Liner 100","Liner 110","Liner 120","Liner 150","Otro (especificar)"];
 
-function makeBaseCols(mat) {
+// ===== COLUMNAS SEGUN TIPO DE ARTICULO =====
+// Cada tipo (planchas/cajas/rollos) define sus columnas. El material de planchas
+// y la medida de rollo dependen del proveedor (lista propia); en cajas es texto libre.
+function colsPlanchas(matList) {
   return [
     {key:"Pedido",label:"N Pedido",mail:true,type:"text"},
     {key:"Fecha",label:"Fecha",mail:true,type:"text"},
     {key:"Cantidad",label:"Cantidad",mail:true,type:"number"},
-    {key:"Tipo Material",label:"Tipo de Material",mail:true,type:"dropdown",options:mat},
+    {key:"Tipo Material",label:"Tipo de Material",mail:true,type:"dropdown",options:matList},
     {key:"Largo",label:"Largo",mail:true,type:"number"},
     {key:"Ancho",label:"Ancho",mail:true,type:"number"},
     {key:"Trazados",label:"Trazados",mail:true,type:"text"},
@@ -260,42 +265,68 @@ function makeBaseCols(mat) {
     {key:"Anotaciones",label:"Anotaciones",mail:false,type:"textarea"}
   ];
 }
-
-var PROV_COLS = {
-  "Idesa": makeBaseCols(MAT_IDESA),
-  "Micromont": makeBaseCols(MAT_MICROMONT),
-  "Aserpel": makeBaseCols(MAT_ASERPEL),
-  "Rol Pel Planchas": makeBaseCols(MAT_ROLPEL_P),
-  "Rol Pel Rollos": [
+function colsCajas(matList) {
+  var lista = (matList && matList.length) ? matList.slice() : ["Otro (especificar)"];
+  if (lista.indexOf("Otro (especificar)") === -1) lista.push("Otro (especificar)");
+  return [
     {key:"Pedido",label:"N Pedido",mail:true,type:"text"},
     {key:"Fecha",label:"Fecha",mail:true,type:"text"},
     {key:"Cantidad",label:"Cantidad",mail:true,type:"number"},
-    {key:"Tipo Material",label:"Medida de Rollo",mail:true,type:"dropdown",options:MAT_ROLPEL_R},
-    {key:"Observaciones",label:"Observaciones",mail:true,type:"textarea"},
-    {key:"Cliente",label:"Cliente / Destino",mail:false,type:"text"},
-    {key:"Estado",label:"Estado",mail:false,type:"dropdown",options:["Enviado","Recibido","Anulado"]},
-    {key:"Anotaciones",label:"Anotaciones",mail:false,type:"textarea"}
-  ],
-  "Empaquetecnia": [
-    {key:"Pedido",label:"N Pedido",mail:true,type:"text"},
-    {key:"Fecha",label:"Fecha",mail:true,type:"text"},
-    {key:"Cantidad",label:"Cantidad",mail:true,type:"number"},
-    {key:"Tipo Material",label:"Medida de Caja",mail:true,type:"text"},
+    {key:"Tipo Material",label:"Material",mail:true,type:"dropdown",options:lista},
+    {key:"Largo",label:"Medida de la caja",mail:true,type:"text"},
     {key:"Observaciones",label:"Observaciones",mail:true,type:"textarea"},
     {key:"Cliente",label:"Cliente",mail:false,type:"text"},
     {key:"N Caja",label:"N Caja",mail:false,type:"text"},
     {key:"Estado",label:"Estado",mail:false,type:"dropdown",options:["Enviado","Recibido","Anulado"]},
     {key:"Anotaciones",label:"Anotaciones",mail:false,type:"textarea"}
-  ]
+  ];
+}
+function colsRollos(medidasList) {
+  return [
+    {key:"Pedido",label:"N Pedido",mail:true,type:"text"},
+    {key:"Fecha",label:"Fecha",mail:true,type:"text"},
+    {key:"Cantidad",label:"Cantidad",mail:true,type:"number"},
+    {key:"Tipo Material",label:"Medida de Rollo",mail:true,type:"dropdown",options:medidasList},
+    {key:"Observaciones",label:"Observaciones",mail:true,type:"textarea"},
+    {key:"Cliente",label:"Cliente",mail:false,type:"text"},
+    {key:"Estado",label:"Estado",mail:false,type:"dropdown",options:["Enviado","Recibido","Anulado"]},
+    {key:"Anotaciones",label:"Anotaciones",mail:false,type:"textarea"}
+  ];
+}
+
+// ===== QUE OFRECE CADA PROVEEDOR =====
+// Para cada proveedor: que tipos de articulo ofrece y, en planchas, su lista de materiales.
+var PROV_INFO = {
+  "Idesa":        { tipos:["Planchas","Cajas"],            matPlanchas:MAT_IDESA },
+  "Micromont":    { tipos:["Planchas"],                    matPlanchas:MAT_MICROMONT },
+  "Aserpel":      { tipos:["Planchas"],                    matPlanchas:MAT_ASERPEL },
+  "Rol Pel":      { tipos:["Planchas","Cajas","Rollos"],   matPlanchas:MAT_ROLPEL_P, medidasRollos:MAT_ROLPEL_R },
+  "Empaquetecnia":{ tipos:["Cajas"] }
 };
+
+// Devuelve las columnas segun proveedor + tipo de articulo elegido
+function getColsFor(prov, tipo) {
+  var info = PROV_INFO[prov];
+  if (!info) return colsPlanchas(["Otro (especificar)"]);
+  if (tipo === "Cajas") return colsCajas(info.matPlanchas || ["Otro (especificar)"]);
+  if (tipo === "Rollos") return colsRollos(info.medidasRollos || ["Otro (especificar)"]);
+  // Planchas por defecto
+  return colsPlanchas(info.matPlanchas || ["Otro (especificar)"]);
+}
+
+// Compatibilidad: algunas funciones viejas llaman getCols(prov). Mantenemos un fallback
+// que usa el primer tipo del proveedor (o planchas).
+function getCols(p) {
+  var info = PROV_INFO[p];
+  var tipo = info && info.tipos && info.tipos.length ? info.tipos[0] : "Planchas";
+  return getColsFor(p, tipo);
+}
 
 function r2o(arr) {
   var o = {};
   COLS_ALL.forEach(function(c, i) { o[c] = arr[i] || ""; });
   return o;
 }
-
-function getCols(p) { return PROV_COLS[p] || PROV_COLS["Idesa"]; }
 
 var SEED_IDESA = [];
 var SEED_MICROMONT = [];
@@ -306,6 +337,7 @@ var allData = [];
 var sortCol = "Fecha", sortDir = -1;
 var filterField = "todos";
 var activeProv = "Idesa";
+var tipoActivo = "";
 var itemRows = [];
 var lastPreviewText = "";
 
@@ -564,10 +596,39 @@ function exportCSV(page) {
   a.click();
 }
 
+function onProvChange() {
+  var prov = document.getElementById("f-proveedor").value;
+  var selTipo = document.getElementById("f-tipo");
+  var info = PROV_INFO[prov];
+  if (!prov || !info) {
+    selTipo.innerHTML = "<option value=''>- Eleg\u00ed proveedor -</option>";
+    selTipo.disabled = true;
+    tipoActivo = "";
+    updateProvFields();
+    return;
+  }
+  var tipos = info.tipos || ["Planchas"];
+  // Si el proveedor tiene un solo tipo, lo elegimos automaticamente
+  if (tipos.length === 1) {
+    selTipo.innerHTML = "<option value='" + tipos[0] + "'>" + tipos[0] + "</option>";
+    selTipo.value = tipos[0];
+    selTipo.disabled = true;
+    tipoActivo = tipos[0];
+  } else {
+    selTipo.innerHTML = "<option value=''>- Eleg\u00ed tipo -</option>" +
+      tipos.map(function(t){ return "<option value='" + t + "'>" + t + "</option>"; }).join("");
+    selTipo.value = "";
+    selTipo.disabled = false;
+    tipoActivo = "";
+  }
+  updateProvFields();
+}
+
 function updateProvFields() {
   var prov = document.getElementById("f-proveedor").value;
-  // Si todavia no se eligio proveedor, limpiar el formulario y no mostrar numero
-  if (!prov) {
+  tipoActivo = document.getElementById("f-tipo").value;
+  // Si no hay proveedor o no hay tipo elegido, limpiar el formulario y no mostrar numero
+  if (!prov || !tipoActivo) {
     document.getElementById("items-thead").innerHTML = "";
     document.getElementById("items-body").innerHTML = "";
     itemRows = [];
@@ -579,8 +640,8 @@ function updateProvFields() {
     if (emailInp0) emailInp0.value = "";
     return;
   }
-  var cols = getCols(prov).filter(function(c) { return !["Pedido", "Fecha", "Estado", "Proveedor"].includes(c.key); });
-  document.getElementById("items-thead").innerHTML = "<tr>" + cols.map(function(c) { return "<th>" + c.label + "</th>"; }).join("") + "<th></th></tr>";
+  var cols = getColsFor(prov, tipoActivo).filter(function(c) { return !["Pedido", "Fecha", "Estado", "Proveedor"].includes(c.key); });
+  document.getElementById("items-thead").innerHTML = "<tr><th>N\u00b0</th>" + cols.map(function(c) { return "<th>" + c.label + "</th>"; }).join("") + "<th></th></tr>";
   document.getElementById("items-body").innerHTML = "";
   itemRows = [];
   addItemRow();
@@ -599,13 +660,13 @@ function updateProvFields() {
 
 function addItemRow(data) {
   var prov = document.getElementById("f-proveedor").value;
-  var cols = getCols(prov).filter(function(c) { return !["Pedido", "Fecha", "Estado", "Proveedor"].includes(c.key); });
+  var cols = getColsFor(prov, tipoActivo).filter(function(c) { return !["Pedido", "Fecha", "Estado", "Proveedor"].includes(c.key); });
   var id = "item_" + Date.now() + "_" + Math.floor(Math.random() * 9999);
   itemRows.push(id);
   var d = data || {};
   var tr = document.createElement("tr");
   tr.id = id;
-  var cells = cols.map(function(c) {
+  var cells = "<td class='item-num' style='text-align:center;color:#888;font-weight:600'></td>" + cols.map(function(c) {
     var v = d[c.key] || "";
     if (c.type === "dropdown") {
       var opts = c.options.map(function(o) { return "<option" + (o === v ? " selected" : "") + ">" + o + "</option>"; }).join("");
@@ -619,12 +680,24 @@ function addItemRow(data) {
   }).join("");
   tr.innerHTML = cells + "<td><button class=\"btn-remove\" onclick=\"removeRow('" + id + "')\">x</button></td>";
   document.getElementById("items-body").appendChild(tr);
+  renumItems();
+}
+
+function renumItems() {
+  var body = document.getElementById("items-body");
+  if (!body) return;
+  var filas = body.querySelectorAll("tr");
+  filas.forEach(function(tr, idx) {
+    var celdaNum = tr.querySelector(".item-num");
+    if (celdaNum) celdaNum.textContent = (idx + 1);
+  });
 }
 
 function removeRow(id) {
   var el = document.getElementById(id);
   if (el) el.remove();
-  itemRows = itemRows.filter(function(i) { return i !== id; });
+  itemRows = itemRows.filter(function(i) { return i !== id;   renumItems();
+});
 }
 
 function toggleOtro(sel) {
@@ -653,7 +726,7 @@ function autocompleteCaja(input, id) {
   });
   var match = matches[0];
   var prov = document.getElementById("f-proveedor").value;
-  var cols = getCols(prov).filter(function(c) { return !["Pedido", "Fecha", "Estado", "Proveedor"].includes(c.key); });
+  var cols = getColsFor(prov, tipoActivo).filter(function(c) { return !["Pedido", "Fecha", "Estado", "Proveedor"].includes(c.key); });
   var tr = document.getElementById(id);
   if (!tr) return;
   var rellenar = ["Cliente", "Tipo Material", "Largo", "Ancho", "Trazados", "Observaciones"];
@@ -663,7 +736,7 @@ function autocompleteCaja(input, id) {
     if (c.key === "N Caja") return;
     if (rellenar.indexOf(c.key) === -1) return;
     if (match[c.key] === undefined || match[c.key] === "") return;
-    var celda = celdas[i];
+    var celda = celdas[i + 1];
     if (!celda) return;
     // El campo principal de la celda es el primer input/select/textarea.
     var campo = celda.querySelector("select, textarea, input");
@@ -689,16 +762,15 @@ function autocompleteCaja(input, id) {
 
 function getItems() {
   var prov = document.getElementById("f-proveedor").value;
-  var cols = getCols(prov).filter(function(c) { return !["Pedido", "Fecha", "Estado", "Proveedor"].includes(c.key); });
+  var cols = getColsFor(prov, tipoActivo).filter(function(c) { return !["Pedido", "Fecha", "Estado", "Proveedor"].includes(c.key); });
   return itemRows.map(function(id) {
     var tr = document.getElementById(id);
     if (!tr) return null;
     var obj = {};
-    // Recorremos celda por celda (cada td = una columna del formulario, en orden de cols).
-    // Asi evitamos que el input oculto de "Especificar otro" del material desfase la lectura.
+    // La primera celda (indice 0) es el N de item (solo visual), por eso arrancamos en 1.
     var celdas = tr.querySelectorAll("td");
     cols.forEach(function(c, i) {
-      var celda = celdas[i];
+      var celda = celdas[i + 1];
       if (!celda) return;
       var campo = celda.querySelector("select, textarea, input");
       if (!campo) return;
@@ -709,6 +781,8 @@ function getItems() {
         obj[c.key] = campo.value;
       }
     });
+    // Guardar el tipo de articulo elegido en cada item
+    obj["Tipo Articulo"] = tipoActivo;
     return obj;
   }).filter(Boolean);
 }
@@ -719,11 +793,11 @@ function fmtDate(v) {
 }
 
 function buildPreviewHTML(ped, fecha, prov, items, mailCols) {
-  var heads = mailCols.map(function(c) {
+  var heads = "<th style='padding:7px 10px;background:#f0f0ec;border:1px solid #ddd;font-size:12px;text-align:left'>N\u00b0</th>" + mailCols.map(function(c) {
     return "<th style='padding:7px 10px;background:#f0f0ec;border:1px solid #ddd;font-size:12px;text-align:left;white-space:nowrap'>" + c.label + "</th>";
   }).join("");
-  var rows = items.map(function(it) {
-    return "<tr>" + mailCols.map(function(c) {
+  var rows = items.map(function(it, idx) {
+    return "<tr><td style='padding:6px 10px;border:1px solid #ddd;font-size:12px;text-align:center'>" + (idx + 1) + "</td>" + mailCols.map(function(c) {
       return "<td style='padding:6px 10px;border:1px solid #ddd;font-size:12px'>" + (it[c.key] || "") + "</td>";
     }).join("") + "</tr>";
   }).join("");
@@ -743,13 +817,13 @@ function previewMail() {
   var prov = document.getElementById("f-proveedor").value;
   var items = getItems();
   if (!items.length) { alert("Agrega al menos un item"); return; }
-  var mailCols = getCols(prov).filter(function(c) { return c.mail && c.key !== "Pedido" && c.key !== "Fecha"; });
+  var mailCols = getColsFor(prov, tipoActivo).filter(function(c) { return c.mail && c.key !== "Pedido" && c.key !== "Fecha"; });
   var html = buildPreviewHTML(ped, fecha, prov, items, mailCols);
   document.getElementById("preview-box").innerHTML = html;
   var txt = "E.G. CORRUGADOS S.R.L.\n" + String(prov || "").toUpperCase() + " PEDIDO N " + ped + "\nFecha " + fecha + "\nProveedor: " + prov + "\n\n";
-  txt += mailCols.map(function(c) { return c.label; }).join("\t") + "\n";
-  items.forEach(function(it) {
-    txt += mailCols.map(function(c) { return it[c.key] || ""; }).join("\t") + "\n";
+  txt += "N\u00b0\t" + mailCols.map(function(c) { return c.label; }).join("\t") + "\n";
+  items.forEach(function(it, idx) {
+    txt += (idx + 1) + "\t" + mailCols.map(function(c) { return it[c.key] || ""; }).join("\t") + "\n";
   });
   txt += "\nENVIADO VIA E-MAIL";
   lastPreviewText = txt;
@@ -762,7 +836,7 @@ function copyMail() {
   var prov = document.getElementById("f-proveedor").value;
   var items = getItems();
   if (!items.length) return;
-  var mailCols = getCols(prov).filter(function(c) { return c.mail && c.key !== "Pedido" && c.key !== "Fecha"; });
+  var mailCols = getColsFor(prov, tipoActivo).filter(function(c) { return c.mail && c.key !== "Pedido" && c.key !== "Fecha"; });
   var html = buildPreviewHTML(ped, fecha, prov, items, mailCols);
   var blob = new Blob([html], {type: "text/html"});
   var clipItem = new ClipboardItem({"text/html": blob});
@@ -784,7 +858,7 @@ function copiarYabrirOutlook() {
   var prov = document.getElementById("f-proveedor").value;
   var items = getItems();
   if (!items.length) { showStatus("err", "Agrega al menos un item."); return; }
-  var mailCols = getCols(prov).filter(function(c) { return c.mail && c.key !== "Pedido" && c.key !== "Fecha"; });
+  var mailCols = getColsFor(prov, tipoActivo).filter(function(c) { return c.mail && c.key !== "Pedido" && c.key !== "Fecha"; });
   var html = buildPreviewHTML(ped, fecha, prov, items, mailCols);
   // Destinatario: el mail del proveedor (campo f-email, que ya viene de la agenda)
   var destino = (document.getElementById("f-email").value || "").trim();
@@ -820,7 +894,7 @@ function printPedido() {
   var items = getItems();
   if (!items.length) { alert("Agrega al menos un item"); return; }
   // Para IMPRIMIR mostramos TODOS los datos utiles (incluye Cliente y Anotaciones).
-  var printCols = getCols(prov).filter(function(c) {
+  var printCols = getColsFor(prov, tipoActivo).filter(function(c) {
     return ["Cantidad","Tipo Material","Largo","Ancho","Trazados","Observaciones","Cliente","Anotaciones"].indexOf(c.key) !== -1;
   });
   // Ordenarlas en el orden deseado
@@ -1002,7 +1076,7 @@ async function guardarNotas() {
 }
 
 function buildProvSelect() {
-  var provs = Object.keys(PROV_COLS);
+  var provs = Object.keys(PROV_INFO);
   var sel = document.getElementById("f-proveedor");
   sel.innerHTML = "<option value=''>- Elegí un proveedor -</option>" +
     provs.map(function(p) { return "<option value='" + p + "'>" + p + "</option>"; }).join("");
