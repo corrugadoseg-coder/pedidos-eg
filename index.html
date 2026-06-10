@@ -765,8 +765,8 @@ function onClienteInput(elem, id) {
 function removeRow(id) {
   var el = document.getElementById(id);
   if (el) el.remove();
-  itemRows = itemRows.filter(function(i) { return i !== id;   renumItems();
-});
+  itemRows = itemRows.filter(function(i) { return i !== id; });
+  renumItems();
 }
 
 function toggleOtro(sel) {
