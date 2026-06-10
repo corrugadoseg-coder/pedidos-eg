@@ -566,6 +566,19 @@ function exportCSV(page) {
 
 function updateProvFields() {
   var prov = document.getElementById("f-proveedor").value;
+  // Si todavia no se eligio proveedor, limpiar el formulario y no mostrar numero
+  if (!prov) {
+    document.getElementById("items-thead").innerHTML = "";
+    document.getElementById("items-body").innerHTML = "";
+    itemRows = [];
+    var inpP = document.getElementById("f-pedido");
+    inpP.value = "";
+    inpP.placeholder = "Elegí un proveedor primero";
+    inpP.style.background = "";
+    var emailInp0 = document.getElementById("f-email");
+    if (emailInp0) emailInp0.value = "";
+    return;
+  }
   var cols = getCols(prov).filter(function(c) { return !["Pedido", "Fecha", "Estado", "Proveedor"].includes(c.key); });
   document.getElementById("items-thead").innerHTML = "<tr>" + cols.map(function(c) { return "<th>" + c.label + "</th>"; }).join("") + "<th></th></tr>";
   document.getElementById("items-body").innerHTML = "";
@@ -716,7 +729,7 @@ function buildPreviewHTML(ped, fecha, prov, items, mailCols) {
   }).join("");
   return "<div style='font-family:Arial,sans-serif;font-size:13px'>" +
     "<p style='margin-bottom:4px'><strong>E.G. CORRUGADOS S.R.L.</strong></p>" +
-    "<p style='margin-bottom:4px'>GUIDO PEDIDO N " + ped + "</p>" +
+    "<p style='margin-bottom:4px'>" + String(prov || "").toUpperCase() + " PEDIDO N " + ped + "</p>" +
     "<p style='margin-bottom:4px'>Fecha: " + fecha + "</p>" +
     "<p style='margin-bottom:12px'>Proveedor: " + prov + "</p>" +
     "<table style='border-collapse:collapse;width:100%'><thead><tr>" + heads + "</tr></thead><tbody>" + rows + "</tbody></table>" +
@@ -733,7 +746,7 @@ function previewMail() {
   var mailCols = getCols(prov).filter(function(c) { return c.mail && c.key !== "Pedido" && c.key !== "Fecha"; });
   var html = buildPreviewHTML(ped, fecha, prov, items, mailCols);
   document.getElementById("preview-box").innerHTML = html;
-  var txt = "E.G. CORRUGADOS S.R.L.\nGUIDO PEDIDO N " + ped + "\nFecha " + fecha + "\nProveedor: " + prov + "\n\n";
+  var txt = "E.G. CORRUGADOS S.R.L.\n" + String(prov || "").toUpperCase() + " PEDIDO N " + ped + "\nFecha " + fecha + "\nProveedor: " + prov + "\n\n";
   txt += mailCols.map(function(c) { return c.label; }).join("\t") + "\n";
   items.forEach(function(it) {
     txt += mailCols.map(function(c) { return it[c.key] || ""; }).join("\t") + "\n";
@@ -837,28 +850,50 @@ var guardando = false;
 async function guardarPedido() {
   // Proteccion anti-doble-guardado: si ya esta guardando, ignorar nuevos clics.
   if (guardando) return;
-  var ped = document.getElementById("f-pedido").value.trim();
   var fecha = fmtDate(document.getElementById("f-fecha").value);
   var prov = document.getElementById("f-proveedor").value;
   var items = getItems();
-  if (!ped || !items.length) { showStatus("err", "Completa el N de pedido y al menos un item."); return; }
-  // Verificar contra la planilla (datos frescos) si ya existe ese pedido+proveedor.
+  if (!prov) { showStatus("err", "Elegí un proveedor antes de guardar."); return; }
+  if (!items.length) { showStatus("err", "Agrega al menos un item."); return; }
+  // Verificar contra la planilla (datos frescos) y RECALCULAR el numero correcto.
   guardando = true;
   var btnChk = document.getElementById("btn-guardar");
   if (btnChk) { btnChk.disabled = true; btnChk.textContent = "Verificando..."; btnChk.style.opacity = "0.6"; }
-  showStatus("loading", "Verificando si el pedido ya existe...");
-  var yaExiste = false;
+  showStatus("loading", "Verificando el numero de pedido...");
+  var ped = document.getElementById("f-pedido").value.trim();
   try {
     var resp = await fetch(API);
     var json = await resp.json();
     if (json.ok && json.data) {
-      yaExiste = json.data.some(function(r){
+      // Recalcular el siguiente numero real para este proveedor (datos frescos de la planilla)
+      var pedsProv = json.data.filter(function(r){ return String(r.Proveedor).trim() === String(prov).trim(); })
+                              .map(function(r){ return parseInt(r.Pedido); })
+                              .filter(function(n){ return !isNaN(n); });
+      var sigReal = pedsProv.length ? Math.max.apply(null, pedsProv) + 1 : 1;
+      var sigRealStr = String(sigReal).padStart(3, "0");
+      // Si lo que hay en pantalla no coincide con el numero real, avisar y corregir
+      if (ped !== sigRealStr && ped !== String(sigReal)) {
+        if (btnChk) { btnChk.disabled = false; btnChk.textContent = "Guardar pedido"; btnChk.style.opacity = "1"; }
+        guardando = false;
+        var usarReal = window.confirm("El N° de pedido en pantalla es " + (ped || "(vacio)") + ", pero segun la planilla el proximo para " + prov + " es " + sigRealStr + ".\n\nAceptar = usar " + sigRealStr + "\nCancelar = mantener " + (ped || "vacio"));
+        if (usarReal) { ped = sigRealStr; document.getElementById("f-pedido").value = sigRealStr; }
+        guardando = true;
+        if (btnChk) { btnChk.disabled = true; btnChk.textContent = "Guardando..."; btnChk.style.opacity = "0.6"; }
+      }
+    }
+  } catch(e) {}
+  if (!ped) { guardando = false; if(btnChk){btnChk.disabled=false;btnChk.textContent="Guardar pedido";btnChk.style.opacity="1";} showStatus("err", "Falta el N de pedido."); return; }
+  // Verificar duplicado exacto
+  var yaExiste = false;
+  try {
+    var resp2 = await fetch(API);
+    var json2 = await resp2.json();
+    if (json2.ok && json2.data) {
+      yaExiste = json2.data.some(function(r){
         return String(r.Pedido).trim() === ped && String(r.Proveedor).trim() === String(prov).trim();
       });
     }
-  } catch(e) {
-    // Si falla la verificacion, seguimos igual (no bloqueamos por un error de red)
-  }
+  } catch(e) {}
   if (yaExiste) {
     if (btnChk) { btnChk.disabled = false; btnChk.textContent = "Guardar pedido"; btnChk.style.opacity = "1"; }
     guardando = false;
@@ -969,7 +1004,9 @@ async function guardarNotas() {
 function buildProvSelect() {
   var provs = Object.keys(PROV_COLS);
   var sel = document.getElementById("f-proveedor");
-  sel.innerHTML = provs.map(function(p) { return "<option value='" + p + "'>" + p + "</option>"; }).join("");
+  sel.innerHTML = "<option value=''>- Elegí un proveedor -</option>" +
+    provs.map(function(p) { return "<option value='" + p + "'>" + p + "</option>"; }).join("");
+  sel.value = "";
 }
 
 function goTo(page, btn) {
