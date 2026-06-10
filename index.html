@@ -355,12 +355,31 @@ function loadData() {
     }
   }).catch(function() {});
   loadProveedores();
+  loadClientes();
 }
 
 var provData = [];
+var clientesBlanco = [];
+var clientesNegro = [];
+// Indices rapidos por numero, para buscar nombre dado el numero
+var idxBlancoPorNum = {};
+var idxNegroPorNum = {};
 function loadProveedores() {
   fetch(API + "?tipo=proveedores").then(function(r){ return r.json(); }).then(function(json){
     if (json.ok && json.data) { provData = json.data; renderContactos(); }
+  }).catch(function(){});
+}
+
+function loadClientes() {
+  fetch(API + "?tipo=clientes").then(function(r){ return r.json(); }).then(function(json){
+    if (json.ok) {
+      clientesBlanco = json.blanco || [];
+      clientesNegro = json.negro || [];
+      idxBlancoPorNum = {};
+      clientesBlanco.forEach(function(c){ idxBlancoPorNum[String(c.Numero).trim()] = c.Nombre; });
+      idxNegroPorNum = {};
+      clientesNegro.forEach(function(c){ idxNegroPorNum[String(c.Numero).trim()] = c.Nombre; });
+    }
   }).catch(function(){});
 }
 
@@ -666,8 +685,20 @@ function addItemRow(data) {
   var d = data || {};
   var tr = document.createElement("tr");
   tr.id = id;
+  var sisGuardado = d["Sistema"] || "";
   var cells = "<td class='item-num' style='text-align:center;color:#888;font-weight:600'></td>" + cols.map(function(c) {
     var v = d[c.key] || "";
+    // CLIENTE: celda especial con selector blanco/negro + campo numero/nombre
+    if (c.key === "Cliente") {
+      var selBN = "<select class='cli-sistema' onchange=\"onClienteInput(this,'" + id + "')\" style='margin-bottom:4px'>" +
+        "<option value=''>- sistema -</option>" +
+        "<option value='blanco'" + (sisGuardado === "blanco" ? " selected" : "") + ">Blanco</option>" +
+        "<option value='negro'" + (sisGuardado === "negro" ? " selected" : "") + ">Negro</option>" +
+        "</select>";
+      var inpCli = "<input type='text' class='cli-input' placeholder='N\u00b0 o nombre' value=\"" + v + "\" oninput=\"onClienteInput(this,'" + id + "')\">";
+      var resultado = "<div class='cli-result' style='font-size:11px;color:#555;margin-top:2px;min-height:14px'></div>";
+      return "<td style='min-width:150px'>" + selBN + inpCli + resultado + "</td>";
+    }
     if (c.type === "dropdown") {
       var opts = c.options.map(function(o) { return "<option" + (o === v ? " selected" : "") + ">" + o + "</option>"; }).join("");
       var onch = c.key === "Tipo Material" ? " onchange=\"toggleOtro(this)\"" : "";
@@ -691,6 +722,44 @@ function renumItems() {
     var celdaNum = tr.querySelector(".item-num");
     if (celdaNum) celdaNum.textContent = (idx + 1);
   });
+}
+
+// Maneja el campo de cliente: busca por numero o por nombre en el sistema elegido
+function onClienteInput(elem, id) {
+  var tr = document.getElementById(id);
+  if (!tr) return;
+  var selBN = tr.querySelector(".cli-sistema");
+  var inpCli = tr.querySelector(".cli-input");
+  var result = tr.querySelector(".cli-result");
+  if (!selBN || !inpCli || !result) return;
+  var sistema = selBN.value;
+  var texto = inpCli.value.trim();
+  if (!sistema) { result.innerHTML = "<span style='color:#b00'>Eleg\u00ed sistema (blanco/negro)</span>"; return; }
+  if (!texto) { result.textContent = ""; return; }
+  var lista = (sistema === "negro") ? clientesNegro : clientesBlanco;
+  var idxNum = (sistema === "negro") ? idxNegroPorNum : idxBlancoPorNum;
+  // Si es puramente numerico, buscamos por numero
+  if (/^\d+$/.test(texto)) {
+    var nombre = idxNum[texto];
+    if (nombre) {
+      result.innerHTML = "<span style='color:#2a7'>\u2713 " + nombre + "</span>";
+    } else {
+      result.innerHTML = "<span style='color:#b00'>Cliente no encontrado. Escrib\u00ed el nombre y se guardar\u00e1.</span>";
+    }
+  } else {
+    // Es texto: buscamos coincidencia por nombre (exacta o que empiece igual)
+    var t = texto.toLowerCase();
+    var match = lista.filter(function(c){ return String(c.Nombre).toLowerCase().indexOf(t) >= 0; });
+    if (match.length === 1) {
+      result.innerHTML = "<span style='color:#2a7'>\u2713 N\u00b0 " + match[0].Numero + " \u2014 " + match[0].Nombre + "</span>";
+    } else if (match.length > 1 && match.length <= 6) {
+      result.innerHTML = "<span style='color:#888'>" + match.length + " coincidencias: " + match.slice(0,6).map(function(c){ return c.Numero + " " + c.Nombre; }).join(" / ") + "</span>";
+    } else if (match.length > 6) {
+      result.innerHTML = "<span style='color:#888'>" + match.length + " coincidencias, segu\u00ed escribiendo...</span>";
+    } else {
+      result.innerHTML = "<span style='color:#b00'>Cliente nuevo. Se guardar\u00e1 al confirmar el pedido.</span>";
+    }
+  }
 }
 
 function removeRow(id) {
@@ -735,9 +804,24 @@ function autocompleteCaja(input, id) {
   cols.forEach(function(c, i) {
     if (c.key === "N Caja") return;
     if (rellenar.indexOf(c.key) === -1) return;
-    if (match[c.key] === undefined || match[c.key] === "") return;
     var celda = celdas[i + 1];
     if (!celda) return;
+    // CLIENTE: rellenar selector de sistema + input de cliente desde el pedido viejo
+    if (c.key === "Cliente") {
+      var selBN = celda.querySelector(".cli-sistema");
+      var inpCli = celda.querySelector(".cli-input");
+      var sisViejo = match["Sistema"] || "";
+      var numViejo = match["Cliente N\u00b0"] || "";
+      var nomViejo = match["Cliente Nombre"] || "";
+      if (selBN && sisViejo) selBN.value = sisViejo;
+      if (inpCli) {
+        // Preferimos el numero (dato estable); si no hay, el nombre.
+        inpCli.value = numViejo || nomViejo || "";
+        onClienteInput(inpCli, id);
+      }
+      return;
+    }
+    if (match[c.key] === undefined || match[c.key] === "") return;
     // El campo principal de la celda es el primer input/select/textarea.
     var campo = celda.querySelector("select, textarea, input");
     if (!campo) return;
@@ -772,6 +856,35 @@ function getItems() {
     cols.forEach(function(c, i) {
       var celda = celdas[i + 1];
       if (!celda) return;
+      // CLIENTE: leer sistema + resolver numero y nombre
+      if (c.key === "Cliente") {
+        var selBN = celda.querySelector(".cli-sistema");
+        var inpCli = celda.querySelector(".cli-input");
+        var sistema = selBN ? selBN.value : "";
+        var texto = inpCli ? inpCli.value.trim() : "";
+        obj["Sistema"] = sistema;
+        var idxNum = (sistema === "negro") ? idxNegroPorNum : idxBlancoPorNum;
+        var lista = (sistema === "negro") ? clientesNegro : clientesBlanco;
+        var numero = "", nombre = "";
+        if (/^\d+$/.test(texto)) {
+          // Escribio un numero
+          numero = texto;
+          nombre = idxNum[texto] || "";
+        } else if (texto) {
+          // Escribio un nombre: buscar coincidencia exacta o unica
+          var t = texto.toLowerCase();
+          var exacta = lista.filter(function(x){ return String(x.Nombre).toLowerCase() === t; });
+          var parcial = lista.filter(function(x){ return String(x.Nombre).toLowerCase().indexOf(t) >= 0; });
+          if (exacta.length === 1) { numero = exacta[0].Numero; nombre = exacta[0].Nombre; }
+          else if (parcial.length === 1) { numero = parcial[0].Numero; nombre = parcial[0].Nombre; }
+          else { nombre = texto; }
+        }
+        obj["Cliente N\u00b0"] = numero;
+        obj["Cliente Nombre"] = nombre || texto;
+        obj["Sistema"] = sistema;
+        obj["_clienteTexto"] = texto;
+        return;
+      }
       var campo = celda.querySelector("select, textarea, input");
       if (!campo) return;
       if (c.key === "Tipo Material" && campo.value === "Otro (especificar)") {
@@ -793,12 +906,24 @@ function fmtDate(v) {
 }
 
 function buildPreviewHTML(ped, fecha, prov, items, mailCols) {
-  var heads = "<th style='padding:7px 10px;background:#f0f0ec;border:1px solid #ddd;font-size:12px;text-align:left'>N\u00b0</th>" + mailCols.map(function(c) {
-    return "<th style='padding:7px 10px;background:#f0f0ec;border:1px solid #ddd;font-size:12px;text-align:left;white-space:nowrap'>" + c.label + "</th>";
+  function thStyle(){ return "padding:7px 10px;background:#f0f0ec;border:1px solid #ddd;font-size:12px;text-align:left;white-space:nowrap"; }
+  function tdStyle(){ return "padding:6px 10px;border:1px solid #ddd;font-size:12px"; }
+  var heads = "<th style='" + thStyle() + "'>N\u00b0</th>" + mailCols.map(function(c) {
+    if (c.key === "Cliente") {
+      return "<th style='" + thStyle() + "'>Sistema</th><th style='" + thStyle() + "'>Cliente</th>";
+    }
+    return "<th style='" + thStyle() + "'>" + c.label + "</th>";
   }).join("");
   var rows = items.map(function(it, idx) {
     return "<tr><td style='padding:6px 10px;border:1px solid #ddd;font-size:12px;text-align:center'>" + (idx + 1) + "</td>" + mailCols.map(function(c) {
-      return "<td style='padding:6px 10px;border:1px solid #ddd;font-size:12px'>" + (it[c.key] || "") + "</td>";
+      if (c.key === "Cliente") {
+        var sis = it["Sistema"] ? (it["Sistema"].charAt(0).toUpperCase() + it["Sistema"].slice(1)) : "";
+        var numN = it["Cliente N\u00b0"] || "";
+        var nomN = it["Cliente Nombre"] || "";
+        var cli = (numN && nomN) ? (numN + " - " + nomN) : (numN || nomN || "");
+        return "<td style='" + tdStyle() + "'>" + sis + "</td><td style='" + tdStyle() + "'>" + cli + "</td>";
+      }
+      return "<td style='" + tdStyle() + "'>" + (it[c.key] || "") + "</td>";
     }).join("") + "</tr>";
   }).join("");
   return "<div style='font-family:Arial,sans-serif;font-size:13px'>" +
@@ -818,8 +943,10 @@ function previewMail() {
   var items = getItems();
   if (!items.length) { alert("Agrega al menos un item"); return; }
   var mailCols = getColsFor(prov, tipoActivo).filter(function(c) { return c.mail && c.key !== "Pedido" && c.key !== "Fecha"; });
-  var html = buildPreviewHTML(ped, fecha, prov, items, mailCols);
-  document.getElementById("preview-box").innerHTML = html;
+  // Vista INTERNA en pantalla: incluye Cliente (y Sistema). El mail al proveedor NO.
+  var internCols = getColsFor(prov, tipoActivo).filter(function(c) { return (c.mail || c.key === "Cliente") && c.key !== "Pedido" && c.key !== "Fecha"; });
+  var html = buildPreviewHTML(ped, fecha, prov, items, internCols);
+  document.getElementById("preview-box").innerHTML = "<div style='background:#fff8e1;border:1px solid #f0d000;padding:6px 10px;font-size:11px;margin-bottom:8px;border-radius:4px'>Vista interna (incluye sistema y cliente). El mail al proveedor NO los muestra.</div>" + html;
   var txt = "E.G. CORRUGADOS S.R.L.\n" + String(prov || "").toUpperCase() + " PEDIDO N " + ped + "\nFecha " + fecha + "\nProveedor: " + prov + "\n\n";
   txt += "N\u00b0\t" + mailCols.map(function(c) { return c.label; }).join("\t") + "\n";
   items.forEach(function(it, idx) {
@@ -921,6 +1048,21 @@ function showStatus(type, msg) {
 }
 
 var guardando = false;
+async function guardarClienteNuevo(sistema, numero, nombre) {
+  try {
+    await fetch(API, {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"},
+      body: JSON.stringify({action: "addCliente", sistema: sistema, numero: numero, nombre: nombre})});
+    // Actualizar las listas locales para que quede disponible al instante
+    if (sistema === "negro") {
+      clientesNegro.push({Numero: numero, Nombre: nombre});
+      idxNegroPorNum[numero] = nombre;
+    } else {
+      clientesBlanco.push({Numero: numero, Nombre: nombre});
+      idxBlancoPorNum[numero] = nombre;
+    }
+  } catch(e) {}
+}
+
 async function guardarPedido() {
   // Proteccion anti-doble-guardado: si ya esta guardando, ignorar nuevos clics.
   if (guardando) return;
@@ -929,6 +1071,34 @@ async function guardarPedido() {
   var items = getItems();
   if (!prov) { showStatus("err", "Elegí un proveedor antes de guardar."); return; }
   if (!items.length) { showStatus("err", "Agrega al menos un item."); return; }
+  // --- Detectar clientes NUEVOS (tienen sistema y nombre, pero no numero en la lista) ---
+  for (var ci = 0; ci < items.length; ci++) {
+    var it = items[ci];
+    var sis = it["Sistema"];
+    var num = it["Cliente N\u00b0"];
+    var nom = it["Cliente Nombre"];
+    var txt = it["_clienteTexto"];
+    if (!sis || !txt) continue; // sin sistema o sin nada escrito: nada que guardar
+    var idxNum = (sis === "negro") ? idxNegroPorNum : idxBlancoPorNum;
+    // Caso 1: escribio un numero que NO existe -> pedir nombre para guardarlo
+    if (num && !idxNum[num]) {
+      var nombreNuevo = window.prompt("El cliente N\u00b0 " + num + " (" + (sis === "negro" ? "negro" : "blanco") + ") no est\u00e1 en la lista.\n\nEscrib\u00ed el NOMBRE para guardarlo (o Cancelar para dejarlo sin guardar):", "");
+      if (nombreNuevo && nombreNuevo.trim()) {
+        await guardarClienteNuevo(sis, num, nombreNuevo.trim());
+        it["Cliente Nombre"] = nombreNuevo.trim();
+      }
+      continue;
+    }
+    // Caso 2: escribio un nombre sin numero (cliente nuevo) -> pedir numero
+    if (!num && nom) {
+      var numNuevo = window.prompt("El cliente \"" + nom + "\" (" + (sis === "negro" ? "negro" : "blanco") + ") no tiene n\u00famero asignado.\n\nEscrib\u00ed el N\u00b0 de cliente para guardarlo (o Cancelar para dejarlo sin guardar):", "");
+      if (numNuevo && numNuevo.trim()) {
+        await guardarClienteNuevo(sis, numNuevo.trim(), nom);
+        it["Cliente N\u00b0"] = numNuevo.trim();
+      }
+      continue;
+    }
+  }
   // Verificar contra la planilla (datos frescos) y RECALCULAR el numero correcto.
   guardando = true;
   var btnChk = document.getElementById("btn-guardar");
