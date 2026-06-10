@@ -1048,6 +1048,25 @@ function showStatus(type, msg) {
 }
 
 var guardando = false;
+function limpiarFormularioCarga() {
+  // Vacia los items y vuelve a preparar el formulario con una fila limpia
+  // y el proximo numero de pedido recalculado, manteniendo el proveedor y tipo elegidos.
+  var prov = document.getElementById("f-proveedor").value;
+  var tipo = document.getElementById("f-tipo").value;
+  document.getElementById("items-body").innerHTML = "";
+  itemRows = [];
+  if (prov && tipo) {
+    addItemRow();
+    var peds = allData.filter(function(r) { return r.Proveedor === prov; }).map(function(r) { return parseInt(r.Pedido); }).filter(function(n) { return !isNaN(n); });
+    var sig = peds.length ? Math.max.apply(null, peds) + 1 : 1;
+    var inp = document.getElementById("f-pedido");
+    inp.value = String(sig).padStart(3, "0");
+  }
+  // Limpiar la previsualizacion en pantalla
+  var pv = document.getElementById("preview-box");
+  if (pv) pv.innerHTML = "";
+}
+
 async function guardarClienteNuevo(sistema, numero, nombre) {
   try {
     await fetch(API, {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"},
@@ -1155,7 +1174,7 @@ async function guardarPedido() {
        await fetch(API, {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"}, body: JSON.stringify({action: "add", row: row})});
     } catch(e) { ok = false; }
   }
-  if (ok) { showStatus("ok", "Pedido N " + ped + " guardado con " + items.length + " item(s)."); renderAll(); }
+  if (ok) { showStatus("ok", "Pedido N " + ped + " guardado con " + items.length + " item(s)."); renderAll(); limpiarFormularioCarga(); }
   else showStatus("err", "Error al guardar. Verifica la conexion.");
   // Reactivar el boton al terminar
   guardando = false;
@@ -1241,32 +1260,4 @@ async function guardarNotas() {
     setTimeout(cerrarEditar, 700);
   } catch(e) {
     st.style.color = "#c62828"; st.textContent = "Error al guardar. Revisa la conexion.";
-  }
-  btn.disabled = false;
-}
-
-function buildProvSelect() {
-  var provs = Object.keys(PROV_INFO);
-  var sel = document.getElementById("f-proveedor");
-  sel.innerHTML = "<option value=''>- Elegí un proveedor -</option>" +
-    provs.map(function(p) { return "<option value='" + p + "'>" + p + "</option>"; }).join("");
-  sel.value = "";
-}
-
-function goTo(page, btn) {
-  document.querySelectorAll(".page").forEach(function(p) { p.classList.remove("active"); });
-  document.querySelectorAll("nav button").forEach(function(b) { b.classList.remove("active"); });
-  document.getElementById("page-" + page).classList.add("active");
-  btn.classList.add("active");
-  if (page === "proveedores") renderProveedores();
-  setTimeout(syncAllScrolls, 80);
-  setTimeout(syncAllScrolls, 300);
-}
-
-document.getElementById("f-fecha").valueAsDate = new Date();
-buildProvSelect();
-updateProvFields();
-loadData();
-</script>
-</body>
-</html>
+  
