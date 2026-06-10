@@ -155,7 +155,7 @@ tbody tr.prov-Idesa:hover,tbody tr.prov-Micromont:hover,tbody tr.prov-Aserpel:ho
       <div class="form-group"><label>N de Pedido</label><input type="text" id="f-pedido" placeholder="Ej: 1401"></div>
       <div class="form-group"><label>Fecha</label><input type="date" id="f-fecha"></div>
       <div class="form-group"><label>Proveedor</label><select id="f-proveedor" onchange="onProvChange()"></select></div>
-      <div class="form-group"><label>Tipo de art\u00edculo</label><select id="f-tipo" onchange="updateProvFields()" disabled><option value="">- Eleg\u00ed proveedor -</option></select></div>
+      <div class="form-group"><label>Tipo de artículo</label><select id="f-tipo" onchange="updateProvFields()" disabled><option value="">- Elegí proveedor -</option></select></div>
       <div class="form-group"><label>Email del proveedor</label><input type="email" id="f-email" placeholder="proveedor@email.com"></div>
     </div>
     <hr class="form-divider">
@@ -610,7 +610,7 @@ function exportCSV(page) {
     return COLS_ALL.map(function(c) { return '"' + String(r[c] || "").replace(/"/g, '""') + '"'; }).join(",");
   })).join("\n");
   var a = document.createElement("a");
-  a.href = "data:text/csv;charset=utf-8,\uFEFF" + encodeURIComponent(csv);
+  a.href = "data:text/csv;charset=utf-8,﻿" + encodeURIComponent(csv);
   a.download = "pedidos_eg.csv";
   a.click();
 }
@@ -620,7 +620,7 @@ function onProvChange() {
   var selTipo = document.getElementById("f-tipo");
   var info = PROV_INFO[prov];
   if (!prov || !info) {
-    selTipo.innerHTML = "<option value=''>- Eleg\u00ed proveedor -</option>";
+    selTipo.innerHTML = "<option value=''>- Elegí proveedor -</option>";
     selTipo.disabled = true;
     tipoActivo = "";
     updateProvFields();
@@ -634,7 +634,7 @@ function onProvChange() {
     selTipo.disabled = true;
     tipoActivo = tipos[0];
   } else {
-    selTipo.innerHTML = "<option value=''>- Eleg\u00ed tipo -</option>" +
+    selTipo.innerHTML = "<option value=''>- Elegí tipo -</option>" +
       tipos.map(function(t){ return "<option value='" + t + "'>" + t + "</option>"; }).join("");
     selTipo.value = "";
     selTipo.disabled = false;
@@ -660,7 +660,7 @@ function updateProvFields() {
     return;
   }
   var cols = getColsFor(prov, tipoActivo).filter(function(c) { return !["Pedido", "Fecha", "Estado", "Proveedor"].includes(c.key); });
-  document.getElementById("items-thead").innerHTML = "<tr><th>N\u00b0</th>" + cols.map(function(c) { return "<th>" + c.label + "</th>"; }).join("") + "<th></th></tr>";
+  document.getElementById("items-thead").innerHTML = "<tr><th>N°</th>" + cols.map(function(c) { return "<th>" + c.label + "</th>"; }).join("") + "<th></th></tr>";
   document.getElementById("items-body").innerHTML = "";
   itemRows = [];
   addItemRow();
@@ -695,7 +695,7 @@ function addItemRow(data) {
         "<option value='blanco'" + (sisGuardado === "blanco" ? " selected" : "") + ">Blanco</option>" +
         "<option value='negro'" + (sisGuardado === "negro" ? " selected" : "") + ">Negro</option>" +
         "</select>";
-      var inpCli = "<input type='text' class='cli-input' placeholder='N\u00b0 o nombre' value=\"" + v + "\" oninput=\"onClienteInput(this,'" + id + "')\">";
+      var inpCli = "<input type='text' class='cli-input' placeholder='N° o nombre' value=\"" + v + "\" oninput=\"onClienteInput(this,'" + id + "')\">";
       var resultado = "<div class='cli-result' style='font-size:11px;color:#555;margin-top:2px;min-height:14px'></div>";
       return "<td style='min-width:150px'>" + selBN + inpCli + resultado + "</td>";
     }
@@ -734,7 +734,7 @@ function onClienteInput(elem, id) {
   if (!selBN || !inpCli || !result) return;
   var sistema = selBN.value;
   var texto = inpCli.value.trim();
-  if (!sistema) { result.innerHTML = "<span style='color:#b00'>Eleg\u00ed sistema (blanco/negro)</span>"; return; }
+  if (!sistema) { result.innerHTML = "<span style='color:#b00'>Elegí sistema (blanco/negro)</span>"; return; }
   if (!texto) { result.textContent = ""; return; }
   var lista = (sistema === "negro") ? clientesNegro : clientesBlanco;
   var idxNum = (sistema === "negro") ? idxNegroPorNum : idxBlancoPorNum;
@@ -742,22 +742,22 @@ function onClienteInput(elem, id) {
   if (/^\d+$/.test(texto)) {
     var nombre = idxNum[texto];
     if (nombre) {
-      result.innerHTML = "<span style='color:#2a7'>\u2713 " + nombre + "</span>";
+      result.innerHTML = "<span style='color:#2a7'>✓ " + nombre + "</span>";
     } else {
-      result.innerHTML = "<span style='color:#b00'>Cliente no encontrado. Escrib\u00ed el nombre y se guardar\u00e1.</span>";
+      result.innerHTML = "<span style='color:#b00'>Cliente no encontrado. Escribí el nombre y se guardará.</span>";
     }
   } else {
     // Es texto: buscamos coincidencia por nombre (exacta o que empiece igual)
     var t = texto.toLowerCase();
     var match = lista.filter(function(c){ return String(c.Nombre).toLowerCase().indexOf(t) >= 0; });
     if (match.length === 1) {
-      result.innerHTML = "<span style='color:#2a7'>\u2713 N\u00b0 " + match[0].Numero + " \u2014 " + match[0].Nombre + "</span>";
+      result.innerHTML = "<span style='color:#2a7'>✓ N° " + match[0].Numero + " — " + match[0].Nombre + "</span>";
     } else if (match.length > 1 && match.length <= 6) {
       result.innerHTML = "<span style='color:#888'>" + match.length + " coincidencias: " + match.slice(0,6).map(function(c){ return c.Numero + " " + c.Nombre; }).join(" / ") + "</span>";
     } else if (match.length > 6) {
-      result.innerHTML = "<span style='color:#888'>" + match.length + " coincidencias, segu\u00ed escribiendo...</span>";
+      result.innerHTML = "<span style='color:#888'>" + match.length + " coincidencias, seguí escribiendo...</span>";
     } else {
-      result.innerHTML = "<span style='color:#b00'>Cliente nuevo. Se guardar\u00e1 al confirmar el pedido.</span>";
+      result.innerHTML = "<span style='color:#b00'>Cliente nuevo. Se guardará al confirmar el pedido.</span>";
     }
   }
 }
@@ -811,7 +811,7 @@ function autocompleteCaja(input, id) {
       var selBN = celda.querySelector(".cli-sistema");
       var inpCli = celda.querySelector(".cli-input");
       var sisViejo = match["Sistema"] || "";
-      var numViejo = match["Cliente N\u00b0"] || "";
+      var numViejo = match["Cliente N°"] || "";
       var nomViejo = match["Cliente Nombre"] || "";
       if (selBN && sisViejo) selBN.value = sisViejo;
       if (inpCli) {
@@ -879,7 +879,7 @@ function getItems() {
           else if (parcial.length === 1) { numero = parcial[0].Numero; nombre = parcial[0].Nombre; }
           else { nombre = texto; }
         }
-        obj["Cliente N\u00b0"] = numero;
+        obj["Cliente N°"] = numero;
         obj["Cliente Nombre"] = nombre || texto;
         obj["Sistema"] = sistema;
         obj["_clienteTexto"] = texto;
@@ -908,7 +908,7 @@ function fmtDate(v) {
 function buildPreviewHTML(ped, fecha, prov, items, mailCols) {
   function thStyle(){ return "padding:7px 10px;background:#f0f0ec;border:1px solid #ddd;font-size:12px;text-align:left;white-space:nowrap"; }
   function tdStyle(){ return "padding:6px 10px;border:1px solid #ddd;font-size:12px"; }
-  var heads = "<th style='" + thStyle() + "'>N\u00b0</th>" + mailCols.map(function(c) {
+  var heads = "<th style='" + thStyle() + "'>N°</th>" + mailCols.map(function(c) {
     if (c.key === "Cliente") {
       return "<th style='" + thStyle() + "'>Sistema</th><th style='" + thStyle() + "'>Cliente</th>";
     }
@@ -918,7 +918,7 @@ function buildPreviewHTML(ped, fecha, prov, items, mailCols) {
     return "<tr><td style='padding:6px 10px;border:1px solid #ddd;font-size:12px;text-align:center'>" + (idx + 1) + "</td>" + mailCols.map(function(c) {
       if (c.key === "Cliente") {
         var sis = it["Sistema"] ? (it["Sistema"].charAt(0).toUpperCase() + it["Sistema"].slice(1)) : "";
-        var numN = it["Cliente N\u00b0"] || "";
+        var numN = it["Cliente N°"] || "";
         var nomN = it["Cliente Nombre"] || "";
         var cli = (numN && nomN) ? (numN + " - " + nomN) : (numN || nomN || "");
         return "<td style='" + tdStyle() + "'>" + sis + "</td><td style='" + tdStyle() + "'>" + cli + "</td>";
@@ -948,7 +948,7 @@ function previewMail() {
   var html = buildPreviewHTML(ped, fecha, prov, items, internCols);
   document.getElementById("preview-box").innerHTML = "<div style='background:#fff8e1;border:1px solid #f0d000;padding:6px 10px;font-size:11px;margin-bottom:8px;border-radius:4px'>Vista interna (incluye sistema y cliente). El mail al proveedor NO los muestra.</div>" + html;
   var txt = "E.G. CORRUGADOS S.R.L.\n" + String(prov || "").toUpperCase() + " PEDIDO N " + ped + "\nFecha " + fecha + "\nProveedor: " + prov + "\n\n";
-  txt += "N\u00b0\t" + mailCols.map(function(c) { return c.label; }).join("\t") + "\n";
+  txt += "N°\t" + mailCols.map(function(c) { return c.label; }).join("\t") + "\n";
   items.forEach(function(it, idx) {
     txt += (idx + 1) + "\t" + mailCols.map(function(c) { return it[c.key] || ""; }).join("\t") + "\n";
   });
@@ -1075,14 +1075,14 @@ async function guardarPedido() {
   for (var ci = 0; ci < items.length; ci++) {
     var it = items[ci];
     var sis = it["Sistema"];
-    var num = it["Cliente N\u00b0"];
+    var num = it["Cliente N°"];
     var nom = it["Cliente Nombre"];
     var txt = it["_clienteTexto"];
     if (!sis || !txt) continue; // sin sistema o sin nada escrito: nada que guardar
     var idxNum = (sis === "negro") ? idxNegroPorNum : idxBlancoPorNum;
     // Caso 1: escribio un numero que NO existe -> pedir nombre para guardarlo
     if (num && !idxNum[num]) {
-      var nombreNuevo = window.prompt("El cliente N\u00b0 " + num + " (" + (sis === "negro" ? "negro" : "blanco") + ") no est\u00e1 en la lista.\n\nEscrib\u00ed el NOMBRE para guardarlo (o Cancelar para dejarlo sin guardar):", "");
+      var nombreNuevo = window.prompt("El cliente N° " + num + " (" + (sis === "negro" ? "negro" : "blanco") + ") no está en la lista.\n\nEscribí el NOMBRE para guardarlo (o Cancelar para dejarlo sin guardar):", "");
       if (nombreNuevo && nombreNuevo.trim()) {
         await guardarClienteNuevo(sis, num, nombreNuevo.trim());
         it["Cliente Nombre"] = nombreNuevo.trim();
@@ -1091,10 +1091,10 @@ async function guardarPedido() {
     }
     // Caso 2: escribio un nombre sin numero (cliente nuevo) -> pedir numero
     if (!num && nom) {
-      var numNuevo = window.prompt("El cliente \"" + nom + "\" (" + (sis === "negro" ? "negro" : "blanco") + ") no tiene n\u00famero asignado.\n\nEscrib\u00ed el N\u00b0 de cliente para guardarlo (o Cancelar para dejarlo sin guardar):", "");
+      var numNuevo = window.prompt("El cliente \"" + nom + "\" (" + (sis === "negro" ? "negro" : "blanco") + ") no tiene número asignado.\n\nEscribí el N° de cliente para guardarlo (o Cancelar para dejarlo sin guardar):", "");
       if (numNuevo && numNuevo.trim()) {
         await guardarClienteNuevo(sis, numNuevo.trim(), nom);
-        it["Cliente N\u00b0"] = numNuevo.trim();
+        it["Cliente N°"] = numNuevo.trim();
       }
       continue;
     }
