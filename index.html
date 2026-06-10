@@ -1172,6 +1172,8 @@ async function guardarPedido() {
     var row = Object.assign({}, items[i], {Pedido: ped, Fecha: fecha, Estado: "Enviado", Proveedor: prov});
     try {
        await fetch(API, {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"}, body: JSON.stringify({action: "add", row: row})});
+       // Agregar a allData en memoria para que el proximo numero de pedido sea correcto
+       allData.push(row);
     } catch(e) { ok = false; }
   }
   if (ok) { showStatus("ok", "Pedido N " + ped + " guardado con " + items.length + " item(s)."); renderAll(); limpiarFormularioCarga(); }
