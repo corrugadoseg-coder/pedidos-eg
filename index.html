@@ -108,6 +108,7 @@ tbody tr.prov-Idesa:hover,tbody tr.prov-Micromont:hover,tbody tr.prov-Aserpel:ho
 .estado-sel.sel-env{background:#fff3e0;color:#e65100;border-color:#ffe0b2}
 .estado-sel.sel-rec{background:#e8f5e9;color:#2e7d32;border-color:#c8e6c9}
 .estado-sel.sel-anu{background:#fce4ec;color:#b71c1c;border-color:#f8bbd0}
+.sep-pedido td{border-top:3px solid #555 !important}
 </style>
 </head>
 <body>
@@ -520,7 +521,19 @@ function makeHead(cols, showProv) {
   return h;
 }
 
-function makeRow(r, q, cols, showProv) {
+function mapRowsSep(arr, q, cols, showProv) {
+  var out = [];
+  var prevKey = null;
+  arr.forEach(function(r) {
+    var key = String(r.Pedido) + "|" + String(r.Proveedor || "");
+    var nuevo = (prevKey !== null && key !== prevKey);
+    out.push(makeRow(r, q, cols, showProv, nuevo));
+    prevKey = key;
+  });
+  return out.join("");
+}
+
+function makeRow(r, q, cols, showProv, nuevoPedido) {
   var cells = cols.map(function(c) {
     var v = r[c.key] || "";
     // CLIENTE: mostrar el dato venga de columnas nuevas (Cliente N°/Nombre) o de la vieja (Cliente)
@@ -541,11 +554,13 @@ function makeRow(r, q, cols, showProv) {
     return "<td>" + hl(v, q) + "</td>";
   }).join("");
   if (showProv) cells += '<td><span class="badge badge-prov">' + (r.Proveedor || "") + "</span></td>";
-  if (r.ID) { cells += '<td><button class="btn-editar" title="Editar notas" onclick="abrirEditar(\'' + String(r.ID).replace(/'/g, "") + '\')">&#9998;</button></td>'; }
-  else { cells += "<td></td>"; }
+  var btnRepetir = '<button class="btn-editar" title="Repetir este pedido" onclick="repetirPedido(\'' + String(r.Pedido).replace(/'/g, "") + '\',\'' + String(r.Proveedor || "").replace(/'/g, "") + '\')" style="margin-right:4px">&#8635;</button>';
+  if (r.ID) { cells += '<td style="white-space:nowrap">' + btnRepetir + '<button class="btn-editar" title="Editar notas" onclick="abrirEditar(\'' + String(r.ID).replace(/'/g, "") + '\')">&#9998;</button></td>'; }
+  else { cells += '<td style="white-space:nowrap">' + btnRepetir + "</td>"; }
   var provClase = "prov-" + String(r.Proveedor || "").replace(/ /g, "");
   var clsList = [provClase];
   if (r.Estado === "Anulado") clsList.push("anulado");
+  if (nuevoPedido) clsList.push("sep-pedido");
   var cls = ' class="' + clsList.join(" ") + '"';
   return "<tr" + cls + ">" + cells + "</tr>";
 }
@@ -565,7 +580,7 @@ function renderBuscar() {
   document.getElementById("res-buscar").textContent = filtered.length + " resultado" + (filtered.length !== 1 ? "s" : "") + " de " + allData.length + " registros";
   document.getElementById("thead-buscar").innerHTML = makeHead(cols, true);
   var tb = document.getElementById("tbody-buscar");
-  tb.innerHTML = filtered.length ? filtered.map(function(r) { return makeRow(r, q, cols, true); }).join("") : '<tr><td colspan="20" class="empty-state">Sin resultados</td></tr>';
+  tb.innerHTML = filtered.length ? mapRowsSep(filtered, q, cols, true) : '<tr><td colspan="20" class="empty-state">Sin resultados</td></tr>';
 }
 
 function buildProvFilters() {
@@ -591,7 +606,7 @@ function renderProveedores() {
   document.getElementById("res-prov").textContent = rows.length + " registro" + (rows.length !== 1 ? "s" : "");
   document.getElementById("thead-prov").innerHTML = makeHead(cols, false);
   var tb = document.getElementById("tbody-prov");
-  tb.innerHTML = rows.length ? rows.map(function(r) { return makeRow(r, "", cols, false); }).join("") : '<tr><td colspan="15" class="empty-state">Sin registros</td></tr>';
+  tb.innerHTML = rows.length ? mapRowsSep(rows, "", cols, false) : '<tr><td colspan="15" class="empty-state">Sin registros</td></tr>';
 }
 
 function setProv(p) { activeProv = p; renderProveedores(); }
@@ -608,7 +623,7 @@ function renderHistorial() {
   document.getElementById("res-hist").textContent = filtered.length + " registro" + (filtered.length !== 1 ? "s" : "");
   document.getElementById("thead-hist").innerHTML = makeHead(cols, true);
   var tb = document.getElementById("tbody-hist");
-  tb.innerHTML = filtered.length ? filtered.map(function(r) { return makeRow(r, q, cols, true); }).join("") : '<tr><td colspan="20" class="empty-state">Sin resultados</td></tr>';
+  tb.innerHTML = filtered.length ? mapRowsSep(filtered, q, cols, true) : '<tr><td colspan="20" class="empty-state">Sin resultados</td></tr>';
   setTimeout(function(){ syncScroll("stop-hist", "twrap-hist"); }, 50);
 }
 
@@ -699,6 +714,63 @@ function updateProvFields() {
     var pc = (provData || []).filter(function(x){ return String(x["Proveedor"]||"").trim() === String(prov).trim(); })[0];
     emailInp.value = pc && pc["Mail"] ? pc["Mail"] : "";
   }
+}
+
+function repetirPedido(pedido, proveedor) {
+  // Buscar todos los items de ese pedido (mismo N de pedido + proveedor)
+  var items = allData.filter(function(r) {
+    return String(r.Pedido) === String(pedido) && String(r.Proveedor) === String(proveedor);
+  });
+  if (!items.length) { alert("No se encontraron los items de ese pedido."); return; }
+
+  // Ir a la solapa Nuevo pedido
+  var navBtns = document.querySelectorAll("nav button");
+  var btnNuevo = null;
+  navBtns.forEach(function(b){ if (b.textContent.trim() === "Nuevo pedido") btnNuevo = b; });
+  if (btnNuevo) goTo("nuevo", btnNuevo);
+
+  // Seleccionar proveedor
+  var selProv = document.getElementById("f-proveedor");
+  selProv.value = proveedor;
+
+  // Determinar el tipo de articulo del primer item (si lo tiene guardado)
+  var tipo = items[0]["Tipo Articulo"] || "";
+  // Disparar updateProvFields para armar el formulario; luego fijar el tipo si corresponde
+  updateProvFields();
+  var selTipo = document.getElementById("f-tipo");
+  if (tipo && selTipo) {
+    // Verificar que ese tipo este entre las opciones
+    var existe = false;
+    for (var k = 0; k < selTipo.options.length; k++) { if (selTipo.options[k].value === tipo) { existe = true; break; } }
+    if (existe) { selTipo.value = tipo; updateProvFields(); }
+  }
+
+  // Limpiar los items que dejo updateProvFields y cargar los del pedido
+  document.getElementById("items-body").innerHTML = "";
+  itemRows = [];
+  items.forEach(function(it) {
+    var data = {};
+    // Copiar los campos del item
+    Object.keys(it).forEach(function(key){ data[key] = it[key]; });
+    // El campo visible "Cliente" se llena con N° (preferido) o nombre o el viejo
+    var numN = it["Cliente N°"] || "";
+    var nomN = it["Cliente Nombre"] || "";
+    var viejo = it["Cliente"] || "";
+    data["Cliente"] = numN || nomN || viejo || "";
+    // Sistema para el casillero
+    data["Sistema"] = String(it["Sistema"] || "").trim().toLowerCase();
+    addItemRow(data);
+  });
+
+  // Recalcular cliente de cada fila para mostrar el nombre
+  itemRows.forEach(function(rid){
+    var tr = document.getElementById(rid);
+    if (!tr) return;
+    var inpCli = tr.querySelector(".cli-input");
+    if (inpCli) onClienteInput(inpCli, rid);
+  });
+
+  showStatus("ok", "Pedido copiado. Revisá los datos y guardá como pedido nuevo.");
 }
 
 function addItemRow(data) {
