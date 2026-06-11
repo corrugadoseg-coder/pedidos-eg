@@ -140,7 +140,7 @@ tbody tr.prov-Idesa:hover,tbody tr.prov-Micromont:hover,tbody tr.prov-Aserpel:ho
       <button class="fbtn" onclick="setFB('Pedido',this)">N pedido</button>
       <button class="fbtn" onclick="setFB('Fecha',this)">Fecha</button>
       <button class="fbtn" onclick="setFB('Cliente',this)">Cliente</button>
-      <button class="fbtn" onclick="setFB('Tipo Material',this)">Articulo</button>
+      <button class="fbtn" onclick="setFB('N Caja',this)">N° caja</button>
     </div>
     <div class="res-info" id="res-buscar"></div>
     <div class="scroll-top" id="stop-buscar"><div></div></div>
@@ -444,9 +444,22 @@ function getFiltered(q, prov, field, desde, hasta, pd, ph) {
     if (prov && r.Proveedor !== prov) return false;
     if (q) {
       var qq = q.toLowerCase();
-      var m = field === "todos"
-        ? Object.values(r).some(function(v) { return String(v).toLowerCase().includes(qq); })
-        : String(r[field] || "").toLowerCase().includes(qq);
+      var m;
+      if (field === "todos") {
+        m = Object.values(r).some(function(v) { return String(v).toLowerCase().includes(qq); });
+      } else if (field === "Cliente") {
+        // Buscar en cliente nuevo (N° y Nombre) y en el viejo
+        m = String(r["Cliente N°"] || "").toLowerCase().includes(qq)
+          || String(r["Cliente Nombre"] || "").toLowerCase().includes(qq)
+          || String(r["Cliente"] || "").toLowerCase().includes(qq);
+      } else if (field === "N Caja") {
+        // El N Caja puede tener varios codigos separados por / , ; -> coincidir por codigo o por texto
+        var valCaja = String(r["N Caja"] || "");
+        m = valCaja.toLowerCase().includes(qq)
+          || valCaja.split(/[\/,;]/).map(function(x){ return x.trim().toLowerCase(); }).indexOf(qq) !== -1;
+      } else {
+        m = String(r[field] || "").toLowerCase().includes(qq);
+      }
       if (!m) return false;
     }
     if (desde || hasta) {
