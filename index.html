@@ -510,6 +510,17 @@ function makeHead(cols, showProv) {
 function makeRow(r, q, cols, showProv) {
   var cells = cols.map(function(c) {
     var v = r[c.key] || "";
+    // CLIENTE: mostrar el dato venga de columnas nuevas (Cliente N°/Nombre) o de la vieja (Cliente)
+    if (c.key === "Cliente") {
+      var numN = r["Cliente N°"] || "";
+      var nomN = r["Cliente Nombre"] || "";
+      var viejo = r["Cliente"] || "";
+      var marca = (String(r["Sistema"] || "").trim().toLowerCase() === "negro") ? "*" : "";
+      var texto;
+      if (numN || nomN) { texto = marca + ((numN && nomN) ? (numN + " - " + nomN) : (numN || nomN)); }
+      else { texto = viejo; }
+      return "<td>" + hl(texto, q) + "</td>";
+    }
     if (c.key === "Estado") return "<td>" + estadoSelect(r) + "</td>";
     if (c.key === "Pedido") return '<td><span class="badge">' + hl(v, q) + "</span></td>";
     if (c.key === "Observaciones" || c.key === "Anotaciones") return '<td class="obs-cell">' + hl(v, q) + "</td>";
