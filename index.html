@@ -794,9 +794,11 @@ function autocompleteCaja(input, id) {
     var lista = String(valorCaja).split(/[\/,;]/).map(function(x){ return x.trim(); });
     return lista.indexOf(String(buscado).trim()) !== -1;
   }
-  // Buscar SOLO entre pedidos del mismo sistema marcado.
+  // Buscar SOLO entre pedidos cuyo Sistema este EXPLICITAMENTE marcado igual al casillero.
+  // Los pedidos historicos sin marca NO autocompletan (para no mezclar blanco y negro).
   var matches = allData.filter(function(r) {
-    return tieneCodigo(r["N Caja"], caja) && ((r["Sistema"] || "blanco") === sistemaAuto);
+    var sis = String(r["Sistema"] || "").trim().toLowerCase();
+    return tieneCodigo(r["N Caja"], caja) && sis === sistemaAuto;
   });
   if (!matches.length) return;
   matches.sort(function(a, b) {
