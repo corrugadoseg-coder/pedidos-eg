@@ -899,10 +899,17 @@ function autocompleteCaja(input, id) {
     var sis = String(r["Sistema"] || "").trim().toLowerCase();
     return tieneCodigo(r["N Caja"], caja) && sis === sistemaAuto;
   });
+  // Revisar si esa misma caja figura en el OTRO registro (sistema contrario), para avisar.
+  var otroSistema = (sistemaAuto === "negro") ? "blanco" : "negro";
+  var existeEnOtro = allData.some(function(r) {
+    var sis = String(r["Sistema"] || "").trim().toLowerCase();
+    return tieneCodigo(r["N Caja"], caja) && sis === otroSistema;
+  });
+  var avisoOtro = existeEnOtro ? " <span style='color:#c47f00'>(Atenci\u00f3n: este N° tambi\u00e9n figura en el otro registro. Verific\u00e1 la marca.)</span>" : "";
   if (!matches.length) {
     // No hay coincidencia en este sistema: avisar en el resultado del cliente (neutro)
     var resVacio = trAuto ? trAuto.querySelector(".cli-result") : null;
-    if (resVacio) resVacio.innerHTML = "<span style='color:#b00'>Ese N° de caja no figura para este cliente.</span>";
+    if (resVacio) resVacio.innerHTML = "<span style='color:#b00'>Ese N° de caja no figura para este cliente.</span>" + avisoOtro;
     return;
   }
   matches.sort(function(a, b) {
@@ -958,6 +965,11 @@ function autocompleteCaja(input, id) {
     }
     campo.value = valor;
   });
+  // Si la caja tambien figura en el otro registro, sumar aviso al resultado del cliente.
+  if (avisoOtro) {
+    var resCli = tr.querySelector(".cli-result");
+    if (resCli) resCli.innerHTML = (resCli.innerHTML || "") + avisoOtro;
+  }
 }
 
 function getItems() {
