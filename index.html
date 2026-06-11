@@ -702,7 +702,7 @@ function addItemRow(data) {
       return "<td><select" + onch + ">" + opts + "</select>" + extra + "</td>";
     }
     if (c.type === "textarea") return "<td><textarea rows=\"4\">" + v + "</textarea></td>";
-    var onin = c.key === "N Caja" ? " oninput=\"autocompleteCaja(this,'" + id + "')\"" : "";
+    var onin = c.key === "N Caja" ? " oninput=\"autocompleteCaja(this,'" + id + "')\" class=\"caja-input\"" : "";
     return "<td><input type=\"" + (c.type || "text") + "\" placeholder=\"" + c.label + "\" value=\"" + v + "\"" + onin + "></td>";
   }).join("");
   tr.innerHTML = cells + "<td><button class=\"btn-remove\" onclick=\"removeRow('" + id + "')\">x</button></td>";
@@ -726,6 +726,9 @@ function onSistemaToggle(id) {
   if (!tr) return;
   var inpCli = tr.querySelector(".cli-input");
   if (inpCli) onClienteInput(inpCli, id);
+  // Si ya hay un N de caja cargado, volver a autocompletar segun el nuevo sistema
+  var inpCaja = tr.querySelector(".caja-input");
+  if (inpCaja && inpCaja.value.trim()) autocompleteCaja(inpCaja, id);
 }
 
 function onClienteInput(elem, id) {
@@ -800,7 +803,12 @@ function autocompleteCaja(input, id) {
     var sis = String(r["Sistema"] || "").trim().toLowerCase();
     return tieneCodigo(r["N Caja"], caja) && sis === sistemaAuto;
   });
-  if (!matches.length) return;
+  if (!matches.length) {
+    // No hay coincidencia en este sistema: avisar en el resultado del cliente (neutro)
+    var resVacio = trAuto ? trAuto.querySelector(".cli-result") : null;
+    if (resVacio) resVacio.innerHTML = "<span style='color:#b00'>Ese N° de caja no figura para este cliente.</span>";
+    return;
+  }
   matches.sort(function(a, b) {
     var na = parseFloat(a.Pedido), nb = parseFloat(b.Pedido);
     if (!isNaN(na) && !isNaN(nb)) return nb - na;
