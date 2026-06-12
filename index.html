@@ -554,9 +554,12 @@ function makeRow(r, q, cols, showProv, nuevoPedido) {
     return "<td>" + hl(v, q) + "</td>";
   }).join("");
   if (showProv) cells += '<td><span class="badge badge-prov">' + (r.Proveedor || "") + "</span></td>";
-  var btnRepetir = '<button class="btn-editar" title="Repetir este pedido" onclick="repetirPedido(\'' + String(r.Pedido).replace(/'/g, "") + '\',\'' + String(r.Proveedor || "").replace(/'/g, "") + '\')" style="margin-right:4px">&#8635;</button>';
-  if (r.ID) { cells += '<td style="white-space:nowrap">' + btnRepetir + '<button class="btn-editar" title="Editar notas" onclick="abrirEditar(\'' + String(r.ID).replace(/'/g, "") + '\')">&#9998;</button></td>'; }
-  else { cells += '<td style="white-space:nowrap">' + btnRepetir + "</td>"; }
+  var pedEsc = String(r.Pedido).replace(/'/g, "");
+  var provEsc = String(r.Proveedor || "").replace(/'/g, "");
+  var btnRepetir = '<button class="btn-editar" title="Repetir este pedido" onclick="repetirPedido(\'' + pedEsc + '\',\'' + provEsc + '\')" style="margin-right:4px">&#8635;</button>';
+  var btnImprimir = '<button class="btn-editar" title="Imprimir este pedido" onclick="imprimirPedidoGuardado(\'' + pedEsc + '\',\'' + provEsc + '\')" style="margin-right:4px">&#128424;</button>';
+  if (r.ID) { cells += '<td style="white-space:nowrap">' + btnRepetir + btnImprimir + '<button class="btn-editar" title="Editar notas" onclick="abrirEditar(\'' + String(r.ID).replace(/'/g, "") + '\')">&#9998;</button></td>'; }
+  else { cells += '<td style="white-space:nowrap">' + btnRepetir + btnImprimir + "</td>"; }
   var provClase = "prov-" + String(r.Proveedor || "").replace(/ /g, "");
   var clsList = [provClase];
   if (r.Estado === "Anulado") clsList.push("anulado");
@@ -1140,6 +1143,43 @@ function copiarYabrirOutlook() {
   } catch(e) {
     abrirOutlook();
   }
+}
+
+function imprimirPedidoGuardado(pedido, proveedor) {
+  // Juntar los items de ese pedido (mismo N y proveedor)
+  var items = allData.filter(function(r) {
+    return String(r.Pedido) === String(pedido) && String(r.Proveedor) === String(proveedor);
+  });
+  if (!items.length) { alert("No se encontraron los items de ese pedido."); return; }
+  var fecha = items[0].Fecha || "";
+  var tipo = items[0]["Tipo Articulo"] || "";
+  // Preparar cada item para que buildPreviewHTML lo lea igual que los nuevos
+  var itemsPrep = items.map(function(it) {
+    var o = {};
+    Object.keys(it).forEach(function(k){ o[k] = it[k]; });
+    // Cliente: si tiene columnas nuevas las usa; si no, el viejo en Cliente Nombre
+    if (!o["Cliente N°"] && !o["Cliente Nombre"] && o["Cliente"]) { o["Cliente Nombre"] = o["Cliente"]; }
+    o["Sistema"] = String(it["Sistema"] || "").trim().toLowerCase();
+    return o;
+  });
+  // Columnas a mostrar (vista interna, incluye Cliente). Usamos el tipo del pedido.
+  var printCols = getColsFor(proveedor, tipo).filter(function(c) {
+    return ["Cantidad","Tipo Material","Largo","Ancho","Trazados","Observaciones","Cliente","Anotaciones"].indexOf(c.key) !== -1;
+  });
+  var orden = ["Cantidad","Tipo Material","Largo","Ancho","Trazados","Observaciones","Cliente","Anotaciones"];
+  printCols.sort(function(a,b){ return orden.indexOf(a.key) - orden.indexOf(b.key); });
+  var html = buildPreviewHTML(pedido, fecha, proveedor, itemsPrep, printCols);
+  var iframe = document.getElementById("print-iframe");
+  if (!iframe) {
+    iframe = document.createElement("iframe");
+    iframe.id = "print-iframe";
+    iframe.style.cssText = "position:fixed;top:-9999px;left:-9999px;width:800px;height:600px;border:none";
+    document.body.appendChild(iframe);
+  }
+  iframe.contentDocument.open();
+  iframe.contentDocument.write("<html><head><title>Pedido " + pedido + "</title><style>body{font-family:Arial,sans-serif;padding:24px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:7px 10px;font-size:13px}th{background:#f0f0ec}</style></head><body>" + html + "</body></html>");
+  iframe.contentDocument.close();
+  setTimeout(function() { iframe.contentWindow.focus(); iframe.contentWindow.print(); }, 500);
 }
 
 function printPedido() {
