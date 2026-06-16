@@ -44,6 +44,10 @@ h3{font-size:14px;font-weight:600;margin-bottom:12px;color:#333}
 .btn-editar{white-space:nowrap}
 th:last-child,td:last-child{white-space:nowrap}
 table{width:100%;border-collapse:collapse;font-size:12px}
+.col-pedido{position:sticky;left:0;z-index:3;background:#fff}
+.col-pedido-head{z-index:7 !important}
+tbody tr .col-pedido{background:#fff}
+tbody tr.sep-pedido .col-pedido{background:#fff}
 thead th{background:#f0f0ec;color:#555;font-weight:600;padding:9px 10px;text-align:left;border-bottom:1px solid #e0e0e0;white-space:nowrap;cursor:pointer;user-select:none;position:sticky;top:0;z-index:5}
 thead th:hover{background:#e8e8e4}
 tbody tr{border-bottom:1px solid #f0f0f0}
@@ -514,7 +518,8 @@ function estadoSelect(r) {
 
 function makeHead(cols, showProv) {
   var h = cols.map(function(c) {
-    return '<th onclick="sortBy(\'' + c.key + '\')">' + c.label + ' <span style="opacity:.4">&#8597;</span></th>';
+    var clase = (c.key === "Pedido") ? ' class="col-pedido col-pedido-head"' : "";
+    return '<th' + clase + ' onclick="sortBy(\'' + c.key + '\')">' + c.label + ' <span style="opacity:.4">&#8597;</span></th>';
   }).join("");
   if (showProv) h += '<th onclick="sortBy(\'Proveedor\')">Proveedor <span style="opacity:.4">&#8597;</span></th>';
   h += '<th></th>';
@@ -548,7 +553,7 @@ function makeRow(r, q, cols, showProv, nuevoPedido) {
       return "<td>" + hl(texto, q) + "</td>";
     }
     if (c.key === "Estado") return "<td>" + estadoSelect(r) + "</td>";
-    if (c.key === "Pedido") return '<td><span class="badge">' + hl(v, q) + "</span></td>";
+    if (c.key === "Pedido") return '<td class="col-pedido"><span class="badge">' + hl(v, q) + "</span></td>";
     if (c.key === "Observaciones" || c.key === "Anotaciones") return '<td class="obs-cell">' + hl(v, q) + "</td>";
     if (c.key === "Cantidad") return '<td style="font-weight:600">' + hl(v, q) + "</td>";
     return "<td>" + hl(v, q) + "</td>";
