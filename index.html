@@ -1200,12 +1200,29 @@ function imprimirPedidoGuardado(pedido, proveedor) {
     o["Sistema"] = String(it["Sistema"] || "").trim().toLowerCase();
     return o;
   });
-  // Columnas a mostrar (vista interna, incluye Cliente). Usamos el tipo del pedido.
-  var printCols = getColsFor(proveedor, tipo).filter(function(c) {
-    return ["Cantidad","Tipo Material","Largo","Ancho","Trazados","Observaciones","Cliente","N Caja","Anotaciones"].indexOf(c.key) !== -1;
+  // Columnas FIJAS para imprimir (no dependen del tipo guardado, asi siempre sale el N Caja).
+  // Tomamos las etiquetas del tipo del pedido si existe, para que digan "Material"/"Medida" segun corresponda.
+  var baseCols = getColsFor(proveedor, tipo);
+  function labelDe(key, porDefecto) {
+    for (var i = 0; i < baseCols.length; i++) { if (baseCols[i].key === key) return baseCols[i].label; }
+    return porDefecto;
+  }
+  var printCols = [
+    {key:"Cantidad", label:"CANT."},
+    {key:"Tipo Material", label:labelDe("Tipo Material","Material")},
+    {key:"Largo", label:labelDe("Largo","Largo")},
+    {key:"Ancho", label:labelDe("Ancho","Ancho")},
+    {key:"Trazados", label:labelDe("Trazados","Trazados")},
+    {key:"Observaciones", label:"Observaciones"},
+    {key:"Cliente", label:"Cliente"},
+    {key:"N Caja", label:"N° Caja"},
+    {key:"Anotaciones", label:"Anotaciones"}
+  ];
+  // Quitar columnas que esten totalmente vacias en todos los items (para no mostrar columnas de mas)
+  printCols = printCols.filter(function(col){
+    if (col.key === "Cliente" || col.key === "N Caja") return true; // siempre mostrar estas
+    return itemsPrep.some(function(it){ return String(it[col.key] || "").trim() !== ""; });
   });
-  var orden = ["Cantidad","Tipo Material","Largo","Ancho","Trazados","Observaciones","Cliente","N Caja","Anotaciones"];
-  printCols.sort(function(a,b){ return orden.indexOf(a.key) - orden.indexOf(b.key); });
   var html = buildPreviewHTML(pedido, fecha, proveedor, itemsPrep, printCols);
   var iframe = document.getElementById("print-iframe");
   if (!iframe) {
