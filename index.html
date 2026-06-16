@@ -37,14 +37,14 @@ h3{font-size:14px;font-weight:600;margin-bottom:12px;color:#333}
 .btn-green:hover{background:#1b5e20}
 .btn-outline{background:#fff;color:#1a1a2e;border:1px solid #1a1a2e}
 .btn-sm{padding:4px 10px;font-size:11px;border-radius:4px;border:1px solid #ccc;cursor:pointer;background:#fff}
-.tbl-wrap{overflow-x:auto;border:1px solid #e0e0e0;border-radius:8px}
-.scroll-top{overflow-x:auto;overflow-y:hidden;height:14px}
+.tbl-wrap{overflow:auto;border:1px solid #e0e0e0;border-radius:8px;max-height:70vh}
+.scroll-top{overflow-x:auto;overflow-y:hidden;height:14px;position:sticky;top:0;z-index:6;background:#fff}
 .scroll-top div{height:1px}
 .obs-cell{max-width:150px}
 .btn-editar{white-space:nowrap}
 th:last-child,td:last-child{white-space:nowrap}
 table{width:100%;border-collapse:collapse;font-size:12px}
-thead th{background:#f0f0ec;color:#555;font-weight:600;padding:9px 10px;text-align:left;border-bottom:1px solid #e0e0e0;white-space:nowrap;cursor:pointer;user-select:none}
+thead th{background:#f0f0ec;color:#555;font-weight:600;padding:9px 10px;text-align:left;border-bottom:1px solid #e0e0e0;white-space:nowrap;cursor:pointer;user-select:none;position:sticky;top:0;z-index:5}
 thead th:hover{background:#e8e8e4}
 tbody tr{border-bottom:1px solid #f0f0f0}
 tbody tr:last-child{border-bottom:none}
@@ -558,8 +558,9 @@ function makeRow(r, q, cols, showProv, nuevoPedido) {
   var provEsc = String(r.Proveedor || "").replace(/'/g, "");
   var btnRepetir = '<button class="btn-editar" title="Repetir este pedido" onclick="repetirPedido(\'' + pedEsc + '\',\'' + provEsc + '\')" style="margin-right:4px">&#8635;</button>';
   var btnImprimir = '<button class="btn-editar" title="Imprimir este pedido" onclick="imprimirPedidoGuardado(\'' + pedEsc + '\',\'' + provEsc + '\')" style="margin-right:4px">&#128424;</button>';
-  if (r.ID) { cells += '<td style="white-space:nowrap">' + btnRepetir + btnImprimir + '<button class="btn-editar" title="Editar notas" onclick="abrirEditar(\'' + String(r.ID).replace(/'/g, "") + '\')">&#9998;</button></td>'; }
-  else { cells += '<td style="white-space:nowrap">' + btnRepetir + btnImprimir + "</td>"; }
+  var btnMail = '<button class="btn-editar" title="Enviar este pedido por mail" onclick="enviarPedidoGuardado(\'' + pedEsc + '\',\'' + provEsc + '\')" style="margin-right:4px">&#9993;</button>';
+  if (r.ID) { cells += '<td style="white-space:nowrap">' + btnRepetir + btnImprimir + btnMail + '<button class="btn-editar" title="Editar notas" onclick="abrirEditar(\'' + String(r.ID).replace(/'/g, "") + '\')">&#9998;</button></td>'; }
+  else { cells += '<td style="white-space:nowrap">' + btnRepetir + btnImprimir + btnMail + "</td>"; }
   var provClase = "prov-" + String(r.Proveedor || "").replace(/ /g, "");
   var clsList = [provClase];
   if (r.Estado === "Anulado") clsList.push("anulado");
@@ -1145,6 +1146,43 @@ function copiarYabrirOutlook() {
   }
 }
 
+function enviarPedidoGuardado(pedido, proveedor) {
+  // Juntar los items de ese pedido
+  var items = allData.filter(function(r) {
+    return String(r.Pedido) === String(pedido) && String(r.Proveedor) === String(proveedor);
+  });
+  if (!items.length) { alert("No se encontraron los items de ese pedido."); return; }
+  var fecha = items[0].Fecha || "";
+  var tipo = items[0]["Tipo Articulo"] || "";
+  // Columnas que ve el PROVEEDOR (sin cliente ni sistema)
+  var mailCols = getColsFor(proveedor, tipo).filter(function(c) { return c.mail && c.key !== "Pedido" && c.key !== "Fecha"; });
+  var html = buildPreviewHTML(pedido, fecha, proveedor, items, mailCols);
+  // Buscar el mail del proveedor en la agenda
+  var destino = "";
+  for (var i = 0; i < provData.length; i++) {
+    if (String(provData[i]["Proveedor"]).trim() === String(proveedor).trim()) { destino = (provData[i]["Mail"] || "").trim(); break; }
+  }
+  var asunto = "PEDIDO N° " + pedido;
+  function abrirOutlook() {
+    window.location.href = "mailto:" + encodeURIComponent(destino) + "?subject=" + encodeURIComponent(asunto);
+  }
+  // Texto plano de respaldo
+  var txt = "E.G. CORRUGADOS S.R.L.\n" + String(proveedor || "").toUpperCase() + " PEDIDO N " + pedido + "\nFecha " + fecha + "\nProveedor: " + proveedor + "\n\n";
+  txt += "N°\t" + mailCols.map(function(c){ return c.label; }).join("\t") + "\n";
+  items.forEach(function(it, idx) { txt += (idx+1) + "\t" + mailCols.map(function(c){ return it[c.key] || ""; }).join("\t") + "\n"; });
+  txt += "\nENVIADO VIA E-MAIL";
+  try {
+    var blob = new Blob([html], {type: "text/html"});
+    var clipItem = new ClipboardItem({"text/html": blob});
+    navigator.clipboard.write([clipItem]).then(function() {
+      alert("Pedido copiado. Se abre el mail: hace clic derecho > Pegar en el cuerpo.");
+      abrirOutlook();
+    }).catch(function() {
+      navigator.clipboard.writeText(txt).then(function(){ alert("Pedido copiado como texto. Se abre el mail: clic derecho > Pegar."); abrirOutlook(); }).catch(function(){ abrirOutlook(); });
+    });
+  } catch(e) { abrirOutlook(); }
+}
+
 function imprimirPedidoGuardado(pedido, proveedor) {
   // Juntar los items de ese pedido (mismo N y proveedor)
   var items = allData.filter(function(r) {
@@ -1164,9 +1202,9 @@ function imprimirPedidoGuardado(pedido, proveedor) {
   });
   // Columnas a mostrar (vista interna, incluye Cliente). Usamos el tipo del pedido.
   var printCols = getColsFor(proveedor, tipo).filter(function(c) {
-    return ["Cantidad","Tipo Material","Largo","Ancho","Trazados","Observaciones","Cliente","Anotaciones"].indexOf(c.key) !== -1;
+    return ["Cantidad","Tipo Material","Largo","Ancho","Trazados","Observaciones","Cliente","N Caja","Anotaciones"].indexOf(c.key) !== -1;
   });
-  var orden = ["Cantidad","Tipo Material","Largo","Ancho","Trazados","Observaciones","Cliente","Anotaciones"];
+  var orden = ["Cantidad","Tipo Material","Largo","Ancho","Trazados","Observaciones","Cliente","N Caja","Anotaciones"];
   printCols.sort(function(a,b){ return orden.indexOf(a.key) - orden.indexOf(b.key); });
   var html = buildPreviewHTML(pedido, fecha, proveedor, itemsPrep, printCols);
   var iframe = document.getElementById("print-iframe");
