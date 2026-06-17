@@ -137,6 +137,7 @@ tbody tr.prov-Idesa:hover,tbody tr.prov-Micromont:hover,tbody tr.prov-Aserpel:ho
     <div class="toolbar">
       <input type="text" id="q-buscar" placeholder="Buscar..." oninput="renderBuscar()">
       <select id="prov-filter-b" onchange="renderBuscar()"><option value="">Todos los proveedores</option></select>
+      <select id="estado-filter-b" onchange="renderBuscar()"><option value="">Todos los estados</option><option value="Enviado">Enviado</option><option value="Recibido">Recibido</option><option value="Anulado">Anulado</option></select>
       <button class="btn btn-dark" onclick="exportCSV('buscar')">Exportar CSV</button>
     </div>
     <div class="filter-row">
@@ -202,6 +203,7 @@ tbody tr.prov-Idesa:hover,tbody tr.prov-Micromont:hover,tbody tr.prov-Aserpel:ho
     <div class="toolbar">
       <input type="text" id="q-hist" placeholder="Buscar..." oninput="renderHistorial()">
       <select id="prov-filter-h" onchange="renderHistorial()"><option value="">Todos los proveedores</option></select>
+      <select id="estado-filter-h" onchange="renderHistorial()"><option value="">Todos los estados</option><option value="Enviado">Enviado</option><option value="Recibido">Recibido</option><option value="Anulado">Anulado</option></select>
       <button class="btn btn-dark" onclick="exportCSV('hist')">Exportar CSV</button>
     </div>
     <div class="date-range">
@@ -444,7 +446,7 @@ function parseDate(s) {
   return null;
 }
 
-function getFiltered(q, prov, field, desde, hasta, pd, ph) {
+function getFiltered(q, prov, field, desde, hasta, pd, ph, estado) {
   return allData.filter(function(r) {
     if (prov && r.Proveedor !== prov) return false;
     if (q) {
@@ -474,6 +476,10 @@ function getFiltered(q, prov, field, desde, hasta, pd, ph) {
     }
     if (pd && parseInt(r.Pedido) < parseInt(pd)) return false;
     if (ph && parseInt(r.Pedido) > parseInt(ph)) return false;
+    if (estado) {
+      var est = String(r.Estado || "Enviado").trim();
+      if (est !== estado) return false;
+    }
     return true;
   });
 }
@@ -584,8 +590,9 @@ function setFB(f, btn) {
 function renderBuscar() {
   var q = document.getElementById("q-buscar").value.trim().toLowerCase();
   var prov = document.getElementById("prov-filter-b").value;
+  var estado = document.getElementById("estado-filter-b").value;
   var cols = getCols(prov || "Idesa");
-  var filtered = getSorted(getFiltered(q, prov, filterField, "", "", "", ""));
+  var filtered = getSorted(getFiltered(q, prov, filterField, "", "", "", "", estado));
   document.getElementById("res-buscar").textContent = filtered.length + " resultado" + (filtered.length !== 1 ? "s" : "") + " de " + allData.length + " registros";
   document.getElementById("thead-buscar").innerHTML = makeHead(cols, true);
   var tb = document.getElementById("tbody-buscar");
@@ -627,8 +634,9 @@ function renderHistorial() {
   var hasta = document.getElementById("h-hasta").value.trim();
   var pd = document.getElementById("h-ped-desde").value.trim();
   var ph = document.getElementById("h-ped-hasta").value.trim();
+  var estado = document.getElementById("estado-filter-h").value;
   var cols = getCols(prov || "Idesa");
-  var filtered = getSorted(getFiltered(q, prov, "todos", desde, hasta, pd, ph));
+  var filtered = getSorted(getFiltered(q, prov, "todos", desde, hasta, pd, ph, estado));
   document.getElementById("res-hist").textContent = filtered.length + " registro" + (filtered.length !== 1 ? "s" : "");
   document.getElementById("thead-hist").innerHTML = makeHead(cols, true);
   var tb = document.getElementById("tbody-hist");
@@ -640,6 +648,8 @@ function clearHistFilters() {
   ["h-desde", "h-hasta", "h-ped-desde", "h-ped-hasta", "q-hist"].forEach(function(id) {
     document.getElementById(id).value = "";
   });
+  var ef = document.getElementById("estado-filter-h");
+  if (ef) ef.value = "";
   renderHistorial();
 }
 
@@ -648,9 +658,19 @@ function exportCSV(page) {
   if (page === "buscar") {
     var q = document.getElementById("q-buscar").value.trim().toLowerCase();
     var prov = document.getElementById("prov-filter-b").value;
-    rows = getSorted(getFiltered(q, prov, filterField, "", "", "", ""));
+    var estB = document.getElementById("estado-filter-b") ? document.getElementById("estado-filter-b").value : "";
+    rows = getSorted(getFiltered(q, prov, filterField, "", "", "", "", estB));
   } else if (page === "prov") {
     rows = getSorted(allData.filter(function(r) { return r.Proveedor === activeProv; }));
+  } else if (page === "hist") {
+    var qh = document.getElementById("q-hist").value.trim().toLowerCase();
+    var provh = document.getElementById("prov-filter-h").value;
+    var dh = document.getElementById("h-desde").value.trim();
+    var hh = document.getElementById("h-hasta").value.trim();
+    var pdh = document.getElementById("h-ped-desde").value.trim();
+    var phh = document.getElementById("h-ped-hasta").value.trim();
+    var estH = document.getElementById("estado-filter-h") ? document.getElementById("estado-filter-h").value : "";
+    rows = getSorted(getFiltered(qh, provh, "todos", dh, hh, pdh, phh, estH));
   } else {
     rows = getSorted(allData);
   }
