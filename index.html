@@ -106,7 +106,8 @@ mark{background:#fff3cd;border-radius:2px;padding:0 1px}
 .prov-RolPelRollos{background:#ffe2cc}
 .prov-RolPel{background:#e9def8}
 .prov-Empaquetecnia{background:#e3e6ea}
-tbody tr.prov-Idesa:hover,tbody tr.prov-Micromont:hover,tbody tr.prov-Aserpel:hover,tbody tr.prov-RolPelPlanchas:hover,tbody tr.prov-RolPelRollos:hover,tbody tr.prov-RolPel:hover,tbody tr.prov-Empaquetecnia:hover{filter:brightness(0.97)}
+.prov-EGCorrugados{background:#cdede4}
+tbody tr.prov-Idesa:hover,tbody tr.prov-Micromont:hover,tbody tr.prov-Aserpel:hover,tbody tr.prov-RolPelPlanchas:hover,tbody tr.prov-RolPelRollos:hover,tbody tr.prov-RolPel:hover,tbody tr.prov-Empaquetecnia:hover,tbody tr.prov-EGCorrugados:hover{filter:brightness(0.97)}
 
 .estado-sel{font-size:11px;padding:3px 6px;border-radius:12px;border:1px solid #ccc;font-weight:600;cursor:pointer;background:#fff}
 .estado-sel.sel-env{background:#fff3e0;color:#e65100;border-color:#ffe0b2}
@@ -252,6 +253,19 @@ var MAT_MICROMONT = ["Simple Faz Marron-Marron","Simple Faz Blanco-Marron","Simp
 var MAT_ASERPEL = ["BCC 655 C","BCT 753 C","BCK 898 T","BCK 922 K","Otro (especificar)"];
 var MAT_ROLPEL_R = ["0.90 x 25mts","1.00 x 25mts","1.20 x 25mts","1.40 x 25mts","1.60 x 25mts","Otro (especificar)"];
 var MAT_ROLPEL_P = ["Liner Sub 70","Liner 70","Liner 90","Liner 100","Liner 110","Liner 120","Liner 150","Otro (especificar)"];
+// EG Corrugados: union de los materiales de planchas de los demas proveedores (sin duplicar), Otro al final.
+var MAT_EG = (function(){
+  var fuentes = [MAT_IDESA, MAT_MICROMONT, MAT_ASERPEL, MAT_ROLPEL_P];
+  var vistos = {}, out = [];
+  fuentes.forEach(function(lista){
+    lista.forEach(function(m){
+      if (m === "Otro (especificar)") return;
+      if (!vistos[m]) { vistos[m] = true; out.push(m); }
+    });
+  });
+  out.push("Otro (especificar)");
+  return out;
+})();
 
 // ===== COLUMNAS SEGUN TIPO DE ARTICULO =====
 // Cada tipo (planchas/cajas/rollos) define sus columnas. El material de planchas
@@ -308,7 +322,8 @@ var PROV_INFO = {
   "Micromont":    { tipos:["Planchas"],                    matPlanchas:MAT_MICROMONT },
   "Aserpel":      { tipos:["Planchas"],                    matPlanchas:MAT_ASERPEL },
   "Rol Pel":      { tipos:["Planchas","Cajas","Rollos"],   matPlanchas:MAT_ROLPEL_P, medidasRollos:MAT_ROLPEL_R },
-  "Empaquetecnia":{ tipos:["Cajas"] }
+  "Empaquetecnia":{ tipos:["Cajas"] },
+  "EG Corrugados":{ tipos:["Planchas"],                  matPlanchas:MAT_EG }
 };
 
 // Devuelve las columnas segun proveedor + tipo de articulo elegido
