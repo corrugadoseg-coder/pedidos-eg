@@ -1131,7 +1131,12 @@ function buildPreviewHTML(ped, fecha, prov, items, mailCols) {
         var cli = (numN && nomN) ? (numN + " - " + nomN) : (numN || nomN || "");
         return "<td style='" + tdStyle() + "'>" + marca + cli + "</td>";
       }
-      return "<td style='" + tdStyle() + "'>" + (it[c.key] || "") + "</td>";
+      var valCelda = it[c.key] || "";
+      // En Observaciones y Anotaciones respetamos los saltos de linea (los pasamos a <br>)
+      if (c.key === "Observaciones" || c.key === "Anotaciones") {
+        valCelda = String(valCelda).replace(/\r\n|\r|\n/g, "<br>");
+      }
+      return "<td style='" + tdStyle() + "'>" + valCelda + "</td>";
     }).join("") + "</tr>";
   }).join("");
   // Deducir el tipo de pedido de los items (Cajas / Planchas / Rollos)
