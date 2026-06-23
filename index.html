@@ -1099,11 +1099,16 @@ function buildPreviewHTML(ped, fecha, prov, items, mailCols) {
       return "<td style='" + tdStyle() + "'>" + (it[c.key] || "") + "</td>";
     }).join("") + "</tr>";
   }).join("");
+  // Deducir el tipo de pedido de los items (Cajas / Planchas / Rollos)
+  var tipoPed = "";
+  for (var ti = 0; ti < items.length; ti++) { if (items[ti]["Tipo Articulo"]) { tipoPed = items[ti]["Tipo Articulo"]; break; } }
+  var lineaTipo = tipoPed ? ("<p style='margin-bottom:8px;font-size:15px;font-weight:bold'>PEDIDO DE " + String(tipoPed).toUpperCase() + "</p>") : "";
   return "<div style='font-family:Arial,sans-serif;font-size:13px'>" +
     "<p style='margin-bottom:4px'><strong>E.G. CORRUGADOS S.R.L.</strong></p>" +
     "<p style='margin-bottom:4px;font-size:18px;font-weight:bold'>" + String(prov || "").toUpperCase() + " PEDIDO N " + ped + "</p>" +
     "<p style='margin-bottom:4px'>Fecha: " + fecha + "</p>" +
-    "<p style='margin-bottom:12px'>Proveedor: " + prov + "</p>" +
+    "<p style='margin-bottom:8px'>Proveedor: " + prov + "</p>" +
+    lineaTipo +
     "<table style='border-collapse:collapse;width:100%'><thead><tr>" + heads + "</tr></thead><tbody>" + rows + "</tbody></table>" +
     "<p style='margin-top:16px;font-size:12px'>ENVIADO VIA E-MAIL</p>" +
     "</div>";
@@ -1284,13 +1289,28 @@ function printPedido() {
   var prov = document.getElementById("f-proveedor").value;
   var items = getItems();
   if (!items.length) { alert("Agrega al menos un item"); return; }
-  // Para IMPRIMIR mostramos TODOS los datos utiles (incluye Cliente y Anotaciones).
-  var printCols = getColsFor(prov, tipoActivo).filter(function(c) {
-    return ["Cantidad","Tipo Material","Largo","Ancho","Trazados","Observaciones","Cliente","Anotaciones"].indexOf(c.key) !== -1;
+  // Para IMPRIMIR mostramos TODOS los datos utiles (incluye Cliente, N Caja y Anotaciones).
+  var baseColsP = getColsFor(prov, tipoActivo);
+  function labelDeP(key, porDefecto) {
+    for (var i = 0; i < baseColsP.length; i++) { if (baseColsP[i].key === key) return baseColsP[i].label; }
+    return porDefecto;
+  }
+  var printCols = [
+    {key:"Cantidad", label:"CANT."},
+    {key:"Tipo Material", label:labelDeP("Tipo Material","Material")},
+    {key:"Largo", label:labelDeP("Largo","Largo")},
+    {key:"Ancho", label:labelDeP("Ancho","Ancho")},
+    {key:"Trazados", label:labelDeP("Trazados","Trazados")},
+    {key:"Observaciones", label:"Observaciones"},
+    {key:"Cliente", label:"Cliente"},
+    {key:"N Caja", label:"N° Caja"},
+    {key:"Anotaciones", label:"Anotaciones"}
+  ];
+  // Quitar columnas totalmente vacias (menos Cliente y N Caja, que siempre se muestran)
+  printCols = printCols.filter(function(col){
+    if (col.key === "Cliente" || col.key === "N Caja") return true;
+    return items.some(function(it){ return String(it[col.key] || "").trim() !== ""; });
   });
-  // Ordenarlas en el orden deseado
-  var orden = ["Cantidad","Tipo Material","Largo","Ancho","Trazados","Observaciones","Cliente","Anotaciones"];
-  printCols.sort(function(a,b){ return orden.indexOf(a.key) - orden.indexOf(b.key); });
   var html = buildPreviewHTML(ped, fecha, prov, items, printCols);
   var iframe = document.getElementById("print-iframe");
   if (!iframe) {
