@@ -114,6 +114,9 @@ tbody tr.prov-Idesa:hover,tbody tr.prov-Micromont:hover,tbody tr.prov-Aserpel:ho
 .estado-sel.sel-rec{background:#e8f5e9;color:#2e7d32;border-color:#c8e6c9}
 .estado-sel.sel-anu{background:#fce4ec;color:#b71c1c;border-color:#f8bbd0}
 .sep-pedido td{border-top:3px solid #555 !important}
+.btn-finalizar{background:#1b8a4b;color:#fff;font-weight:700;font-size:15px;padding:10px 20px}
+.btn-finalizar:hover{filter:brightness(1.08)}
+.fin-done{color:#1b8a4b;font-weight:700}
 </style>
 </head>
 <body>
@@ -176,10 +179,42 @@ tbody tr.prov-Idesa:hover,tbody tr.prov-Micromont:hover,tbody tr.prov-Aserpel:ho
     <div id="preview-box" class="preview-box"><p style="color:#aaa;font-size:12px">Hace click en Previsualizar para ver el pedido</p></div>
     <div class="actions-row">
       <button class="btn btn-dark" onclick="previewMail()">Previsualizar</button>
-      <button class="btn btn-green" onclick="copyMail()">Copiar para mail</button>
-      <button class="btn btn-green" onclick="copiarYabrirOutlook()">Copiar pedido + abrir Outlook</button>
-      <button class="btn btn-dark" onclick="printPedido()">Imprimir pedido</button>
-      <button class="btn btn-dark" id="btn-guardar" onclick="guardarPedido()">Guardar pedido</button>
+      <button class="btn btn-finalizar" onclick="abrirFinalizar()">✓ Finalizar pedido</button>
+    </div>
+    <details style="margin-top:8px"><summary style="cursor:pointer;font-size:12px;color:#888">Más opciones (sueltas)</summary>
+      <div class="actions-row" style="margin-top:8px">
+        <button class="btn btn-green" onclick="copyMail()">Copiar para mail</button>
+        <button class="btn btn-green" onclick="copiarYabrirOutlook()">Copiar + abrir Outlook</button>
+        <button class="btn btn-dark" onclick="printPedido()">Imprimir pedido</button>
+        <button class="btn btn-dark" id="btn-guardar" onclick="guardarPedido()">Guardar pedido</button>
+      </div>
+    </details>
+
+    <!-- Ventanita Finalizar pedido (3 pasos) -->
+    <div id="modal-finalizar" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center">
+      <div style="background:#fff;border-radius:12px;max-width:460px;width:92%;padding:22px;box-shadow:0 10px 40px rgba(0,0,0,.3)">
+        <h3 style="margin:0 0 4px;font-size:18px">Finalizar pedido</h3>
+        <p style="margin:0 0 16px;color:#777;font-size:13px">Hacé los pasos que necesites. Se van marcando a medida que los completás.</p>
+        <div id="fin-paso-mail" style="display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #e0e0e0;border-radius:8px;margin-bottom:10px">
+          <span class="fin-check" style="font-size:20px;width:24px">1.</span>
+          <div style="flex:1"><strong>Enviar por mail</strong><div style="font-size:12px;color:#888">Copia el pedido y abre el correo</div></div>
+          <button class="btn btn-green" onclick="finEnviar()">Enviar</button>
+        </div>
+        <div id="fin-paso-imp" style="display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #e0e0e0;border-radius:8px;margin-bottom:10px">
+          <span class="fin-check" style="font-size:20px;width:24px">2.</span>
+          <div style="flex:1"><strong>Imprimir</strong><div style="font-size:12px;color:#888">Abre la impresión del pedido</div></div>
+          <button class="btn btn-dark" onclick="finImprimir()">Imprimir</button>
+        </div>
+        <div id="fin-paso-guardar" style="display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #e0e0e0;border-radius:8px;margin-bottom:16px">
+          <span class="fin-check" style="font-size:20px;width:24px">3.</span>
+          <div style="flex:1"><strong>Guardar</strong><div style="font-size:12px;color:#888">Guarda el pedido en la planilla</div></div>
+          <button class="btn btn-green" onclick="finGuardar()">Guardar</button>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span id="fin-aviso" style="font-size:12px;color:#c47f00"></span>
+          <button class="btn btn-dark" onclick="cerrarFinalizar()">Cerrar</button>
+        </div>
+      </div>
     </div>
     <div id="status-nuevo" class="status"></div>
   </div>
@@ -1364,6 +1399,62 @@ async function guardarClienteNuevo(sistema, numero, nombre) {
       idxBlancoPorNum[numero] = nombre;
     }
   } catch(e) {}
+}
+
+function abrirFinalizar() {
+  // Validar que haya proveedor e items antes de abrir
+  var prov = document.getElementById("f-proveedor").value;
+  if (!prov) { showStatus("err", "Elegí un proveedor antes de finalizar."); return; }
+  var items = getItems();
+  if (!items.length) { showStatus("err", "Agregá al menos un ítem."); return; }
+  // Reset de tildes
+  resetPasoFin("fin-paso-mail", "1.");
+  resetPasoFin("fin-paso-imp", "2.");
+  resetPasoFin("fin-paso-guardar", "3.");
+  document.getElementById("fin-aviso").textContent = "";
+  finGuardadoOk = false;
+  document.getElementById("modal-finalizar").style.display = "flex";
+}
+function cerrarFinalizar() {
+  document.getElementById("modal-finalizar").style.display = "none";
+}
+function resetPasoFin(id, nro) {
+  var p = document.getElementById(id);
+  if (!p) return;
+  var chk = p.querySelector(".fin-check");
+  if (chk) { chk.textContent = nro; chk.className = "fin-check"; chk.style.fontSize = "20px"; }
+}
+function marcarPasoFin(id) {
+  var p = document.getElementById(id);
+  if (!p) return;
+  var chk = p.querySelector(".fin-check");
+  if (chk) { chk.textContent = "✓"; chk.className = "fin-check fin-done"; }
+}
+var finGuardadoOk = false;
+function finEnviar() {
+  copiarYabrirOutlook();
+  marcarPasoFin("fin-paso-mail");
+}
+function finImprimir() {
+  printPedido();
+  marcarPasoFin("fin-paso-imp");
+}
+async function finGuardar() {
+  var mailHecho = document.querySelector("#fin-paso-mail .fin-done");
+  var impHecho = document.querySelector("#fin-paso-imp .fin-done");
+  if (!mailHecho || !impHecho) {
+    var faltan = [];
+    if (!mailHecho) faltan.push("enviar por mail");
+    if (!impHecho) faltan.push("imprimir");
+    var ok = confirm("Vas a guardar sin " + faltan.join(" ni ") + ". Después de guardar ya no vas a poder hacerlo para este pedido.\n\n¿Guardar igual?");
+    if (!ok) return;
+  }
+  await guardarPedido();
+  // guardarPedido limpia el formulario si sale bien; marcamos y avisamos
+  marcarPasoFin("fin-paso-guardar");
+  finGuardadoOk = true;
+  document.getElementById("fin-aviso").textContent = "Pedido guardado. Ya podés cerrar.";
+  setTimeout(function(){ if (finGuardadoOk) cerrarFinalizar(); }, 1200);
 }
 
 async function guardarPedido() {
