@@ -61,6 +61,7 @@ tbody td{padding:7px 10px;vertical-align:middle}
 .badge-env{background:#fff3e0;color:#e65100;font-size:11px;padding:2px 8px;border-radius:12px;font-weight:600}
 .badge-rec{background:#e8f5e9;color:#2e7d32;font-size:11px;padding:2px 8px;border-radius:12px;font-weight:600}
 .badge-anu{background:#fce4ec;color:#b71c1c;font-size:11px;padding:2px 8px;border-radius:12px;font-weight:600;text-decoration:line-through}
+.badge-nor{background:#fff8e1;color:#a06800;font-size:11px;padding:2px 8px;border-radius:12px;font-weight:600}
 mark{background:#fff3cd;border-radius:2px;padding:0 1px}
 .obs-cell{max-width:160px;white-space:normal;font-size:11px;color:#666}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
@@ -113,6 +114,7 @@ tbody tr.prov-Idesa:hover,tbody tr.prov-Micromont:hover,tbody tr.prov-Aserpel:ho
 .estado-sel.sel-env{background:#fff3e0;color:#e65100;border-color:#ffe0b2}
 .estado-sel.sel-rec{background:#e8f5e9;color:#2e7d32;border-color:#c8e6c9}
 .estado-sel.sel-anu{background:#fce4ec;color:#b71c1c;border-color:#f8bbd0}
+.estado-sel.sel-nor{background:#fff8e1;color:#a06800;border-color:#ffecb3}
 .sep-pedido td{border-top:3px solid #555 !important}
 .btn-finalizar{background:#1b8a4b;color:#fff;font-weight:700;font-size:15px;padding:10px 20px}
 .btn-finalizar:hover{filter:brightness(1.08)}
@@ -141,7 +143,7 @@ tbody tr.prov-Idesa:hover,tbody tr.prov-Micromont:hover,tbody tr.prov-Aserpel:ho
     <div class="toolbar">
       <input type="text" id="q-buscar" placeholder="Buscar..." oninput="renderBuscar()">
       <select id="prov-filter-b" onchange="renderBuscar()"><option value="">Todos los proveedores</option></select>
-      <select id="estado-filter-b" onchange="renderBuscar()"><option value="">Todos los estados</option><option value="Enviado">Enviado</option><option value="Recibido">Recibido</option><option value="Anulado">Anulado</option></select>
+      <select id="estado-filter-b" onchange="renderBuscar()"><option value="">Todos los estados</option><option value="Enviado">Enviado</option><option value="Recibido">Recibido</option><option value="No recibido">No recibido</option><option value="Anulado">Anulado</option></select>
       <button class="btn btn-dark" onclick="exportCSV('buscar')">Exportar CSV</button>
     </div>
     <div class="filter-row">
@@ -239,7 +241,7 @@ tbody tr.prov-Idesa:hover,tbody tr.prov-Micromont:hover,tbody tr.prov-Aserpel:ho
     <div class="toolbar">
       <input type="text" id="q-hist" placeholder="Buscar..." oninput="renderHistorial()">
       <select id="prov-filter-h" onchange="renderHistorial()"><option value="">Todos los proveedores</option></select>
-      <select id="estado-filter-h" onchange="renderHistorial()"><option value="">Todos los estados</option><option value="Enviado">Enviado</option><option value="Recibido">Recibido</option><option value="Anulado">Anulado</option></select>
+      <select id="estado-filter-h" onchange="renderHistorial()"><option value="">Todos los estados</option><option value="Enviado">Enviado</option><option value="Recibido">Recibido</option><option value="No recibido">No recibido</option><option value="Anulado">Anulado</option></select>
       <button class="btn btn-dark" onclick="exportCSV('hist')">Exportar CSV</button>
     </div>
     <div class="date-range">
@@ -317,7 +319,7 @@ function colsPlanchas(matList) {
     {key:"Observaciones",label:"Observaciones",mail:true,type:"textarea"},
     {key:"Cliente",label:"Cliente",mail:false,type:"text"},
     {key:"N Caja",label:"N Caja",mail:false,type:"text"},
-    {key:"Estado",label:"Estado",mail:false,type:"dropdown",options:["Enviado","Recibido","Anulado"]},
+    {key:"Estado",label:"Estado",mail:false,type:"dropdown",options:["Enviado","Recibido","No recibido","Anulado"]},
     {key:"Anotaciones",label:"Anotaciones",mail:false,type:"textarea"}
   ];
 }
@@ -333,7 +335,7 @@ function colsCajas(matList) {
     {key:"Observaciones",label:"Observaciones",mail:true,type:"textarea"},
     {key:"Cliente",label:"Cliente",mail:false,type:"text"},
     {key:"N Caja",label:"N Caja",mail:false,type:"text"},
-    {key:"Estado",label:"Estado",mail:false,type:"dropdown",options:["Enviado","Recibido","Anulado"]},
+    {key:"Estado",label:"Estado",mail:false,type:"dropdown",options:["Enviado","Recibido","No recibido","Anulado"]},
     {key:"Anotaciones",label:"Anotaciones",mail:false,type:"textarea"}
   ];
 }
@@ -345,7 +347,7 @@ function colsRollos(medidasList) {
     {key:"Tipo Material",label:"Medida de Rollo",mail:true,type:"dropdown",options:medidasList},
     {key:"Observaciones",label:"Observaciones",mail:true,type:"textarea"},
     {key:"Cliente",label:"Cliente",mail:false,type:"text"},
-    {key:"Estado",label:"Estado",mail:false,type:"dropdown",options:["Enviado","Recibido","Anulado"]},
+    {key:"Estado",label:"Estado",mail:false,type:"dropdown",options:["Enviado","Recibido","No recibido","Anulado"]},
     {key:"Anotaciones",label:"Anotaciones",mail:false,type:"textarea"}
   ];
 }
@@ -557,6 +559,7 @@ function getSorted(arr) {
 
 function estadoBadge(e) {
   if (e === "Recibido") return '<span class="badge-rec">Recibido</span>';
+  if (e === "No recibido") return '<span class="badge-nor">No recibido</span>';
   if (e === "Anulado") return '<span class="badge-anu">Anulado</span>';
   return '<span class="badge-env">Enviado</span>';
 }
@@ -565,10 +568,10 @@ function estadoSelect(r) {
   var id = r.ID || "";
   var e = r.Estado || "Enviado";
   if (!id) { return estadoBadge(e); }
-  var opts = ["Enviado","Recibido","Anulado"].map(function(o){
+  var opts = ["Enviado","Recibido","No recibido","Anulado"].map(function(o){
     return '<option value="'+o+'"'+(o===e?' selected':'')+'>'+o+'</option>';
   }).join("");
-  var cls = e==="Recibido"?"sel-rec":(e==="Anulado"?"sel-anu":"sel-env");
+  var cls = e==="Recibido"?"sel-rec":(e==="No recibido"?"sel-nor":(e==="Anulado"?"sel-anu":"sel-env"));
   return '<select class="estado-sel '+cls+'" data-id="'+id+'" onchange="cambiarEstado(this)">'+opts+'</select>';
 }
 
@@ -1573,7 +1576,7 @@ async function cambiarEstado(sel) {
     await fetch(API, {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"}, body: JSON.stringify({action: "updateEstado", id: id, estado: nuevo})});
     var rec = allData.find(function(r){ return String(r.ID) === String(id); });
     if (rec) rec.Estado = nuevo;
-    sel.className = "estado-sel " + (nuevo==="Recibido"?"sel-rec":(nuevo==="Anulado"?"sel-anu":"sel-env"));
+    sel.className = "estado-sel " + (nuevo==="Recibido"?"sel-rec":(nuevo==="No recibido"?"sel-nor":(nuevo==="Anulado"?"sel-anu":"sel-env")));
     var tr = sel.closest("tr");
     if (tr) { if (nuevo==="Anulado") tr.classList.add("anulado"); else tr.classList.remove("anulado"); }
   } catch(e) {
