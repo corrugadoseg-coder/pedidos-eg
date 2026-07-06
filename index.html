@@ -1458,15 +1458,21 @@ async function finGuardar() {
     if (!ok) return;
   }
   await guardarPedido();
-  // guardarPedido limpia el formulario si sale bien; marcamos y avisamos
+  if (!ultimoGuardadoCompleto) {
+    // Guardado incompleto o fallido: no marcar como hecho ni cerrar; el aviso ya se mostro.
+    document.getElementById("fin-aviso").textContent = "Revisá el aviso: puede que no se guardaran todos los ítems.";
+    return;
+  }
   marcarPasoFin("fin-paso-guardar");
   finGuardadoOk = true;
   document.getElementById("fin-aviso").textContent = "Pedido guardado. Ya podés cerrar.";
   setTimeout(function(){ if (finGuardadoOk) cerrarFinalizar(); }, 1200);
 }
 
+var ultimoGuardadoCompleto = false;
 async function guardarPedido() {
   // Proteccion anti-doble-guardado: si ya esta guardando, ignorar nuevos clics.
+  ultimoGuardadoCompleto = false;
   if (guardando) return;
   var fecha = fmtDate(document.getElementById("f-fecha").value);
   var prov = document.getElementById("f-proveedor").value;
@@ -1559,8 +1565,38 @@ async function guardarPedido() {
        allData.push(row);
     } catch(e) { ok = false; }
   }
-  if (ok) { showStatus("ok", "Pedido N " + ped + " guardado con " + items.length + " item(s)."); renderAll(); limpiarFormularioCarga(); }
-  else showStatus("err", "Error al guardar. Verifica la conexion.");
+  // VERIFICACION POST-GUARDADO: releer la planilla y confirmar que estan TODOS los items.
+  var itemsEsperados = items.length;
+  if (ok) {
+    showStatus("loading", "Verificando que se guardaron todos los items...");
+    var guardadosReal = null;
+    try {
+      var respV = await fetch(API);
+      var jsonV = await respV.json();
+      if (jsonV.ok && jsonV.data) {
+        guardadosReal = jsonV.data.filter(function(r){
+          return String(r.Pedido).trim() === String(ped).trim() && String(r.Proveedor).trim() === String(prov).trim();
+        }).length;
+      }
+    } catch(e) {}
+    if (guardadosReal === null) {
+      // No se pudo verificar (sin conexion para releer). Avisar que revise a mano.
+      showStatus("ok", "Pedido N " + ped + " guardado. No se pudo verificar automaticamente; revisa en el Historial que esten los " + itemsEsperados + " item(s).");
+      ultimoGuardadoCompleto = true;
+      renderAll(); limpiarFormularioCarga();
+    } else if (guardadosReal >= itemsEsperados) {
+      showStatus("ok", "Pedido N " + ped + " guardado y verificado: " + guardadosReal + " de " + itemsEsperados + " item(s) en la planilla. \u2713");
+      ultimoGuardadoCompleto = true;
+      renderAll(); limpiarFormularioCarga();
+    } else {
+      // Se guardaron MENOS de los esperados: NO limpiar el formulario, avisar fuerte.
+      showStatus("err", "ATENCION: se esperaban " + itemsEsperados + " item(s) pero en la planilla quedaron " + guardadosReal + ". NO cierres. Revisa el Historial y volve a guardar los que falten.");
+      alert("ATENCION\n\nEl pedido N " + ped + " deberia tener " + itemsEsperados + " item(s), pero en la planilla quedaron " + guardadosReal + ".\n\nNo se limpio el formulario para que puedas revisar. Fijate en el Historial cuales se guardaron y volve a guardar los que falten.");
+      renderAll();
+      // NO se limpia el formulario a proposito.
+    }
+  }
+  else showStatus("err", "Error al guardar. Verifica la conexion. Revisa el Historial antes de reintentar.");
   // Reactivar el boton al terminar
   guardando = false;
   if (btn) { btn.disabled = false; btn.textContent = "Guardar pedido"; btn.style.opacity = "1"; }
