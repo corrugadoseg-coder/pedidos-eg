@@ -284,7 +284,7 @@ tbody tr.prov-Idesa:hover,tbody tr.prov-Micromont:hover,tbody tr.prov-Aserpel:ho
 
 <script>
 var API = "https://script.google.com/macros/s/AKfycbxbV8zsJ4o0OnYe3z1E3FvuAUm7Uy1TWTiXpPKstKuBguF5aB9qsEVBb77TvtFIK7mJNQ/exec";
-var COLS_ALL = ["Pedido","Fecha","Cliente","N Caja","Tipo Material","Largo","Ancho","Trazados","Cantidad","Observaciones","Estado","Anotaciones","Proveedor","ID"];
+var COLS_ALL = ["Pedido","Fecha","Cliente","N Caja","Tipo Material","Largo","Ancho","Trazados","Cantidad","Observaciones","Estado","Anotaciones","Proveedor","ID","Cargado desde"];
 
 var MAT_IDESA = ["Liner 60","Liner 90","Liner 110","Blanco Liner","DT Ondas B + Micro","DT 120 Liner","DT Blanco","Kraft 140","DT 150 con 1 puro","Otro (especificar)"];
 var MAT_MICROMONT = ["Simple Faz Marron-Marron","Simple Faz Blanco-Marron","Simple Faz Blanco-Blanco","Simple Faz Liner-Marron","Simple Faz Marron-Liner con Liner en la Onda","Micro Marron-Marron-Marron","Micro Blanco-Marron-Marron","Micro Blanco-Marron-Blanco","Micro Liner-Marron-Marron","Onda B Marron-Marron-Marron","Onda B Blanco-Marron-Marron","Onda B Blanco-Marron-Blanco","Onda B Liner-Marron-Marron","Otro (especificar)"];
@@ -395,6 +395,14 @@ var SEED_ASERPEL = [];
 var SEED_ROLPEL = [];
 
 var allData = [];
+// Computadora desde la que se usa la app (viene en la direccion como ?pc=Nombre)
+var MI_PC = (function(){
+  try {
+    var params = new URLSearchParams(window.location.search);
+    var pc = params.get("pc");
+    return pc ? pc.trim() : "";
+  } catch(e){ return ""; }
+})();
 var sortCol = "Fecha", sortDir = -1;
 var filterField = "todos";
 var activeProv = "Idesa";
@@ -583,6 +591,7 @@ function makeHead(cols, showProv) {
     return '<th' + clase + ' onclick="sortBy(\'' + c.key + '\')">' + c.label + ' <span style="opacity:.4">&#8597;</span></th>';
   }).join("");
   if (showProv) h += '<th onclick="sortBy(\'Proveedor\')">Proveedor <span style="opacity:.4">&#8597;</span></th>';
+  h += '<th onclick="sortBy(\'Cargado desde\')">Cargado desde <span style="opacity:.4">&#8597;</span></th>';
   h += '<th></th>';
   return h;
 }
@@ -619,7 +628,10 @@ function makeRow(r, q, cols, showProv, nuevoPedido) {
     if (c.key === "Cantidad") return '<td style="font-weight:600">' + hl(v, q) + "</td>";
     return "<td>" + hl(v, q) + "</td>";
   }).join("");
-  if (showProv) cells += '<td><span class="badge badge-prov">' + (r.Proveedor || "") + "</span></td>";
+  if (showProv) {
+    cells += '<td><span class="badge badge-prov">' + (r.Proveedor || "") + "</span></td>";
+    cells += '<td style="white-space:nowrap;color:#555">' + hl(r["Cargado desde"] || "", q) + "</td>";
+  }
   var pedEsc = String(r.Pedido).replace(/'/g, "");
   var provEsc = String(r.Proveedor || "").replace(/'/g, "");
   var btnRepetir = '<button class="btn-editar" title="Repetir este pedido" onclick="repetirPedido(\'' + pedEsc + '\',\'' + provEsc + '\')" style="margin-right:4px">&#8635;</button>';
@@ -1560,7 +1572,7 @@ async function guardarPedido() {
   showStatus("loading", "Guardando...");
   var ok = true;
   for (var i = 0; i < items.length; i++) {
-    var row = Object.assign({}, items[i], {Pedido: ped, Fecha: fecha, Estado: "Enviado", Proveedor: prov});
+    var row = Object.assign({}, items[i], {Pedido: ped, Fecha: fecha, Estado: "Enviado", Proveedor: prov, "Cargado desde": MI_PC});
     try {
        await fetch(API, {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"}, body: JSON.stringify({action: "add", row: row})});
        // Agregar a allData en memoria para que el proximo numero de pedido sea correcto
