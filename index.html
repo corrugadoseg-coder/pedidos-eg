@@ -1,4 +1,13 @@
 <!DOCTYPE html>
+<!--
+    ============================================================
+    EG Corrugados · Gestión de Pedidos
+    Desarrollado por Raquel — EG Corrugados SRL · 2026
+
+    En memoria de mi papá, Gerardo, analista programador,
+    que me enseñó a firmar lo que uno crea.
+    ============================================================
+-->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -120,6 +129,10 @@ tbody tr.prov-Idesa:hover,tbody tr.prov-Micromont:hover,tbody tr.prov-Aserpel:ho
 .btn-finalizar{background:#1b8a4b;color:#fff;font-weight:700;font-size:15px;padding:10px 20px}
 .btn-finalizar:hover{filter:brightness(1.08)}
 .fin-done{color:#1b8a4b;font-weight:700}
+.app-footer{margin:36px auto 24px;max-width:900px;text-align:center;padding:0 16px}
+.footer-line{height:1px;background:linear-gradient(to right,transparent,#d5d5d0,transparent);margin-bottom:16px}
+.footer-title{margin:0 0 4px;font-size:13px;font-weight:600;color:#666;letter-spacing:.3px}
+.footer-dev{margin:0 0 10px;font-size:12px;color:#999}
 </style>
 </head>
 <body>
@@ -146,6 +159,7 @@ tbody tr.prov-Idesa:hover,tbody tr.prov-Micromont:hover,tbody tr.prov-Aserpel:ho
       <select id="prov-filter-b" onchange="renderBuscar()"><option value="">Todos los proveedores</option></select>
       <select id="estado-filter-b" onchange="renderBuscar()"><option value="">Todos los estados</option><option value="Enviado">Enviado</option><option value="Recibido">Recibido</option><option value="No recibido">No recibido</option><option value="Anulado">Anulado</option></select>
       <button class="btn btn-dark" onclick="exportCSV('buscar')">Exportar CSV</button>
+      <button class="btn btn-green" onclick="exportExcel('buscar')">Exportar Excel</button>
     </div>
     <div class="filter-row">
       <span>Filtrar por:</span>
@@ -229,6 +243,7 @@ tbody tr.prov-Idesa:hover,tbody tr.prov-Micromont:hover,tbody tr.prov-Aserpel:ho
     <div class="prov-tabs" id="prov-tabs"></div>
     <div class="toolbar">
       <button class="btn btn-dark" onclick="exportCSV('prov')">Exportar CSV</button>
+      <button class="btn btn-green" onclick="exportExcel('prov')">Exportar Excel</button>
     </div>
     <div class="res-info" id="res-prov"></div>
     <div class="scroll-top" id="stop-prov"><div></div></div>
@@ -244,6 +259,7 @@ tbody tr.prov-Idesa:hover,tbody tr.prov-Micromont:hover,tbody tr.prov-Aserpel:ho
       <select id="prov-filter-h" onchange="renderHistorial()"><option value="">Todos los proveedores</option></select>
       <select id="estado-filter-h" onchange="renderHistorial()"><option value="">Todos los estados</option><option value="Enviado">Enviado</option><option value="Recibido">Recibido</option><option value="No recibido">No recibido</option><option value="Anulado">Anulado</option></select>
       <button class="btn btn-dark" onclick="exportCSV('hist')">Exportar CSV</button>
+      <button class="btn btn-green" onclick="exportExcel('hist')">Exportar Excel</button>
     </div>
     <div class="date-range">
       <label>Desde:</label><input type="text" id="h-desde" placeholder="01/01/26" oninput="renderHistorial()" style="width:90px">
@@ -281,6 +297,21 @@ tbody tr.prov-Idesa:hover,tbody tr.prov-Micromont:hover,tbody tr.prov-Aserpel:ho
     </div>
   </div>
 </div>
+
+<!--
+    ============================================================
+    EG Corrugados · Gestión de Pedidos
+    Desarrollado por Raquel — EG Corrugados SRL · 2026
+
+    En memoria de mi papá, Gerardo, analista programador,
+    que me enseñó a firmar lo que uno crea.
+    ============================================================
+-->
+<footer class="app-footer">
+  <div class="footer-line"></div>
+  <p class="footer-title">EG Corrugados · Gestión de Pedidos</p>
+  <p class="footer-dev">Desarrollado por Raquel — EG Corrugados SRL · 2026</p>
+</footer>
 
 <script>
 var API = "https://script.google.com/macros/s/AKfycbxbV8zsJ4o0OnYe3z1E3FvuAUm7Uy1TWTiXpPKstKuBguF5aB9qsEVBb77TvtFIK7mJNQ/exec";
@@ -720,7 +751,8 @@ function clearHistFilters() {
   renderHistorial();
 }
 
-function exportCSV(page) {
+// Junta las filas segun la pantalla (respetando los filtros activos)
+function filasParaExportar(page) {
   var rows = [];
   if (page === "buscar") {
     var q = document.getElementById("q-buscar").value.trim().toLowerCase();
@@ -741,13 +773,59 @@ function exportCSV(page) {
   } else {
     rows = getSorted(allData);
   }
+  return rows;
+}
+
+function nombreArchivo(ext) {
+  var d = new Date();
+  var dd = String(d.getDate()).padStart(2,"0");
+  var mm = String(d.getMonth()+1).padStart(2,"0");
+  var yy = d.getFullYear();
+  return "pedidos_eg_" + dd + "-" + mm + "-" + yy + "." + ext;
+}
+
+function exportCSV(page) {
+  var rows = filasParaExportar(page);
+  if (!rows.length) { alert("No hay pedidos para exportar con los filtros actuales."); return; }
   var csv = [COLS_ALL.join(",")].concat(rows.map(function(r) {
     return COLS_ALL.map(function(c) { return '"' + String(r[c] || "").replace(/"/g, '""') + '"'; }).join(",");
   })).join("\n");
   var a = document.createElement("a");
   a.href = "data:text/csv;charset=utf-8,﻿" + encodeURIComponent(csv);
-  a.download = "pedidos_eg.csv";
+  a.download = nombreArchivo("csv");
   a.click();
+}
+
+function exportExcel(page) {
+  var rows = filasParaExportar(page);
+  if (!rows.length) { alert("No hay pedidos para exportar con los filtros actuales."); return; }
+  function esc(v) {
+    return String(v === undefined || v === null ? "" : v)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+  var thead = "<tr>" + COLS_ALL.map(function(c){
+    return "<th style='background:#D5E8F0;border:1px solid #999;font-weight:bold;padding:4px'>" + esc(c) + "</th>";
+  }).join("") + "</tr>";
+  var tbody = rows.map(function(r){
+    return "<tr>" + COLS_ALL.map(function(c){
+      // Texto para que Excel no convierta numeros de pedido/caja en fechas u otros formatos
+      return "<td style='border:1px solid #ccc;padding:3px' x:str>" + esc(r[c] || "") + "</td>";
+    }).join("") + "</tr>";
+  }).join("");
+  var html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">' +
+    '<head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>' +
+    '<x:Name>Pedidos</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>' +
+    '</x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>' +
+    '<body><table border="1">' + thead + tbody + '</table></body></html>';
+  var blob = new Blob(["\ufeff", html], {type: "application/vnd.ms-excel;charset=utf-8"});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url;
+  a.download = nombreArchivo("xls");
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
 }
 
 function onProvChange() {
