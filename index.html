@@ -1110,10 +1110,35 @@ function autocompleteCaja(input, id) {
       var numViejo = match["Cliente N°"] || "";
       var nomViejo = match["Cliente Nombre"] || "";
       if (inpCli) {
+        // EMPAREJAMIENTO: si el pedido viejo tenia varias cajas y varios clientes
+        // separados por / , tomamos el cliente en la MISMA posicion que la caja pedida.
+        var listaCajasV = String(match["N Caja"] || "").split(/[\/,;]/).map(function(x){ return x.trim(); }).filter(function(x){ return x !== ""; });
+        var listaNumV = String(numViejo).split(/[\/,;]/).map(function(x){ return x.trim(); }).filter(function(x){ return x !== ""; });
+        var listaNomV = String(nomViejo).split(/[\/,;]/).map(function(x){ return x.trim(); }).filter(function(x){ return x !== ""; });
         var base = numViejo || nomViejo || "";
+        var pos = listaCajasV.indexOf(String(caja).trim());
+        // Solo emparejamos si: la caja esta en un grupo, hay mas de un cliente,
+        // y la cantidad de cajas coincide con la de clientes (para no adivinar mal).
+        if (pos !== -1 && listaCajasV.length > 1) {
+          if (listaNumV.length === listaCajasV.length && listaNumV[pos]) {
+            base = listaNumV[pos];
+          } else if (listaNomV.length === listaCajasV.length && listaNomV[pos]) {
+            base = listaNomV[pos];
+          }
+          // Si las cantidades no coinciden, base queda como el grupo completo (se ajusta a mano).
+        }
         if (base) {
           inpCli.value = base;
           onClienteInput(inpCli, id);
+          // AVISO REFORZADO: si el cliente es un numero suelto sin nombre asociado, avisar bien claro.
+          var resCli2 = tr.querySelector(".cli-result");
+          if (resCli2 && /^\d+$/.test(String(base).trim())) {
+            var esNegroC = (function(){ var ck = tr.querySelector(".chk-sistema"); return ck ? ck.checked : false; })();
+            var idxC = esNegroC ? idxNegroPorNum : idxBlancoPorNum;
+            if (!idxC[String(base).trim()]) {
+              resCli2.innerHTML = "<span style='color:#fff;background:#c0392b;padding:2px 8px;border-radius:6px;font-weight:600'>\u26A0 El cliente " + base + " no tiene nombre cargado. Escribilo antes de guardar.</span>";
+            }
+          }
         }
       }
       return;
