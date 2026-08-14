@@ -133,6 +133,7 @@ tbody tr.prov-Idesa:hover,tbody tr.prov-Micromont:hover,tbody tr.prov-Aserpel:ho
 .footer-line{height:1px;background:linear-gradient(to right,transparent,#d5d5d0,transparent);margin-bottom:16px}
 .footer-title{margin:0 0 4px;font-size:13px;font-weight:600;color:#666;letter-spacing:.3px}
 .footer-dev{margin:0 0 10px;font-size:12px;color:#999}
+@keyframes cartelPop{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
 </style>
 </head>
 <body>
@@ -316,6 +317,8 @@ tbody tr.prov-Idesa:hover,tbody tr.prov-Micromont:hover,tbody tr.prov-Aserpel:ho
 <script>
 var API = "https://script.google.com/macros/s/AKfycbxbV8zsJ4o0OnYe3z1E3FvuAUm7Uy1TWTiXpPKstKuBguF5aB9qsEVBb77TvtFIK7mJNQ/exec";
 var COLS_ALL = ["Pedido","Fecha","Cliente","N Caja","Tipo Material","Largo","Ancho","Trazados","Cantidad","Observaciones","Estado","Anotaciones","Proveedor","ID","Cargado desde"];
+// Listado de medidas de cajas de STOCK (cliente 509). Formato: N Caja -> "medida libraje"
+var MEDIDAS_STOCK = {"131":"150x150x100 90","585":"200x170x90 90","242":"200x200x100 90","129":"200x200x150 90","443":"200x200x200 90","204":"250x250x200 80","148":"300x200x125 90","979":"300x200x150 90","138":"300x200x200 80","361":"300x200x250 80","901":"300x250x200 80","210":"300x250x250 80","208":"300x300x300 80","794":"320x230x230 80","491":"350x250x250 80","225":"350x300x250 80","211":"400x250x250 80","701":"400x300x100 80","160":"405x300x150 80","114":"400x300x200 80","174":"405x300x250 80","578":"405x300x300 80","124":"450x350x350 110","586":"450x400x400 110","4779":"500x250x200 90","112":"500x300x250 110","132":"500x300x300 110","149":"500x400x240 110","2812":"500x400x300 90","123":"500x400x350 110","175":"550x330x220 110","2427":"600x400x200 110","1285":"600x400x300 80","115":"600x400x300 110","1277":"600x400x400 80","134":"600x400x400 110","142":"600x500x500 110","177":"700x500x500 110","461":"900x300x300 110","139":"DT 400x300x300 150","490":"DT 500x400x350 150","434":"DT 600x400x300 150","140":"DT 600x400x400 150","135":"DT 600x500x500 150","263":"390x295x115","1104":"425x325x255","187":"130x110x70","450":"160x110x80","463":"120x120x200"};
 
 var MAT_IDESA = ["Liner 60","Liner 90","Liner 110","Blanco Liner","DT Ondas B + Micro","DT 120 Liner","DT Blanco","Kraft 140","DT 150 con 1 puro","Otro (especificar)"];
 var MAT_MICROMONT = ["Simple Faz Marron-Marron","Simple Faz Blanco-Marron","Simple Faz Blanco-Blanco","Simple Faz Liner-Marron","Simple Faz Marron-Liner con Liner en la Onda","Micro Marron-Marron-Marron","Micro Blanco-Marron-Marron","Micro Blanco-Marron-Blanco","Micro Liner-Marron-Marron","Onda B Marron-Marron-Marron","Onda B Blanco-Marron-Marron","Onda B Blanco-Marron-Blanco","Onda B Liner-Marron-Marron","Otro (especificar)"];
@@ -1256,6 +1259,19 @@ function buildPreviewHTML(ped, fecha, prov, items, mailCols) {
       if (c.key === "Observaciones" || c.key === "Anotaciones") {
         valCelda = String(valCelda).replace(/\r\n|\r|\n/g, "<br>");
       }
+      // STOCK (cliente 509): al lado del N Caja mostrar la medida del listado interno.
+      if (c.key === "N Caja") {
+        var numClienteIt = String(it["Cliente N°"] || "").trim();
+        var esStock = String(it["Cliente N°"] || "").split(/[\/,;]/).map(function(x){return x.trim();}).indexOf("509") !== -1;
+        if (esStock) {
+          var codigos = String(valCelda).split(/[\/,;]/).map(function(x){ return x.trim(); }).filter(function(x){ return x!==""; });
+          var conMedida = codigos.map(function(cod){
+            var med = MEDIDAS_STOCK[cod];
+            return med ? (cod + " (" + med + ")") : cod;
+          });
+          valCelda = conMedida.join(" / ");
+        }
+      }
       return "<td style='" + tdStyle() + "'>" + valCelda + "</td>";
     }).join("") + "</tr>";
   }).join("");
@@ -1587,6 +1603,27 @@ async function finGuardar() {
 }
 
 var ultimoGuardadoCompleto = false;
+function mostrarCartelExito(ped, cant) {
+  var prev = document.getElementById("cartel-exito");
+  if (prev) prev.remove();
+  var ov = document.createElement("div");
+  ov.id = "cartel-exito";
+  ov.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:3000;display:flex;align-items:center;justify-content:center";
+  ov.innerHTML =
+    "<div style='background:#fff;border-radius:16px;padding:40px 48px;text-align:center;box-shadow:0 12px 50px rgba(0,0,0,.35);max-width:90%;animation:cartelPop .25s ease-out'>" +
+      "<div style='font-size:56px;line-height:1;margin-bottom:12px'>\u2705</div>" +
+      "<div style='font-size:26px;font-weight:800;color:#1b8a4b;margin-bottom:6px'>PEDIDO N\u00b0 " + ped + "</div>" +
+      "<div style='font-size:22px;font-weight:700;color:#333;margin-bottom:10px'>GUARDADO EXITOSAMENTE</div>" +
+      "<div style='font-size:15px;color:#666'>Se guardaron " + cant + " de " + cant + " \u00edtem(s) \u2713</div>" +
+    "</div>";
+  document.body.appendChild(ov);
+  // Se cierra solo a los 3 segundos, o al tocar
+  var cerrar = function(){ if (ov && ov.parentNode) ov.remove(); };
+  ov.addEventListener("click", cerrar);
+  setTimeout(cerrar, 3000);
+}
+
+
 async function guardarPedido() {
   // Proteccion anti-doble-guardado: si ya esta guardando, ignorar nuevos clics.
   ultimoGuardadoCompleto = false;
@@ -1673,47 +1710,73 @@ async function guardarPedido() {
   var btn = document.getElementById("btn-guardar");
   if (btn) { btn.disabled = true; btn.textContent = "Guardando..."; btn.style.opacity = "0.6"; }
   showStatus("loading", "Guardando...");
+  function pausa(ms){ return new Promise(function(res){ setTimeout(res, ms); }); }
   var ok = true;
-  for (var i = 0; i < items.length; i++) {
-    var row = Object.assign({}, items[i], {Pedido: ped, Fecha: fecha, Estado: "Enviado", Proveedor: prov, "Cargado desde": MI_PC});
+  // Preparar todas las filas (con un ID unico cada una, generado aca para poder verificarlas)
+  var filas = items.map(function(it, idx){
+    var r = Object.assign({}, it, {Pedido: ped, Fecha: fecha, Estado: "Enviado", Proveedor: prov, "Cargado desde": MI_PC});
+    if (!r["ID"]) { r["ID"] = "EG-" + Date.now() + "-" + idx + "-" + Math.floor(Math.random()*9999); }
+    return r;
+  });
+  // Guardar de a UNO, esperando entre cada uno (evita que Google pierda filas por escrituras simultaneas)
+  for (var i = 0; i < filas.length; i++) {
+    showStatus("loading", "Guardando ítem " + (i+1) + " de " + filas.length + "...");
     try {
-       await fetch(API, {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"}, body: JSON.stringify({action: "add", row: row})});
-       // Agregar a allData en memoria para que el proximo numero de pedido sea correcto
-       allData.push(row);
+       await fetch(API, {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"}, body: JSON.stringify({action: "add", row: filas[i]})});
+       allData.push(filas[i]);
     } catch(e) { ok = false; }
+    await pausa(700); // respiro entre escrituras
   }
-  // VERIFICACION POST-GUARDADO: releer la planilla y confirmar que estan TODOS los items.
-  var itemsEsperados = items.length;
-  if (ok) {
-    showStatus("loading", "Verificando que se guardaron todos los items...");
-    var guardadosReal = null;
+  // Darle tiempo a Google a terminar de escribir antes de verificar
+  await pausa(1200);
+  // VERIFICACION POST-GUARDADO: releer la planilla, contar por ID y REINTENTAR los que falten.
+  var itemsEsperados = filas.length;
+  async function idsGuardados() {
     try {
       var respV = await fetch(API);
       var jsonV = await respV.json();
       if (jsonV.ok && jsonV.data) {
-        guardadosReal = jsonV.data.filter(function(r){
-          return String(r.Pedido).trim() === String(ped).trim() && String(r.Proveedor).trim() === String(prov).trim();
-        }).length;
+        var setIds = {};
+        jsonV.data.forEach(function(r){ if (r["ID"]) setIds[String(r["ID"]).trim()] = true; });
+        return setIds;
       }
     } catch(e) {}
-    if (guardadosReal === null) {
-      // No se pudo verificar (sin conexion para releer). Avisar que revise a mano.
-      showStatus("ok", "Pedido N " + ped + " guardado. No se pudo verificar automaticamente; revisa en el Historial que esten los " + itemsEsperados + " item(s).");
-      ultimoGuardadoCompleto = true;
-      renderAll(); limpiarFormularioCarga();
-    } else if (guardadosReal >= itemsEsperados) {
-      showStatus("ok", "Pedido N " + ped + " guardado y verificado: " + guardadosReal + " de " + itemsEsperados + " item(s) en la planilla. \u2713");
+    return null;
+  }
+  if (ok || true) {
+    showStatus("loading", "Verificando que se guardaron todos los ítems...");
+    var setIds = await idsGuardados();
+    if (setIds === null) {
+      showStatus("ok", "Pedido N " + ped + " guardado. No se pudo verificar automáticamente; revisá en el Historial que estén los " + itemsEsperados + " ítem(s).");
       ultimoGuardadoCompleto = true;
       renderAll(); limpiarFormularioCarga();
     } else {
-      // Se guardaron MENOS de los esperados: NO limpiar el formulario, avisar fuerte.
-      showStatus("err", "ATENCION: se esperaban " + itemsEsperados + " item(s) pero en la planilla quedaron " + guardadosReal + ". NO cierres. Revisa el Historial y volve a guardar los que falten.");
-      alert("ATENCION\n\nEl pedido N " + ped + " deberia tener " + itemsEsperados + " item(s), pero en la planilla quedaron " + guardadosReal + ".\n\nNo se limpio el formulario para que puedas revisar. Fijate en el Historial cuales se guardaron y volve a guardar los que falten.");
-      renderAll();
-      // NO se limpia el formulario a proposito.
+      // Detectar cuales filas NO estan (por su ID unico) y reintentarlas una vez
+      var faltantes = filas.filter(function(f){ return !setIds[String(f["ID"]).trim()]; });
+      if (faltantes.length > 0) {
+        showStatus("loading", "Faltaron " + faltantes.length + " ítem(s), reintentando...");
+        for (var k = 0; k < faltantes.length; k++) {
+          try {
+            await fetch(API, {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"}, body: JSON.stringify({action: "add", row: faltantes[k]})});
+          } catch(e) {}
+          await pausa(800);
+        }
+        await pausa(1200);
+        setIds = await idsGuardados();
+        if (setIds) faltantes = filas.filter(function(f){ return !setIds[String(f["ID"]).trim()]; });
+      }
+      if (!faltantes.length) {
+        showStatus("ok", "Pedido N " + ped + " guardado y verificado: " + itemsEsperados + " de " + itemsEsperados + " ítem(s). \u2713");
+        mostrarCartelExito(ped, itemsEsperados);
+        ultimoGuardadoCompleto = true;
+        renderAll(); limpiarFormularioCarga();
+      } else {
+        showStatus("err", "ATENCIÓN: faltaron " + faltantes.length + " de " + itemsEsperados + " ítem(s) y no se pudieron guardar. NO cierres. Revisá el Historial.");
+        alert("ATENCIÓN\n\nEl pedido N " + ped + " debería tener " + itemsEsperados + " ítem(s), pero faltaron " + faltantes.length + " y el reintento no alcanzó.\n\nNo se limpió el formulario. Revisá el Historial y volvé a guardar el/los ítem(s) que falten.");
+        renderAll();
+      }
     }
   }
-  else showStatus("err", "Error al guardar. Verifica la conexion. Revisa el Historial antes de reintentar.");
   // Reactivar el boton al terminar
   guardando = false;
   if (btn) { btn.disabled = false; btn.textContent = "Guardar pedido"; btn.style.opacity = "1"; }
