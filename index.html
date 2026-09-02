@@ -1711,6 +1711,13 @@ async function guardarPedido() {
   if (btn) { btn.disabled = true; btn.textContent = "Guardando..."; btn.style.opacity = "0.6"; }
   showStatus("loading", "Guardando...");
   function pausa(ms){ return new Promise(function(res){ setTimeout(res, ms); }); }
+  // fetch con limite de tiempo: si Google no responde a tiempo, corta (no queda colgado para siempre)
+  function fetchTimeout(url, opciones, ms){
+    return Promise.race([
+      fetch(url, opciones),
+      new Promise(function(_, rej){ setTimeout(function(){ rej(new Error("timeout")); }, ms); })
+    ]);
+  }
   var ok = true;
   // Preparar todas las filas (con un ID unico cada una, generado aca para poder verificarlas)
   var filas = items.map(function(it, idx){
@@ -1722,18 +1729,18 @@ async function guardarPedido() {
   for (var i = 0; i < filas.length; i++) {
     showStatus("loading", "Guardando ítem " + (i+1) + " de " + filas.length + "...");
     try {
-       await fetch(API, {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"}, body: JSON.stringify({action: "add", row: filas[i]})});
+       await fetchTimeout(API, {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"}, body: JSON.stringify({action: "add", row: filas[i]})}, 15000);
        allData.push(filas[i]);
     } catch(e) { ok = false; }
-    await pausa(700); // respiro entre escrituras
+    await pausa(350); // respiro corto entre escrituras
   }
-  // Darle tiempo a Google a terminar de escribir antes de verificar
-  await pausa(1200);
+  // Darle un momento a Google a terminar de escribir antes de verificar
+  await pausa(800);
   // VERIFICACION POST-GUARDADO: releer la planilla, contar por ID y REINTENTAR los que falten.
   var itemsEsperados = filas.length;
   async function idsGuardados() {
     try {
-      var respV = await fetch(API);
+      var respV = await fetchTimeout(API, {}, 20000);
       var jsonV = await respV.json();
       if (jsonV.ok && jsonV.data) {
         var setIds = {};
@@ -1757,9 +1764,9 @@ async function guardarPedido() {
         showStatus("loading", "Faltaron " + faltantes.length + " ítem(s), reintentando...");
         for (var k = 0; k < faltantes.length; k++) {
           try {
-            await fetch(API, {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"}, body: JSON.stringify({action: "add", row: faltantes[k]})});
+            await fetchTimeout(API, {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"}, body: JSON.stringify({action: "add", row: faltantes[k]})}, 15000);
           } catch(e) {}
-          await pausa(800);
+          await pausa(400);
         }
         await pausa(1200);
         setIds = await idsGuardados();
