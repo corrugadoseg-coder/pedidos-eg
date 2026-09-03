@@ -1725,17 +1725,20 @@ async function guardarPedido() {
     if (!r["ID"]) { r["ID"] = "EG-" + Date.now() + "-" + idx + "-" + Math.floor(Math.random()*9999); }
     return r;
   });
-  // Guardar de a UNO, esperando entre cada uno (evita que Google pierda filas por escrituras simultaneas)
+  // Guardar de a UNO. Con varios items dejamos un respiro entre escrituras
+  // (evita que Google pierda filas por escrituras simultaneas). Con 1 solo item no hace falta.
+  var variosItems = filas.length > 1;
   for (var i = 0; i < filas.length; i++) {
-    showStatus("loading", "Guardando ítem " + (i+1) + " de " + filas.length + "...");
+    if (variosItems) showStatus("loading", "Guardando ítem " + (i+1) + " de " + filas.length + "...");
+    else showStatus("loading", "Guardando...");
     try {
        await fetchTimeout(API, {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"}, body: JSON.stringify({action: "add", row: filas[i]})}, 15000);
        allData.push(filas[i]);
     } catch(e) { ok = false; }
-    await pausa(350); // respiro corto entre escrituras
+    if (variosItems && i < filas.length - 1) await pausa(300); // respiro solo entre items, no despues del ultimo
   }
-  // Darle un momento a Google a terminar de escribir antes de verificar
-  await pausa(800);
+  // Momento de espera antes de verificar: mas corto si es 1 solo item
+  await pausa(variosItems ? 700 : 250);
   // VERIFICACION POST-GUARDADO: releer la planilla, contar por ID y REINTENTAR los que falten.
   var itemsEsperados = filas.length;
   async function idsGuardados() {
