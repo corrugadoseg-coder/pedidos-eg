@@ -1590,16 +1590,15 @@ async function finGuardar() {
     var ok = confirm("Vas a guardar sin " + faltan.join(" ni ") + ". Después de guardar ya no vas a poder hacerlo para este pedido.\n\n¿Guardar igual?");
     if (!ok) return;
   }
+  // Cerrar la ventanita ANTES de guardar, para que no quede tapando el cartel ni freezada.
+  marcarPasoFin("fin-paso-guardar");
+  cerrarFinalizar();
   await guardarPedido();
   if (!ultimoGuardadoCompleto) {
-    // Guardado incompleto o fallido: no marcar como hecho ni cerrar; el aviso ya se mostro.
-    document.getElementById("fin-aviso").textContent = "Revisá el aviso: puede que no se guardaran todos los ítems.";
+    // Guardado incompleto o fallido: el aviso de atencion ya se mostro (queda visible en la pantalla).
     return;
   }
-  marcarPasoFin("fin-paso-guardar");
   finGuardadoOk = true;
-  document.getElementById("fin-aviso").textContent = "Pedido guardado. Ya podés cerrar.";
-  setTimeout(function(){ if (finGuardadoOk) cerrarFinalizar(); }, 1200);
 }
 
 var ultimoGuardadoCompleto = false;
