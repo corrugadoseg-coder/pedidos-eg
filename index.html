@@ -922,20 +922,19 @@ function repetirPedido(pedido, proveedor) {
   navBtns.forEach(function(b){ if (b.textContent.trim() === "Nuevo pedido") btnNuevo = b; });
   if (btnNuevo) goTo("nuevo", btnNuevo);
 
-  // Seleccionar proveedor
+  // Seleccionar proveedor y disparar onProvChange (calcula N° de pedido y email del proveedor)
   var selProv = document.getElementById("f-proveedor");
   selProv.value = proveedor;
+  onProvChange();
 
   // Determinar el tipo de articulo del primer item (si lo tiene guardado)
   var tipo = items[0]["Tipo Articulo"] || "";
-  // Disparar updateProvFields para armar el formulario; luego fijar el tipo si corresponde
-  updateProvFields();
   var selTipo = document.getElementById("f-tipo");
-  if (tipo && selTipo) {
+  if (tipo && selTipo && !selTipo.disabled) {
     // Verificar que ese tipo este entre las opciones
     var existe = false;
     for (var k = 0; k < selTipo.options.length; k++) { if (selTipo.options[k].value === tipo) { existe = true; break; } }
-    if (existe) { selTipo.value = tipo; updateProvFields(); }
+    if (existe) { selTipo.value = tipo; tipoActivo = tipo; updateProvFields(); }
   }
 
   // Limpiar los items que dejo updateProvFields y cargar los del pedido
