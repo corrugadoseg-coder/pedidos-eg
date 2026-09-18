@@ -577,8 +577,24 @@ function sortBy(col) {
 
 function parseDate(s) {
   if (!s) return null;
+  s = String(s).trim();
+  // Formato con barras: dd/mm/aa o dd/mm/aaaa
   var p = s.split("/");
-  if (p.length === 3) return new Date(2000 + parseInt(p[2]), parseInt(p[1]) - 1, parseInt(p[0]));
+  if (p.length === 3) {
+    var dia = parseInt(p[0], 10);
+    var mes = parseInt(p[1], 10);
+    var anio = parseInt(p[2], 10);
+    if (isNaN(dia) || isNaN(mes) || isNaN(anio)) return null;
+    // Si el anio viene con 2 digitos (ej 26), lo pasamos a 2026. Si ya tiene 4, lo dejamos.
+    if (anio < 100) anio = 2000 + anio;
+    return new Date(anio, mes - 1, dia);
+  }
+  // Formato ISO (aaaa-mm-dd), por si alguna fecha viene asi
+  var pi = s.split("-");
+  if (pi.length === 3 && pi[0].length === 4) {
+    var a = parseInt(pi[0],10), m = parseInt(pi[1],10), d = parseInt(pi[2],10);
+    if (!isNaN(a) && !isNaN(m) && !isNaN(d)) return new Date(a, m - 1, d);
+  }
   return null;
 }
 
