@@ -144,6 +144,7 @@ tbody tr.prov-Idesa:hover,tbody tr.prov-Micromont:hover,tbody tr.prov-Aserpel:ho
     <span>Sistema de pedidos de materia prima</span>
   </div>
 </header>
+<div id="banner-carga" style="display:none;padding:10px 16px;text-align:center;font-size:14px;font-weight:600"></div>
 <nav>
   <button class="active" onclick="goTo('buscar',this)">Buscador</button>
   <button onclick="goTo('nuevo',this)">Nuevo pedido</button>
@@ -444,36 +445,59 @@ var tipoActivo = "";
 var itemRows = [];
 var lastPreviewText = "";
 
-function loadData() {
- allData = [];
-  renderAll();
-  // UNA SOLA llamada al motor: trae pedidos + proveedores + clientes juntos (mas rapido, menos carga).
-  fetch(API).then(function(r) { return r.json(); }).then(function(json) {
-    if (json.ok && json.data && json.data.length) {
+var datosListos = false;
+function mostrarBanner(texto, color, fondo) {
+  var b = document.getElementById("banner-carga");
+  if (!b) return;
+  if (!texto) { b.style.display = "none"; return; }
+  b.style.display = "block";
+  b.style.color = color || "#7a5c00";
+  b.style.background = fondo || "#fff8e1";
+  b.innerHTML = texto;
+}
+function loadData(intento) {
+  intento = intento || 1;
+  var MAX = 3;
+  if (intento === 1) { allData = []; renderAll(); }
+  datosListos = false;
+  mostrarBanner("⏳ Cargando datos" + (intento > 1 ? " (reintento " + intento + " de " + MAX + ")" : "") + "...", "#7a5c00", "#fff8e1");
+  // fetch con limite de tiempo (25 seg) para no quedar esperando para siempre
+  var timeout = new Promise(function(_, rej){ setTimeout(function(){ rej(new Error("timeout")); }, 25000); });
+  Promise.race([ fetch(API).then(function(r){ return r.json(); }), timeout ])
+  .then(function(json) {
+    if (json.ok && json.data) {
       var key = function(d) { return d.Pedido+"|"+d.Cliente+"|"+d["Tipo Material"]+"|"+d.Proveedor; };
       var sk = new Set(allData.map(key));
       var nr = json.data.filter(function(d) { return d.Pedido && !sk.has(key(d)); });
       nr.forEach(function(d){ if(d.Fecha && String(d.Fecha).indexOf("T")>=0){ var dt=new Date(d.Fecha); d.Fecha=("0"+dt.getDate()).slice(-2)+"/"+("0"+(dt.getMonth()+1)).slice(-2)+"/"+String(dt.getFullYear()).slice(-2); } });
       allData = allData.concat(nr);
       renderAll();
+      if (json.proveedores) { provData = json.proveedores; renderContactos(); }
+      if (json.clientes) {
+        clientesBlanco = json.clientes.blanco || [];
+        clientesNegro = json.clientes.negro || [];
+        idxBlancoPorNum = {};
+        clientesBlanco.forEach(function(c){ idxBlancoPorNum[String(c.Numero).trim()] = c.Nombre; });
+        idxNegroPorNum = {};
+        clientesNegro.forEach(function(c){ idxNegroPorNum[String(c.Numero).trim()] = c.Nombre; });
+      }
+      if (!json.proveedores) loadProveedores();
+      if (!json.clientes) loadClientes();
+      // Datos OK
+      datosListos = true;
+      mostrarBanner("", null, null); // ocultar banner
+    } else {
+      throw new Error("respuesta sin datos");
     }
-    // Proveedores y clientes vienen en la MISMA respuesta
-    if (json.proveedores) { provData = json.proveedores; renderContactos(); }
-    if (json.clientes) {
-      clientesBlanco = json.clientes.blanco || [];
-      clientesNegro = json.clientes.negro || [];
-      idxBlancoPorNum = {};
-      clientesBlanco.forEach(function(c){ idxBlancoPorNum[String(c.Numero).trim()] = c.Nombre; });
-      idxNegroPorNum = {};
-      clientesNegro.forEach(function(c){ idxNegroPorNum[String(c.Numero).trim()] = c.Nombre; });
+  })
+  .catch(function() {
+    // Fallo: reintentar hasta MAX veces
+    if (intento < MAX) {
+      setTimeout(function(){ loadData(intento + 1); }, 1500);
+    } else {
+      // Se acabaron los reintentos: avisar y ofrecer boton recargar
+      mostrarBanner("⚠️ No se pudieron cargar los datos. <button onclick=\"loadData(1)\" style=\"margin-left:8px;padding:4px 12px;border:none;border-radius:6px;background:#c0392b;color:#fff;font-weight:600;cursor:pointer\">Reintentar</button>", "#fff", "#c0392b");
     }
-    // Respaldo: si por alguna razon no vinieron, pedirlos aparte (motor viejo).
-    if (!json.proveedores) loadProveedores();
-    if (!json.clientes) loadClientes();
-  }).catch(function() {
-    // Si falla la llamada unica, intentar el metodo viejo
-    loadProveedores();
-    loadClientes();
   });
 }
 
@@ -896,11 +920,19 @@ function updateProvFields() {
   document.getElementById("items-body").innerHTML = "";
   itemRows = [];
   addItemRow();
-  var peds = allData.filter(function(r) { return r.Proveedor === prov; }).map(function(r) { return parseInt(r.Pedido); }).filter(function(n) { return !isNaN(n); });
-  var sig = peds.length ? Math.max.apply(null, peds) + 1 : 1;
   var inp = document.getElementById("f-pedido");
-  inp.value = String(sig).padStart(3, "0");
-  inp.style.background = "#f0f7ff";
+  if (!datosListos) {
+    // Los datos todavia no cargaron: NO calcular el numero (saldria 001 erroneo). Avisar.
+    inp.value = "";
+    inp.placeholder = "Esperá a que carguen los datos...";
+    inp.style.background = "#fff8e1";
+    mostrarBanner("⏳ Todavía cargando datos. Esperá unos segundos y volvé a elegir el proveedor para que el N° de pedido salga correcto.", "#7a5c00", "#fff8e1");
+  } else {
+    var peds = allData.filter(function(r) { return r.Proveedor === prov; }).map(function(r) { return parseInt(r.Pedido); }).filter(function(n) { return !isNaN(n); });
+    var sig = peds.length ? Math.max.apply(null, peds) + 1 : 1;
+    inp.value = String(sig).padStart(3, "0");
+    inp.style.background = "#f0f7ff";
+  }
   // Completar el mail del proveedor desde la agenda de contactos
   var emailInp = document.getElementById("f-email");
   if (emailInp) {
