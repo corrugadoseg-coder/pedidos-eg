@@ -1163,6 +1163,7 @@ function autocompleteCaja(input, id) {
   var tr = document.getElementById(id);
   if (!tr) return;
   var rellenar = ["Cliente", "Tipo Material", "Largo", "Ancho", "Trazados", "Observaciones"];
+  var huboCampoOcupado = false;
   // Recorremos celda por celda (cada td es una columna del formulario, en orden de cols).
   var celdas = tr.querySelectorAll("td");
   cols.forEach(function(c, i) {
@@ -1213,6 +1214,9 @@ function autocompleteCaja(input, id) {
     // El campo principal de la celda es el primer input/select/textarea.
     var campo = celda.querySelector("select, textarea, input");
     if (!campo) return;
+    // SEGURIDAD: si el campo YA tiene un valor cargado por la persona, NO lo pisamos.
+    // El autocompletado solo llena lo que esta vacio (evita cambiar medidas sin querer).
+    if (String(campo.value || "").trim() !== "") { huboCampoOcupado = true; return; }
     var valor = match[c.key];
     // Si es un desplegable (select) y el valor no esta entre las opciones,
     // lo agregamos como opcion para poder seleccionarlo igual.
@@ -1230,6 +1234,11 @@ function autocompleteCaja(input, id) {
     }
     campo.value = valor;
   });
+  // Si habia campos ya cargados, avisar que NO se pisaron (para que la persona sepa).
+  if (huboCampoOcupado) {
+    var resAv = tr.querySelector(".cli-result");
+    if (resAv) resAv.innerHTML = (resAv.innerHTML || "") + " <span style='color:#7a5c00;background:#fff8e1;padding:2px 6px;border-radius:5px'>Se respetaron los datos que ya habías cargado (no se sobrescribieron).</span>";
+  }
   // Si la caja tambien figura en el otro registro, sumar aviso al resultado del cliente.
   if (avisoOtro) {
     var resCli = tr.querySelector(".cli-result");
