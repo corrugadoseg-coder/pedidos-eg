@@ -1,0 +1,2891 @@
+<!DOCTYPE html>
+<!--
+    ============================================================
+    EG Corrugados · Gestión de Pedidos
+    Desarrollado por Raquel — EG Corrugados SRL · 2026
+
+    En memoria de mi papá, Gerardo, analista programador,
+    que me enseñó a firmar lo que uno crea.
+    ============================================================
+-->
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E.G. Corrugados — Pedidos</title>
+<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.4/lib/msal-browser.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#f5f5f0;color:#222;font-size:14px}
+header{background:#1a1a2e;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px}
+header h1{font-size:18px;font-weight:600}
+header span{font-size:12px;opacity:.6}
+nav{background:#fff;border-bottom:1px solid #ddd;display:flex;gap:0;padding:0 24px;flex-wrap:wrap}
+nav button{padding:12px 18px;border:none;background:none;cursor:pointer;font-size:13px;color:#666;border-bottom:2px solid transparent}
+nav button.active{color:#1a1a2e;border-bottom-color:#1a1a2e;font-weight:600}
+nav button:hover{color:#1a1a2e;background:#f9f9f9}
+.page{display:none;padding:20px 24px;max-width:1400px;margin:0 auto}
+.page.active{display:block}
+.card{background:#fff;border-radius:8px;border:1px solid #e0e0e0;padding:20px;margin-bottom:16px}
+h2{font-size:16px;font-weight:600;margin-bottom:16px;color:#1a1a2e}
+h3{font-size:14px;font-weight:600;margin-bottom:12px;color:#333}
+.toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.toolbar input,.toolbar select{padding:7px 11px;border:1px solid #ddd;border-radius:6px;font-size:13px;background:#fff}
+.toolbar input{min-width:220px}
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+.filter-row span{font-size:12px;color:#888}
+.fbtn{padding:5px 14px;border:1px solid #ccc;border-radius:20px;background:#fff;font-size:12px;cursor:pointer;color:#555}
+.fbtn.active{background:#1a1a2e;color:#fff;border-color:#1a1a2e}
+.res-info{font-size:12px;color:#888;margin-bottom:8px}
+.date-range{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.date-range label{font-size:12px;color:#666;font-weight:600}
+.date-range input{padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:12px}
+.btn{padding:7px 16px;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600}
+.btn-dark{background:#1a1a2e;color:#fff}
+.btn-dark:hover{background:#2d2d4e}
+.btn-green{background:#2e7d32;color:#fff}
+.btn-green:hover{background:#1b5e20}
+.btn-outline{background:#fff;color:#1a1a2e;border:1px solid #1a1a2e}
+.btn-sm{padding:4px 10px;font-size:11px;border-radius:4px;border:1px solid #ccc;cursor:pointer;background:#fff}
+.tbl-wrap{overflow:auto;border:1px solid #e0e0e0;border-radius:8px;max-height:70vh}
+.scroll-top{overflow-x:auto;overflow-y:hidden;height:14px;position:sticky;top:0;z-index:6;background:#fff}
+.scroll-top div{height:1px}
+.obs-cell{max-width:150px}
+.btn-editar{white-space:nowrap}
+th:last-child,td:last-child{white-space:nowrap}
+table{width:100%;border-collapse:collapse;font-size:12px}
+.col-pedido{position:sticky;left:0;z-index:3;background:#fff}
+.col-pedido-head{z-index:7 !important}
+tbody tr .col-pedido{background:#fff}
+tbody tr.sep-pedido .col-pedido{background:#fff}
+thead th{background:#f0f0ec;color:#555;font-weight:600;padding:9px 10px;text-align:left;border-bottom:1px solid #e0e0e0;white-space:nowrap;cursor:pointer;user-select:none;position:sticky;top:0;z-index:5}
+thead th:hover{background:#e8e8e4}
+tbody tr{border-bottom:1px solid #f0f0f0}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:#fafaf8}
+tbody tr.anulado{opacity:.5}
+tbody tr.anulado td{text-decoration:line-through;color:#999}
+tbody td{padding:7px 10px;vertical-align:middle}
+.badge{background:#e8f0fe;color:#1a56db;font-size:11px;padding:2px 8px;border-radius:12px;font-weight:600;white-space:nowrap}
+.badge-prov{background:#e8f5e9;color:#2e7d32}
+.badge-env{background:#fff3e0;color:#e65100;font-size:11px;padding:2px 8px;border-radius:12px;font-weight:600}
+.badge-rec{background:#e8f5e9;color:#2e7d32;font-size:11px;padding:2px 8px;border-radius:12px;font-weight:600}
+.badge-anu{background:#fce4ec;color:#b71c1c;font-size:11px;padding:2px 8px;border-radius:12px;font-weight:600;text-decoration:line-through}
+.badge-nor{background:#fff8e1;color:#a06800;font-size:11px;padding:2px 8px;border-radius:12px;font-weight:600}
+mark{background:#fff3cd;border-radius:2px;padding:0 1px}
+.obs-cell{max-width:160px;white-space:normal;font-size:11px;color:#666}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group label{font-size:12px;color:#666;font-weight:600}
+.form-group input,.form-group select,.form-group textarea{padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;background:#fff}
+.form-group textarea{resize:vertical;min-height:80px}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:#1a1a2e}
+.form-divider{border:none;border-top:1px solid #eee;margin:16px 0}
+.items-table{width:100%;border-collapse:collapse;margin-bottom:12px}
+.items-table th{background:#f5f5f0;font-size:11px;color:#666;font-weight:600;padding:7px 8px;text-align:left;border:1px solid #e0e0e0}
+.items-table td{padding:4px;border:1px solid #e0e0e0;vertical-align:middle}
+.items-table td input,.items-table td select,.items-table td textarea{width:100%;padding:5px 6px;border:1px solid #ddd;border-radius:4px;font-size:12px;background:#fff}
+.items-table td textarea{min-height:60px;resize:vertical}
+.btn-remove{background:#fee;border:1px solid #fcc;color:#c00;padding:3px 8px;border-radius:4px;cursor:pointer;font-size:11px}
+.actions-row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.preview-box{background:#f9f9f6;border:1px solid #ddd;border-radius:6px;padding:16px;font-size:12px;line-height:1.6;margin-top:12px;max-height:400px;overflow-y:auto}
+.preview-box table{border-collapse:collapse;width:100%}
+.preview-box th{background:#f0f0ec;border:1px solid #ddd;padding:7px 10px;font-size:12px;text-align:left;white-space:nowrap}
+.preview-box td{border:1px solid #ddd;padding:6px 10px;font-size:12px}
+.status{padding:10px 16px;border-radius:6px;font-size:13px;margin-top:12px;display:none}
+.status.ok{background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;display:block}
+.status.err{background:#ffebee;color:#c62828;border:1px solid #ffcdd2;display:block}
+.status.loading{background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb;display:block}
+.prov-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.ptab{padding:7px 18px;border:1px solid #ddd;border-radius:20px;background:#fff;cursor:pointer;font-size:13px;color:#555}
+.ptab.active{background:#1a1a2e;color:#fff;border-color:#1a1a2e}
+.empty-state{text-align:center;padding:40px;color:#aaa;font-size:13px}
+.print-header{display:none;margin-bottom:16px}
+.btn-editar{background:#fff;border:1px solid #ccc;border-radius:4px;cursor:pointer;font-size:13px;padding:2px 7px;color:#555}
+.btn-editar:hover{background:#f0f0ec;border-color:#999}
+.modal-bg{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal-box{background:#fff;border-radius:10px;padding:22px;width:90%;max-width:460px;box-shadow:0 10px 40px rgba(0,0,0,.2)}
+.modal-box h3{margin-bottom:14px}
+.modal-box label{font-size:12px;color:#666;font-weight:600;display:block;margin-bottom:4px;margin-top:10px}
+.modal-box textarea{width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;min-height:70px;resize:vertical;font-family:Arial,sans-serif}
+.modal-actions{display:flex;gap:10px;margin-top:18px;justify-content:flex-end}
+/* Colores de fila por proveedor: se generan desde config.json (ver aplicarConfig) */
+tbody tr[class*="prov-"]:hover{filter:brightness(0.97)}
+
+.estado-sel{font-size:11px;padding:3px 6px;border-radius:12px;border:1px solid #ccc;font-weight:600;cursor:pointer;background:#fff}
+.estado-sel.sel-env{background:#fff3e0;color:#e65100;border-color:#ffe0b2}
+.estado-sel.sel-rec{background:#e8f5e9;color:#2e7d32;border-color:#c8e6c9}
+.estado-sel.sel-anu{background:#fce4ec;color:#b71c1c;border-color:#f8bbd0}
+.estado-sel.sel-nor{background:#fff8e1;color:#a06800;border-color:#ffecb3}
+.sep-pedido td{border-top:3px solid #555 !important}
+.btn-finalizar{background:#1b8a4b;color:#fff;font-weight:700;font-size:15px;padding:10px 20px}
+.btn-finalizar:hover{filter:brightness(1.08)}
+.fin-done{color:#1b8a4b;font-weight:700}
+.app-footer{margin:36px auto 24px;max-width:900px;text-align:center;padding:0 16px}
+.footer-line{height:1px;background:linear-gradient(to right,transparent,#d5d5d0,transparent);margin-bottom:16px}
+.footer-title{margin:0 0 4px;font-size:13px;font-weight:600;color:#666;letter-spacing:.3px}
+.footer-dev{margin:0 0 10px;font-size:12px;color:#999}
+@keyframes cartelPop{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+.cartel-prueba{position:sticky;top:0;z-index:2000;background:#c0392b;color:#fff;text-align:center;font-size:13px;font-weight:700;padding:6px 12px;letter-spacing:.3px}
+.cartel-prueba span{font-weight:400;opacity:.85;margin-left:8px}
+/* Barra de sesion Microsoft 365 + indicador de guardado */
+.m365-barra{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.m365-barra span{opacity:1}
+.m365-usuario{font-size:12px;color:#ddd}
+.m365-btn{padding:4px 10px;font-size:11px;border-radius:4px;border:1px solid #888;cursor:pointer;background:transparent;color:#fff}
+.m365-btn:hover{background:rgba(255,255,255,.12)}
+.sync-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;white-space:nowrap;cursor:default}
+.sync-ok{background:#e8f5e9;color:#2e7d32}
+.sync-busy{background:#e3f2fd;color:#1565c0}
+.sync-err{background:#c0392b;color:#fff}
+</style>
+</head>
+<body>
+<div class="cartel-prueba" id="cartel-prueba">VERSIÓN DE PRUEBA — datos de prueba, no es la app real<span id="version-365">365 · v1.0 (2026-10-20)</span></div>
+<script>
+// ¿Version de prueba o real? Se decide por la DIRECCION, asi el mismo archivo sirve para las dos:
+//   .../pedidos-eg/365/  -> PRUEBA: carpeta pedidos/datos-prueba, franja roja, mail sin destinatario
+//   .../pedidos-eg/      -> REAL:   carpeta pedidos/datos
+var ES_PRUEBA = /\/365\/(index\.html)?$/i.test(location.pathname);
+if (ES_PRUEBA) document.title = "PRUEBA · " + document.title;
+else document.getElementById("cartel-prueba").style.display = "none";
+</script>
+<header>
+  <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAIAAABt+uBvAAABCGlDQ1BJQ0MgUHJvZmlsZQAAeJxjYGA8wQAELAYMDLl5JUVB7k4KEZFRCuwPGBiBEAwSk4sLGHADoKpv1yBqL+viUYcLcKakFicD6Q9ArFIEtBxopAiQLZIOYWuA2EkQtg2IXV5SUAJkB4DYRSFBzkB2CpCtkY7ETkJiJxcUgdT3ANk2uTmlyQh3M/Ck5oUGA2kOIJZhKGYIYnBncAL5H6IkfxEDg8VXBgbmCQixpJkMDNtbGRgkbiHEVBYwMPC3MDBsO48QQ4RJQWJRIliIBYiZ0tIYGD4tZ2DgjWRgEL7AwMAVDQsIHG5TALvNnSEfCNMZchhSgSKeDHkMyQx6QJYRgwGDIYMZAKbWPz9HbOBQAAAR3ElEQVR42u1caXQU15W+91VVV+/d2tCOxCYhJCGxWCy2MTaLAzYOYxsvJ07ixPZkPTmTmUkmx5OFxHGcTBKfTEhCjMdJfGyPA7YZm+BgBYjBwRDAIDYhkBBo37fel6r37vwoSchIgJHUMsz0O310SrV11ffu++5377uvkYgg3i7fWByCOEBxgOIAxQGKAxQHKA5QHKB4iwMUB2j8mzzG6yc4lEPECQYIR/OGxiUT/qwAQCQQ2XVvQQPQEIme1gZENgFgEQlFtTgTJxHRRNrRNQJEAAi6x4tmlZlMANheV7N/yybVYiUaOAyGSeLABWPfJgAkIES8ac0jBYtXGFY/MTBdo7mSAAD9Qp13w0ZABCFmLV5RtvYzkVBQkiREhoiIbGBjvLYZIkpMQoL9r206tP0V4zCRmACApPXr118b+yAKvy/06+cECbW0ROha2tQCAmg8fdSkWmLL2YzJJrX5zPHejubsgjmSrJAQsbajUREeF8zliryxzf/WdiYrQtPmfeKBwqV3h/x9TJJiykMkhMXhqqvYv2PjU76eDmSMhLj+AAIAISSHPfziK4E976GiCF1f9A+Pzli4LOTzxBYjAMG52e7sbqx9+1fr2y6cjTVGo3eZBMAs5tBvNoUrjqEsk86XPPjF3NKFYb93AjAymW0Rv7d809Pnju5DxogExGZ0s7EYPDBkkhR4dkP0XC3KEhAtfeRr6fmzwwFfzDESXFJMjPC9lzdU7HzDkBqxYMCxiS5BIMssEvH/5FmtrR0lSZaV5Z/755ScGZGgP9YYkRDImMlsO7L91ff+uJHrGiKO+3BjY+9KMJuxt9f3459zr48ATGbb8se+4UrLioaCjMUYIyIiYbG7qg/sLt/0o6C3d9wpaTxkO+dgtVJ9g+enz5KmkeBWh3vl49+0JSRrkRCymEcGQnCLw9VWc/rtX3+/u/kCMiYEv86iec7RYaeTld7//DUgI113JKYuf/ybJpuDa9GJwIhz1WoP9HTs2PjD+soPGJNIiAEtfp2kOzhnTifft9/3/O9BloWuJaZlL//8vzJZEbrOJBkZi+mHgExmK3H+7ou/qNz3DjI2ELJMZDQvBDAWPVvt+84P0GQa7llRkoTHY/rUQ44H7hOaxhSlufrkrv/6iR4JA2MQ+9SIIazDIV/hktUL1z6qWmyAMBak5HFmTc6Z0xF5dTO6XfaVy4WuZeYV3/7o12uP7JNNZiIxjiHsiNsAgIDIWMjvaTh9dPq8W4HGlGuQx70PiUCy2cKbfie5nJYFZcT55FnzJs+a9/80oziy70WUFCWwYaOcmalkZRLnH0t2DRmOnYbkmDwaESkKBvyiswuyMhER2I2a/I7ZcxMBQ5BluMFbLF+AYLibM7Tv1TwRu2qWh0gQEX5oBJFB0OObIZroHkZExDHFH0YIhsguiwMREY2XOp04gIxke3dzXdv5qsvPTBAyKae4zOpwDU/OG3uMSKKzobarodbb1RoO+kkI2aRanQnutKyU7GmulHTjwnFJ78sTiY63u23Hb34Q8nmQGYMIh9uXFg3nlBy584l/G9FwdF07s39nzeE93vYWrmsXpc+AElLMluTs6XkLlk6bewsijh0jecLsBxD7OlqiwYDNlSgE1yMRIjFkFsRwzIwhhjw9QDTUygx0OpvO79+yqbP+nMlsMY4iY0ySAFBwnQRJsoKAbbWnm6uPn/37X29e94QrJd346huDg5AxYExwTkAZM2fLigoghttRwS2fQGSDnW+g01x9YvfvnxVaxOp0hwM+e1JqTtH8lNw8mysREUN+T09zXVPV8c6GGkmWzVZ3W82pHRufWvWl77iS08ZiRxPvhskgmlsf+qLF7rpqVGXQbXdz3V//8CwIrqjWcDBQdPuakmVrVat96Pk5hfNLV9xXf+rwkT9v7m1tsDkTfF1tJ/e+fcv9j4MQcOMA1A+TFo2YDVd9yaMTXOKqdS2yb/Nv9UjEZLFFQ/5F9z9WsGiFYVmXRGLIWG5xWfr0wkN/eqX2g70oyyk5028wN/9hf88AhgGElxJz1f5dnXXnrO7EkLe3eNknCxatEJwbKY7hV5EQqsV26wP/OHPRMiFEas6M/qF9wwH0UawMGdMiobPv7zRZLFo45ErLmnPnOiJi7LLVAMiYUXGSkj3t+g41xg6PIABoqj7h6WyRTWYtGi64eYViUq/ulQYmpsdlbvp6j5WaTlcAgOC6xe7KKS4z3v+jDeEbTUkPF34kBA03hwGGNhRzd9MFWVG1aCR1WoHdnQyXd9g0sqsioBuTg0wWKzKGV1TeIZ8n6OmRZFkPhpMycqC/gEq6LPuMtHuMGaGPByAiqD/1gcXuIhKI2F9XBECCkrOn2lyJBtGE/R4tEpYVEwA4ElMGAvYRbqdr0aPlr/W01DNZHpJCQATILr5p5oI7Rq2nJxwgAgAEwfdvef6S+QJEELruSs+++6vrVasDAKLhkOAcFARA1WYf0R4MKdB4puLoji0Wu3PorKGREqk/eTghNTM1N98484bxYowxiTGJSYMfhpKkmPraGkN+z4CMHpjbwsuTLgIAWB0Jqs2ua5oQQnDOORdCyKrZbHMisp6W+otq8sbgIER3Wnb/cBgYYgjI9WjWrLmulEyjt2XFZIhJINK06BW8VeqU/FVf+V5fWxNjkjEQudBP7NwaDQZhoBSXRpWgnnCAsF8BLvv8v9jdyZd7aOOVVKtDUhSDU0LeXsMnXe4l03Lz03Lzh+6p2rsj4vcDgsFio6Prj22I9RPQCDlZMRg5WJ1us81hBBZ97S1XfkkiIQQnIUhwEiIaDgqhGyZ2SVgbe4AwhkXS/VyDSESKanFOytS1qKyYepovcP1K0/yIjDEJGQNkyJgWCUdDQWQoyYrVlXhJlBdbgIgLCkdAirH1kQCA9OmFnOuSono6Wjsaao0yxauLCKKe5rpIwAcAqt3hTEqdqCGGCERSWhorKqA+D7JYlpAjA4DJRfNUq41IEOdnD+z+qF+HeP7YASDgmpaQlq1a7TRaHXTtAAHICW73+m8ra9fwQBB0PUamZASc7pSMrFlzokG/arPXHT/QduHMlct/hODIWHdLXd2JgyaLjetaduHcEckuZkMMEYiYojg/9xnrN/6JrFbwB+Daq+2MaHvEzyU+r2TZWsmkkiAkfH/LpnDAy5gkOL9EZxKREJwxSY9G3t/yvOC6ENzqTppasgjGUJY/OpJGIAIhrIsWOJ/5Ac4uIo8HEK/JhhXV0k+r/RX1Fz8fMiIhEtNzSlbcG/T3KRart6O1fNMzfZ0tTJIGc7L9jg+RMSno69v1+591NZwzW+zhgLdo6V1mQ15PdMrVgEMIJXWS67tPBja/FnnjLSZJoKrA+Uexn/YLZ6yOBCLRz53YPw4kWU7KnDLY4UbNYcmytb1tjecO7rEnJPU21/95w/cKbrlz6pzFzuT0wemjQF9P/anDlXu2+3s7LXZXwNOdU7ygcMlqIvHxRfOMARFDdDz8oJKfF3jud9DRgQ7H5TAyJosRGZHY+9IvDek/tMYHEHUtMvPmO2++77HBlU+ISABLHv6yJMnVB3arVrvQ9Yp3Xqt878+OpDSr0w1Miga83q62kNejmFRFtfj7urIK5932yFcZk8ZYPy2PnUsBALgwz50jP/N9/29f4AcPM4edRjJpxaTqWoRJ8lDdP/Q8hoiCWs4e/9C6MEQkkiR5ycNfTsmZcXzX//h7O2TZxKNab3NdT6MgIESGjDEmRSNBs905d/VDpSvulSR57BOH41d8LQQwRgCBrW+GN7/OkBEJ+79/S51dZBwCIs71A2/+ofXsyQGMRoBbcF58xz0zFy4b9m6Gp8aw31dbsa/xdIWnoyUaCgjBEZDJsslidSanZeQVTyld5EhI6R+xY1Yh41qdPrASMVxZGXzuBVFT6/iPH6nFhf0ADTRdjwINsR+6+JeImCQxJl8hDzlIKJGgP+T3aNEIIppUi9nuNJmtw0+7ngAaYkq6z+f95UbrqpXmuaVDAfooNn/lc4ioP/E67Bzj0PhWwMRkfYPRgQRAoRCzWK4xn4Yf3WCHsjxCTCJEjNUSuPEY/9dDY2Mxk6EJCiPfcPGQISYH0O8/NPTfy3TM0BK0YXEpfYjsjJMvPgYNplCMO1y81ZAnmWgLuoQvLpZkAF01er7COUbQcA0Dk/rHFxdcYtLQJxFCsAkWigamJ9/9U9WBnTwaTZ9ReOtDXyLBD771UuPpoyhJeWVL56y8P+jr2/vyhqC3lwTllJTNWXHvgTdfbK89AyASM3IX3/fYkR2bTVb7TasfAoCaw3vPHX1/1Ree9PV2Hnzzxc76c0yWp5QuKl1+r0k1a9FI+fPPuFOzbln3BACcfr+8al85IKoWW9HSu3OLywChq+n8wbde8nS2WJ0Jc1c9OLlgTtDbe2DrH1rPVdoSEpc8/JWkjJxRyCI2GgJGPL77zf1vvJA7u6x46d2C60Lo7736m5pD75YsWztz4bIPtr1yfOdWrmuNp49k5pdMKV1YsWPL+WMHOmqrrA53/sJl9ScOHtu11dvZ2tvaYNzW29nW3XRBi4b/sumZrsbz81Y9WLB4Re2Rv/W01QNi3alDHRfO1B0/0NvWBAAtNafCAW/egjtUm6P8t083njkWDvq2/+p7XI/OX/2wIzn1nY1Pdbc2HNu5tanq6MK1n0nOmqprkYmxIELGuB6t3Pt2yfK1C9Z82tjb295Ue2Tfyie+lVtcBgAkeOV7b6fnFSlm24yype7UjKPvbAn7vUxWMvKLipeuObN/Z7CvWzapTFYGYy6r091UdaynpX7dtze4UzLCAW9GfonNnQgAZ/fvKlq6pq+tsebwu2VrPo2A7vTJxbfdVXzbXdt8fWcP7OprbwIhVn/5u7Ki5pUt7WttrNyzXQAJrhNR2T2PqBb7CJUk425BBl9FQsFoKDApN19wPRoKkRCBnk5JVhLTJ3Nd47qenD1Nj0aD3j6T2VL+3NOv/fBr0+cvmTbvVgA4sfutzU99RbU5S++8X49GmCQZc9DIJATwdrZaHG53SkZHQ81/r//Sn37x5KFtrwS8vZ0NtfmLl+eWLqo7cRgAUJK4pnFdI6KU7GmBvp7e1gZ3apasqHo0AkTJWVP62pvnrlyXObPkb3/c+PKTnz/z910Ao1mPeG0AGT1gttrNdlfL2eNMkk0WCzLmnJQuuN5eVy3JiiTLrecqFbPV5koAxIz82SGfZ+bi5TZnghYJZ84s0SLhjLzixLTJRBT09BiVPoG+TkSWmJkb9PT0tNRPmjzjge/8ypmcJrjWdOZYNOjf9cJPK8rf8Ha1eXvaFdUsSZIkK4jYVltlT0hKmTyjp6U+EvTLJhUQ2+uqHUmTnEmTVj7+rc/9/NXUqTNP7N4GoyoUusYfFgAgIZgkyar6wfZXvN3tbbVVB7e9lFd2uxDi8LaXOdfqThw6vmtr2T2PpEyefvitl+/47NetTveu3/0sI6/4/NH9U0sXFt9+d/lzzziSJ2UXzvvg7VeDvt7Wc1Un3902e9knZ8y/rbn6xKk927mu1Z842FpzquyeTx/7y+tJGTlT59w8KWdGb3O9Ho0S501VR8MBf0X56x11NYvXPZFdUFpzaE/1oXcjoeCRdzb3tNTd8ejXj5a/UVH+ur+7o/7k4fQZhVNKFo6CpK8ZIKO2NiV7mjstu6X6hKerLSNvdvasOTmF85miNJw6Evb1zVv98Kyb7+Ra1NPTnlM0L7e4zN/TabY7VZvdnZo5edZ8k9Xm7WorXnJXYkZOQ+URb3f7nE88ULRkFQDmliyIhAKNpyv0aGTxusezZpY2VlXctOZTU2YvmJSbJ5stejScPqMw2Nsd8vVZnO5bHvxC+rRZkiTnzl7g7WprqT5pdbhu+9RXkzKnaNFId/OF7qa67FlzFnzys7LJNAq1PVoddHWhPCRo+PDJg6mMa+pPEhwAcERxRDR81dx4/UjM6IWiIZdxoBB1UAEQAAzuGdSNJBCwH7OBBe79q7gvuUl/LMoIyLgPEQ32vLFNgx1ANDht33+hseoZwUjLGfNl/T/xMSq8MP5rwLGKxeIAxVscoDhAcYDiAMUBigMUBygOUBygeIsDFAcoDlAcoDhAcYD+D7b/BU/uRFwRvLpQAAAAAElFTkSuQmCC" alt="E.G. Corrugados" style="height:42px;width:42px;border-radius:8px;background:#fff;padding:3px;object-fit:contain">
+  <div>
+    <h1>E.G. Corrugados S.R.L.</h1>
+    <span>Sistema de pedidos de materia prima</span>
+  </div>
+  <div class="m365-barra">
+    <span id="sync-badge" class="sync-badge sync-busy">conectando…</span>
+    <span id="m365-usuario" class="m365-usuario"></span>
+    <button id="m365-btn" class="m365-btn" style="display:none"></button>
+  </div>
+</header>
+<div id="banner-carga" style="display:none;padding:10px 16px;text-align:center;font-size:14px;font-weight:600"></div>
+<nav>
+  <button class="active" onclick="goTo('buscar',this)">Buscador</button>
+  <button onclick="goTo('nuevo',this)">Nuevo pedido</button>
+  <button onclick="goTo('proveedores',this)">Por proveedor</button>
+  <button onclick="goTo('historial',this)">Historial</button>
+  <button onclick="goTo('contactos',this)">Contactos</button>
+  <button onclick="goTo('herramientas',this)" style="margin-left:auto">Herramientas</button>
+</nav>
+
+<div id="page-buscar" class="page active">
+  <div class="card">
+    <h2>Buscador de pedidos</h2>
+    <div class="toolbar">
+      <input type="text" id="q-buscar" placeholder="Buscar..." oninput="renderBuscar()">
+      <select id="prov-filter-b" onchange="renderBuscar()"><option value="">Todos los proveedores</option></select>
+      <select id="estado-filter-b" onchange="renderBuscar()"><option value="">Todos los estados</option><option value="Enviado">Enviado</option><option value="Recibido">Recibido</option><option value="No recibido">No recibido</option><option value="Anulado">Anulado</option></select>
+      <button class="btn btn-dark" onclick="exportCSV('buscar')">Exportar CSV</button>
+      <button class="btn btn-green" onclick="exportExcel('buscar')">Exportar Excel</button>
+    </div>
+    <div class="filter-row">
+      <span>Filtrar por:</span>
+      <button class="fbtn active" onclick="setFB('todos',this)">Todos</button>
+      <button class="fbtn" onclick="setFB('Pedido',this)">N pedido</button>
+      <button class="fbtn" onclick="setFB('Fecha',this)">Fecha</button>
+      <button class="fbtn" onclick="setFB('Cliente',this)">Cliente</button>
+      <button class="fbtn" onclick="setFB('N Caja',this)">N° caja</button>
+    </div>
+    <div class="res-info" id="res-buscar"></div>
+    <div class="scroll-top" id="stop-buscar"><div></div></div>
+    <div class="tbl-wrap" id="twrap-buscar"><table><thead><tr id="thead-buscar"></tr></thead><tbody id="tbody-buscar"></tbody></table></div>
+  </div>
+</div>
+
+<div id="page-nuevo" class="page">
+  <div class="card">
+    <h2>Nuevo pedido</h2>
+    <div class="form-grid">
+      <div class="form-group"><label>N de Pedido <span style="font-weight:400;color:#999">(provisorio: se confirma al guardar)</span></label><input type="text" id="f-pedido" placeholder="Ej: 1401" readonly title="El N° se asigna al guardar: el más alto de ese proveedor + 1"></div>
+      <div class="form-group"><label>Fecha</label><input type="date" id="f-fecha"></div>
+      <div class="form-group"><label>Proveedor</label><select id="f-proveedor" onchange="onProvChange()"></select></div>
+      <div class="form-group"><label>Tipo de artículo</label><select id="f-tipo" onchange="updateProvFields()" disabled><option value="">- Elegí proveedor -</option></select></div>
+      <div class="form-group"><label>Email del proveedor</label><input type="email" id="f-email" placeholder="proveedor@email.com"></div>
+    </div>
+    <hr class="form-divider">
+    <h3>Items del pedido</h3>
+    <div style="overflow-x:auto">
+      <table class="items-table"><thead id="items-thead"></thead><tbody id="items-body"></tbody></table>
+    </div>
+    <button class="btn btn-outline" style="margin-bottom:12px" onclick="addItemRow()">+ Agregar item</button>
+    <hr class="form-divider">
+    <h3>Vista previa del mail <span style="font-size:11px;color:#888;font-weight:400">(sin datos internos)</span></h3>
+    <div id="preview-box" class="preview-box"><p style="color:#aaa;font-size:12px">Hace click en Previsualizar para ver el pedido</p></div>
+    <div class="actions-row">
+      <button class="btn btn-dark" onclick="previewMail()">Previsualizar</button>
+      <button class="btn btn-finalizar" onclick="abrirFinalizar()">✓ Finalizar pedido</button>
+    </div>
+    <details style="margin-top:8px"><summary style="cursor:pointer;font-size:12px;color:#888">Más opciones (sueltas)</summary>
+      <div class="actions-row" style="margin-top:8px">
+        <button class="btn btn-green" onclick="accionSuelta('copiar')">Copiar para mail</button>
+        <button class="btn btn-green" onclick="accionSuelta('outlook')">Copiar + abrir Outlook</button>
+        <button class="btn btn-dark" onclick="accionSuelta('imprimir')">Imprimir pedido</button>
+        <button class="btn btn-dark" id="btn-guardar" onclick="guardarPedido()">Guardar pedido</button>
+      </div>
+    </details>
+
+    <!-- Ventanita Finalizar pedido (3 pasos) -->
+    <div id="modal-finalizar" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center">
+      <div style="background:#fff;border-radius:12px;max-width:460px;width:92%;padding:22px;box-shadow:0 10px 40px rgba(0,0,0,.3)">
+        <h3 style="margin:0 0 4px;font-size:18px">Finalizar pedido</h3>
+        <p style="margin:0 0 16px;color:#777;font-size:13px">Primero se guarda (ahí se asigna el N° definitivo); después enviás e imprimís. Se van marcando a medida que los completás.</p>
+        <div id="fin-paso-guardar" style="display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #e0e0e0;border-radius:8px;margin-bottom:10px">
+          <span class="fin-check" style="font-size:20px;width:24px">1.</span>
+          <div style="flex:1"><strong>Guardar</strong><div style="font-size:12px;color:#888">Asigna el N° y guarda el pedido</div></div>
+          <button class="btn btn-green" id="fin-btn-guardar" onclick="finGuardar()">Guardar</button>
+        </div>
+        <div id="fin-paso-mail" style="display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #e0e0e0;border-radius:8px;margin-bottom:10px">
+          <span class="fin-check" style="font-size:20px;width:24px">2.</span>
+          <div style="flex:1"><strong>Enviar por mail</strong><div style="font-size:12px;color:#888">Copia el pedido y abre el correo</div></div>
+          <button class="btn btn-green" id="fin-btn-mail" onclick="finEnviar()">Enviar</button>
+        </div>
+        <div id="fin-paso-imp" style="display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #e0e0e0;border-radius:8px;margin-bottom:16px">
+          <span class="fin-check" style="font-size:20px;width:24px">3.</span>
+          <div style="flex:1"><strong>Imprimir</strong><div style="font-size:12px;color:#888">Abre la impresión del pedido</div></div>
+          <button class="btn btn-dark" id="fin-btn-imp" onclick="finImprimir()">Imprimir</button>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span id="fin-aviso" style="font-size:12px;color:#c47f00"></span>
+          <button class="btn btn-dark" onclick="cerrarFinalizar()">Cerrar</button>
+        </div>
+      </div>
+    </div>
+    <div id="status-nuevo" class="status"></div>
+  </div>
+</div>
+
+<div id="page-proveedores" class="page">
+  <div class="card">
+    <h2>Pedidos por proveedor</h2>
+    <div class="prov-tabs" id="prov-tabs"></div>
+    <div class="toolbar">
+      <button class="btn btn-dark" onclick="exportCSV('prov')">Exportar CSV</button>
+      <button class="btn btn-green" onclick="exportExcel('prov')">Exportar Excel</button>
+    </div>
+    <div class="res-info" id="res-prov"></div>
+    <div class="scroll-top" id="stop-prov"><div></div></div>
+    <div class="tbl-wrap" id="twrap-prov"><table><thead><tr id="thead-prov"></tr></thead><tbody id="tbody-prov"></tbody></table></div>
+  </div>
+</div>
+
+<div id="page-historial" class="page">
+  <div class="card">
+    <h2>Historial completo</h2>
+    <div class="toolbar">
+      <input type="text" id="q-hist" placeholder="Buscar..." oninput="renderHistorial()">
+      <select id="prov-filter-h" onchange="renderHistorial()"><option value="">Todos los proveedores</option></select>
+      <select id="estado-filter-h" onchange="renderHistorial()"><option value="">Todos los estados</option><option value="Enviado">Enviado</option><option value="Recibido">Recibido</option><option value="No recibido">No recibido</option><option value="Anulado">Anulado</option></select>
+      <button class="btn btn-dark" onclick="exportCSV('hist')">Exportar CSV</button>
+      <button class="btn btn-green" onclick="exportExcel('hist')">Exportar Excel</button>
+    </div>
+    <div class="date-range">
+      <label>Desde:</label><input type="text" id="h-desde" placeholder="01/01/26" oninput="renderHistorial()" style="width:90px">
+      <label>Hasta:</label><input type="text" id="h-hasta" placeholder="31/12/26" oninput="renderHistorial()" style="width:90px">
+      <label>Pedido desde:</label><input type="text" id="h-ped-desde" placeholder="001" oninput="renderHistorial()" style="width:70px">
+      <label>hasta:</label><input type="text" id="h-ped-hasta" placeholder="999" oninput="renderHistorial()" style="width:70px">
+      <button class="btn-sm" onclick="clearHistFilters()">Limpiar</button>
+    </div>
+    <div class="res-info" id="res-hist"></div>
+    <div class="scroll-top" id="stop-hist"><div></div></div>
+    <div class="tbl-wrap" id="twrap-hist"><table><thead><tr id="thead-hist"></tr></thead><tbody id="tbody-hist"></tbody></table></div>
+  </div>
+</div>
+
+<div id="page-contactos" class="page">
+  <div class="card">
+    <h2>Contactos de proveedores</h2>
+    <div class="toolbar"><button class="btn btn-dark" onclick="abrirContacto(null)">+ Agregar proveedor</button></div>
+    <div class="res-info" id="res-contactos">Cargando contactos...</div>
+    <div class="tbl-wrap"><table><thead><tr id="thead-contactos"></tr></thead><tbody id="tbody-contactos"></tbody></table></div>
+    <p style="font-size:12px;color:#888;margin-top:12px">Para cambiar un contacto, tocá &#9998; en su fila. El nombre tiene que ser igual al del desplegable de proveedores para que el mail se complete solo.</p>
+  </div>
+</div>
+
+<div id="page-herramientas" class="page">
+  <div class="card">
+    <h2>Importar desde Google (planilla en vivo)</h2>
+    <p style="font-size:13px;color:#555;line-height:1.5;margin-bottom:12px">
+      Lee <strong>una sola vez</strong> todos los datos de la app de Google (pedidos, clientes y contactos) y los guarda en
+      SharePoint, en la carpeta <strong id="imp-carpeta"></strong>. La planilla y el Apps Script no se tocan.
+      Además guarda una copia exacta de lo que llegó de Google en <em>importaciones/</em>.
+    </p>
+    <div class="form-group" style="max-width:720px">
+      <label>Dirección del Apps Script (termina en /exec). No se guarda en ningún lado.</label>
+      <input type="text" id="imp-url" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off">
+    </div>
+    <div class="actions-row">
+      <button class="btn btn-dark" id="imp-btn" onclick="importarDesdeGoogle()">Importar</button>
+    </div>
+    <div id="imp-status" class="status"></div>
+    <div id="imp-informe" style="margin-top:14px"></div>
+  </div>
+  <div class="card">
+    <h2>Comparar con Google (IDÉNTICOS)</h2>
+    <p style="font-size:13px;color:#555;line-height:1.5;margin-bottom:12px">
+      Lee Google en vivo (con la misma dirección de arriba) y lo compara con lo que hay en SharePoint
+      (<strong id="cmp-carpeta"></strong>): renglón por renglón por ID, campo por campo, los clientes y los contactos.
+      No graba nada en ningún lado.
+    </p>
+    <div class="actions-row">
+      <button class="btn btn-dark" id="cmp-btn" onclick="compararConGoogle()">Comparar</button>
+    </div>
+    <div id="cmp-status" class="status"></div>
+    <div id="cmp-informe" style="margin-top:14px"></div>
+  </div>
+</div>
+
+<div id="modal-contacto" class="modal-bg">
+  <div class="modal-box">
+    <h3 id="mc-titulo">Editar contacto</h3>
+    <label>Proveedor</label>
+    <input type="text" id="mc-proveedor" style="width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px">
+    <label>Mail</label>
+    <input type="email" id="mc-mail" style="width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px">
+    <label>WhatsApp</label>
+    <input type="text" id="mc-wa" placeholder="11 1234-5678" style="width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px">
+    <label>Teléfono</label>
+    <input type="text" id="mc-tel" style="width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px">
+    <label>Contacto</label>
+    <input type="text" id="mc-contacto" style="width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px">
+    <div id="mc-status" style="font-size:12px;margin-top:10px;display:none"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" id="mc-quitar" onclick="quitarContacto()" style="margin-right:auto;color:#b71c1c;border-color:#b71c1c">Quitar</button>
+      <button class="btn btn-outline" onclick="cerrarContacto()">Cancelar</button>
+      <button class="btn btn-dark" id="mc-guardar" onclick="guardarContacto()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-editar" class="modal-bg">
+  <div class="modal-box">
+    <h3>Editar pedido <span id="modal-ped-num" style="color:#888;font-weight:400"></span></h3>
+    <label>Observaciones</label>
+    <textarea id="modal-obs"></textarea>
+    <label>Anotaciones</label>
+    <textarea id="modal-ano"></textarea>
+    <div id="modal-status" style="font-size:12px;margin-top:10px;display:none"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="cerrarEditar()">Cancelar</button>
+      <button class="btn btn-dark" id="modal-guardar" onclick="guardarNotas()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!--
+    ============================================================
+    EG Corrugados · Gestión de Pedidos
+    Desarrollado por Raquel — EG Corrugados SRL · 2026
+
+    En memoria de mi papá, Gerardo, analista programador,
+    que me enseñó a firmar lo que uno crea.
+    ============================================================
+-->
+<footer class="app-footer">
+  <div class="footer-line"></div>
+  <p class="footer-title">EG Corrugados · Gestión de Pedidos</p>
+  <p class="footer-dev">Desarrollado por Raquel — EG Corrugados SRL · 2026</p>
+</footer>
+
+<script>
+// VERSION 365: los datos se leen y se guardan en SharePoint (sitio Apps EG).
+// Esta copia no tiene ninguna conexion con Google.
+
+/* =====================================================================
+   MICROSOFT 365 / SHAREPOINT (mismo enfoque que Balance)
+   - Login con la cuenta de la empresa (MSAL). Popup y, si el navegador
+     lo bloquea, redireccion.
+   - Un archivo JSON por tabla en el sitio Apps EG. Cada grabacion usa
+     eTag (If-Match): si otra persona grabo en el medio, SharePoint la
+     rechaza (412) y la operacion se vuelve a aplicar sobre lo nuevo.
+   - Nunca se inventa una base vacia: si los archivos no existen, se
+     bloquea el guardado hasta importar.
+   ===================================================================== */
+var VERSION_365 = "365 · v1.0 (2026-10-20)";
+var M365 = {
+  tenant: "f943f6a4-62dd-4a9b-ba93-c2640a30c7cf",
+  client: "4dfd2f42-3c4e-4071-b364-1747688ef8da",
+  siteHost: "egcorrugados.sharepoint.com",
+  sitePath: "/sites/AppsEG",
+  carpeta: ES_PRUEBA ? "pedidos/datos-prueba" : "pedidos/datos",   // segun la direccion (ver arriba, junto al cartel)
+  scopes: ["User.Read", "Sites.ReadWrite.All", "Files.ReadWrite.All"],
+  graph: "https://graph.microsoft.com/v1.0"
+};
+// En la version de prueba (ES_PRUEBA, definida junto al cartel) el mail se abre sin destinatario.
+function abrirMail(url) { window.location.href = url; }
+var MAX_BACKUPS = 20;        // respaldos rotativos por tabla
+var MAX_INTENTOS = 5;        // reintentos de una operacion si otra persona grabo en el medio
+var TABLAS = ["pedidos", "clientes", "proveedores", "config"];
+var SESION = { ok: false, cuenta: null, oid: "", nombre: "", siteId: "", error: "" };
+var DB = {};          // contenido de cada tabla, tal cual esta en SharePoint
+var DBMETA = {};      // por tabla: { etag, raw } (ultimo contenido leido o grabado)
+var DBINIT = false;   // ¿existen los archivos en SharePoint? (nunca inventar vacio)
+var DBERROR = "";     // motivo por el que la base no se puede usar (archivo dañado, falta uno, etc.)
+var _pca = null;
+
+/* ---- indicador de estado (arriba a la derecha) ---- */
+var _syncEstado = "busy";
+function setSync(estado, txt, detalle) {
+  _syncEstado = estado;
+  var b = document.getElementById("sync-badge");
+  if (!b) return;
+  b.className = "sync-badge " + (estado === "ok" ? "sync-ok" : estado === "busy" ? "sync-busy" : "sync-err");
+  b.textContent = txt || (estado === "ok" ? "guardado en SharePoint" : estado === "busy" ? "guardando…" : "sin conexión — no se guarda");
+  b.title = detalle || "";   // motivo real al pasar el mouse
+}
+function estadoBaseEnBadge() {
+  if (!navigator.onLine) { setSync("err", "sin conexión — no se guarda", "El navegador no tiene internet."); return; }
+  if (!SESION.ok) { setSync("err", "sin conexión — no se guarda", SESION.error || "No hay sesión iniciada."); return; }
+  if (DBERROR) { setSync("err", "base con problemas — no se guarda", DBERROR); return; }
+  if (!DBINIT) { setSync("err", "base no inicializada — no se guarda", "Faltan importar los datos desde Google."); return; }
+  setSync("ok", "conectado — se guarda en SharePoint", "Carpeta: " + M365.carpeta);
+}
+window.addEventListener("offline", estadoBaseEnBadge);
+window.addEventListener("online", estadoBaseEnBadge);
+
+/* ---- login ---- */
+// La direccion de vuelta del login es SIEMPRE la carpeta (sin index.html ni ?pc=...),
+// que es exactamente lo registrado en Entra.
+function redirectUri365() {
+  return location.origin + location.pathname.replace(/index\.html$/i, "");
+}
+function msalApp() {
+  if (_pca) return _pca;
+  _pca = new msal.PublicClientApplication({
+    auth: { clientId: M365.client, authority: "https://login.microsoftonline.com/" + M365.tenant, redirectUri: redirectUri365() },
+    cache: { cacheLocation: "localStorage" }
+  });
+  return _pca;
+}
+// ¿el error de MSAL es porque el navegador bloqueo el popup? -> entonces usamos redireccion
+function _popupBloqueado(e) {
+  var c = String((e && e.errorCode) || "");
+  if (c === "popup_window_error" || c === "empty_window_error" || c === "block_nested_popups") return true;
+  var m = String((e && e.message) || "").toLowerCase();
+  return m.indexOf("popup") >= 0 && (m.indexOf("block") >= 0 || m.indexOf("could not open") >= 0 || m.indexOf("error opening") >= 0);
+}
+async function msalToken() {
+  var pca = msalApp();
+  try { var r = await pca.acquireTokenSilent({ scopes: M365.scopes, account: SESION.cuenta }); return r.accessToken; }
+  catch (e) {
+    try { var r2 = await pca.acquireTokenPopup({ scopes: M365.scopes }); SESION.cuenta = pca.getAllAccounts()[0] || SESION.cuenta; return r2.accessToken; }
+    catch (e2) { if (_popupBloqueado(e2)) { await pca.acquireTokenRedirect({ scopes: M365.scopes }); return ""; } throw e2; }
+  }
+}
+// Nombre corto para mostrar y para "Cargado desde": primero la lista privada de
+// config.json (usuarios: {oid: "Nombre"}); si no esta, el primer nombre de la cuenta.
+function nombreDeSesion() {
+  var usuarios = (DB.config && DB.config.usuarios) || {};
+  if (usuarios[SESION.oid]) return String(usuarios[SESION.oid]);
+  var n = String((SESION.cuenta && SESION.cuenta.name) || "").trim();
+  return n ? n.split(/\s+/)[0] : "";
+}
+async function iniciarSesion(conPopup) {
+  var pca = msalApp();
+  try { await pca.handleRedirectPromise(); } catch (e) {}
+  var cuenta = pca.getAllAccounts()[0] || null;
+  if (!cuenta) {
+    if (!conPopup) { SESION.error = "Falta iniciar sesión."; return false; }
+    try { await pca.loginPopup({ scopes: M365.scopes }); cuenta = pca.getAllAccounts()[0] || null; }
+    catch (e) {
+      if (_popupBloqueado(e)) { try { await pca.loginRedirect({ scopes: M365.scopes }); } catch (e2) {} return false; }   // la pagina navega y vuelve
+      SESION.error = "No se pudo iniciar sesión: " + (e.message || e); return false;
+    }
+  }
+  if (!cuenta) { SESION.error = "No se pudo iniciar sesión."; return false; }
+  SESION.cuenta = cuenta;
+  SESION.oid = (cuenta.idTokenClaims && cuenta.idTokenClaims.oid) || cuenta.localAccountId || "";
+  try { var site = await graphJson("/sites/" + M365.siteHost + ":" + M365.sitePath); SESION.siteId = site.id; SESION.ok = true; SESION.error = ""; return true; }
+  catch (e) { SESION.ok = false; SESION.error = "No se pudo acceder al sitio Apps EG: " + (e.message || e); return false; }
+}
+async function cerrarSesion() {
+  try { await msalApp().logoutPopup({ account: SESION.cuenta }); } catch (e) {}
+  location.reload();
+}
+function pintarSesion() {
+  var u = document.getElementById("m365-usuario");
+  var b = document.getElementById("m365-btn");
+  if (!u || !b) return;
+  b.style.display = "inline-block";
+  if (SESION.ok) {
+    SESION.nombre = nombreDeSesion();
+    u.textContent = SESION.nombre;
+    u.title = (SESION.cuenta && SESION.cuenta.username) || "";
+    b.textContent = "Salir";
+    b.onclick = cerrarSesion;
+  } else {
+    u.textContent = "";
+    b.textContent = "Iniciar sesión";
+    b.onclick = function(){ arrancar365(true); };
+  }
+}
+
+/* ---- Graph: lectura/escritura de archivos en la carpeta de datos ---- */
+async function graphJson(path, opts) {
+  var t = await msalToken();
+  opts = opts || {};
+  opts.headers = Object.assign({ Authorization: "Bearer " + t }, opts.headers || {});
+  var r = await fetch(M365.graph + path, opts);
+  if (r.status === 404) { var e404 = new Error("no existe (404)"); e404.status = 404; throw e404; }
+  var body = await r.json().catch(function(){ return {}; });
+  if (!r.ok) { var e = new Error("HTTP " + r.status + (body && body.error ? (" · " + body.error.code) : "")); e.status = r.status; e.body = body; throw e; }
+  return body;
+}
+function _ruta(file) { return "/sites/" + SESION.siteId + "/drive/root:/" + M365.carpeta + "/" + file; }
+// Devuelve {data, etag, raw} o null si el archivo NO existe (404). Un archivo dañado es error, nunca "vacio".
+async function leerArchivo(file) {
+  var t = await msalToken();
+  var r = await fetch(M365.graph + _ruta(file) + ":/content", { headers: { Authorization: "Bearer " + t }, cache: "no-store" });
+  if (r.status === 404) return null;
+  if (!r.ok) { var e = new Error("HTTP " + r.status + " al leer " + file); e.status = r.status; throw e; }
+  var etag = r.headers.get("ETag") || r.headers.get("etag") || "";
+  var txt = await r.text();
+  var data;
+  try { data = txt ? JSON.parse(txt) : null; } catch (e2) { var er = new Error("archivo dañado: " + file); er.corrupto = true; throw er; }
+  if (data === null) { var ev = new Error("archivo vacío: " + file); ev.corrupto = true; throw ev; }
+  return { data: data, etag: etag, raw: txt };
+}
+// Graba y devuelve el nuevo eTag. Con etag: If-Match (412 si otra persona grabo antes).
+async function escribirArchivo(file, contenidoStr, etag) {
+  var t = await msalToken();
+  var headers = { Authorization: "Bearer " + t, "Content-Type": "application/json" };
+  if (etag) headers["If-Match"] = etag;
+  var r = await fetch(M365.graph + _ruta(file) + ":/content", { method: "PUT", headers: headers, body: contenidoStr });
+  if (r.status === 412) { var e = new Error("conflicto de versión (412)"); e.status = 412; throw e; }
+  if (!r.ok) { var e2 = new Error("HTTP " + r.status + " al guardar " + file); e2.status = r.status; throw e2; }
+  var it = await r.json().catch(function(){ return {}; });
+  return it.eTag || it.cTag || "";
+}
+async function borrarArchivoRel(path) {
+  var t = await msalToken();
+  await fetch(M365.graph + "/sites/" + SESION.siteId + "/drive/root:/" + M365.carpeta + "/" + path, { method: "DELETE", headers: { Authorization: "Bearer " + t } });
+}
+// Respaldo rotativo del contenido ANTERIOR de una tabla (maximo MAX_BACKUPS por tabla).
+// Si el respaldo falla no bloquea el guardado (el historial de versiones de SharePoint queda igual).
+async function respaldarTabla(tabla, rawPrevio) {
+  if (rawPrevio == null) return;
+  var ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 23);
+  try { await escribirArchivo("backups/" + tabla + "-" + ts + ".json", rawPrevio, null); } catch (e) { return; }
+  try {
+    var hijos = await graphJson("/sites/" + SESION.siteId + "/drive/root:/" + M365.carpeta + "/backups:/children?$top=200&$select=name");
+    var viejos = (hijos.value || []).filter(function(x){ return x.name.indexOf(tabla + "-") === 0; })
+                                    .sort(function(a, b){ return a.name < b.name ? 1 : -1; });   // mas nuevo primero
+    for (var i = MAX_BACKUPS; i < viejos.length; i++) { await borrarArchivoRel("backups/" + viejos[i].name); }
+  } catch (e) {}
+}
+
+/* ---- forma esperada de cada tabla (si no coincide, se trata como archivo dañado) ---- */
+function formaValida(tabla, data) {
+  if (tabla === "pedidos" || tabla === "proveedores") return Array.isArray(data);
+  if (tabla === "clientes") return !!data && typeof data === "object" && !Array.isArray(data) && Array.isArray(data.A) && Array.isArray(data.B);
+  if (tabla === "config") return !!data && typeof data === "object" && !Array.isArray(data);
+  return false;
+}
+
+/* ---- lectura de toda la base ---- */
+async function cargarBase() {
+  DBINIT = false; DBERROR = "";
+  var res = {};
+  try {
+    await Promise.all(TABLAS.map(async function(t){ res[t] = await leerArchivo(t + ".json"); }));
+  } catch (e) {
+    DBERROR = e.corrupto ? (e.message + ". No se usa la base hasta revisarlo.") : ("No se pudo leer la base: " + (e.message || e));
+    return false;
+  }
+  // La configuracion privada va primero: sin ella la app no sabe proveedores ni registros.
+  if (res.config === null) { DBERROR = "Falta config.json en " + M365.carpeta + " (la configuración privada). Subilo a esa carpeta de SharePoint."; return false; }
+  if (!formaValida("config", res.config.data)) { DBERROR = "config.json con forma inesperada. No se usa la base hasta revisarlo."; return false; }
+  var probCfg = problemaConfig(res.config.data);
+  if (probCfg) { DBERROR = "config.json: " + probCfg + "."; return false; }
+  DB.config = res.config.data;
+  DBMETA.config = { etag: res.config.etag, raw: res.config.raw };
+  aplicarConfig(res.config.data);
+  // PROTECCION: nunca inventar vacio. Si no existe NINGUN archivo de datos -> base no inicializada (falta importar).
+  var datos = TABLAS.filter(function(t){ return t !== "config"; });
+  var existentes = datos.filter(function(t){ return res[t] !== null; });
+  if (!existentes.length) return false;
+  // Si existen algunos y otros no, algo anda mal: no se completa con vacios.
+  var faltan = datos.filter(function(t){ return res[t] === null; });
+  if (faltan.length) { DBERROR = "Faltan archivos en SharePoint: " + faltan.join(", ") + ". No se completa con vacíos."; return false; }
+  var malos = TABLAS.filter(function(t){ return !formaValida(t, res[t].data); });
+  if (malos.length) { DBERROR = "Archivo con forma inesperada: " + malos.join(", ") + ". No se usa la base hasta revisarlo."; return false; }
+  DB = {}; DBMETA = {};
+  TABLAS.forEach(function(t){ DB[t] = res[t].data; DBMETA[t] = { etag: res[t].etag, raw: res[t].raw }; });
+  DBINIT = true;
+  return true;
+}
+
+/* =====================================================================
+   OPERACION QUE SE REAPLICA SOLA (para tres personas cargando a la vez)
+   operar(tabla, aplicar):
+     1) lee la tabla FRESCA de SharePoint
+     2) aplicar(datos) la modifica (agregar pedido, cambiar estado de tal ID...)
+        - puede devolver operar.SIN_CAMBIOS para no grabar nada
+        - puede lanzar un error para cancelar (ej. "el numero ya existe")
+     3) graba con If-Match; si otra persona grabo en el medio (412),
+        vuelve al paso 1 y reaplica sobre lo nuevo (hasta MAX_INTENTOS).
+   Como cada operacion toca solo lo suyo, nunca se pisa lo de otra persona.
+   ===================================================================== */
+var _operando = 0;
+function pausa365(ms) { return new Promise(function(res){ setTimeout(res, ms); }); }
+function cantidadDe(tabla, data) {
+  if (tabla === "pedidos" || tabla === "proveedores") return data.length;
+  if (tabla === "clientes") return data.A.length + data.B.length;
+  return Object.keys(data).length;
+}
+async function operar(tabla, aplicar) {
+  if (!navigator.onLine) { estadoBaseEnBadge(); throw new Error("Sin conexión: no se guardó."); }
+  if (!SESION.ok) { estadoBaseEnBadge(); throw new Error("No hay sesión iniciada: no se guardó."); }
+  if (DBERROR) { estadoBaseEnBadge(); throw new Error("La base tiene problemas: no se guardó. " + DBERROR); }
+  if (!DBINIT) { estadoBaseEnBadge(); throw new Error("Base no inicializada (falta importar): no se guardó."); }
+  _operando++;
+  setSync("busy", "guardando…");
+  try {
+    for (var intento = 1; intento <= MAX_INTENTOS; intento++) {
+      var fresco = await leerArchivo(tabla + ".json");
+      // El archivo NO puede desaparecer: si pasa, se bloquea (nunca se crea de nuevo vacio).
+      if (!fresco) { DBINIT = false; DBERROR = "Desapareció " + tabla + ".json de SharePoint."; throw new Error(DBERROR); }
+      if (!formaValida(tabla, fresco.data)) { DBERROR = "Archivo con forma inesperada: " + tabla + ".json"; throw new Error(DBERROR); }
+      if (!fresco.etag) throw new Error("SharePoint no devolvió la versión de " + tabla + ".json: no se graba a ciegas.");
+      var datos = fresco.data;
+      var antes = cantidadDe(tabla, datos);
+      var resultado = aplicar(datos, intento);
+      if (resultado === operar.SIN_CAMBIOS) {
+        DB[tabla] = datos; DBMETA[tabla] = { etag: fresco.etag, raw: fresco.raw };
+        return { ok: true, resultado: resultado, datos: datos, intentos: intento };
+      }
+      // CANDADO "NO ACHICAR": no existe ninguna accion que borre pedidos ni clientes.
+      if ((tabla === "pedidos" || tabla === "clientes") && cantidadDe(tabla, datos) < antes) {
+        throw new Error("Protección: el guardado iba a dejar menos registros en " + tabla + " (" + antes + " → " + cantidadDe(tabla, datos) + "). Se canceló.");
+      }
+      var contenido = JSON.stringify(datos);
+      await respaldarTabla(tabla, fresco.raw);
+      try {
+        var etagNuevo = await escribirArchivo(tabla + ".json", contenido, fresco.etag);
+        DB[tabla] = datos; DBMETA[tabla] = { etag: etagNuevo, raw: contenido };
+        return { ok: true, resultado: resultado, datos: datos, intentos: intento };
+      } catch (e) {
+        if (e.status !== 412) throw e;
+        // Otra persona grabo en el medio: esperar un poco (distinto en cada PC) y reaplicar sobre lo nuevo.
+        setSync("busy", "otra persona guardó — reintentando (" + intento + ")…");
+        await pausa365(250 * intento + Math.floor(Math.random() * 400));
+      }
+    }
+    throw new Error("No se pudo guardar después de " + MAX_INTENTOS + " intentos (mucha gente guardando a la vez). Probá de nuevo.");
+  } catch (e) {
+    setSync("err", "no se guardó", e.message || String(e));
+    throw e;
+  } finally {
+    _operando--;
+    if (_operando === 0 && _syncEstado !== "err") estadoBaseEnBadge();
+  }
+}
+operar.SIN_CAMBIOS = { sinCambios: true };
+
+// Si hay un guardado en curso, avisar antes de cerrar la pestaña.
+window.addEventListener("beforeunload", function(ev){
+  if (_operando > 0) { ev.preventDefault(); ev.returnValue = ""; }
+});
+
+/* ---- arranque ---- */
+async function arrancar365(conPopup) {
+  var v = document.getElementById("version-365");
+  if (v) v.textContent = VERSION_365;
+  if (typeof msal === "undefined") {
+    SESION.error = "No cargó la librería de login de Microsoft (revisá la conexión).";
+    estadoBaseEnBadge(); pintarSesion(); return;
+  }
+  setSync("busy", "conectando…");
+  var ok = false;
+  try {
+    ok = await iniciarSesion(conPopup);
+    if (ok) await cargarBase();
+  } catch (e) {
+    SESION.ok = false; ok = false;
+    SESION.error = "No se pudo conectar con Microsoft 365: " + (e.message || e);
+  }
+  pintarSesion();
+  estadoBaseEnBadge();
+  if (!ok) mostrarBanner("🔒 Iniciá sesión con tu cuenta de la empresa (botón arriba a la derecha).", "#7a5c00", "#fff8e1");
+  else if (DBERROR) mostrarBanner("⚠️ " + DBERROR, "#fff", "#c0392b");
+  else if (!DBINIT) mostrarBanner("🛠️ Conectado a SharePoint (" + M365.carpeta + "). La base todavía no está importada: no se carga ni se guarda nada.", "#7a5c00", "#fff8e1");
+  else { mostrarBanner("", null, null); ultimaLectura = Date.now(); aplicarDatosEnPantallas(); }
+}
+var COLS_ALL = ["Pedido","Fecha","Cliente","N Caja","Tipo Material","Largo","Ancho","Trazados","Cantidad","Observaciones","Estado","Anotaciones","Proveedor","ID","Cargado desde"];
+// ===== CONFIGURACION PRIVADA (config.json en SharePoint) =====
+// Los proveedores, sus materiales, las medidas de stock y los dos registros
+// de clientes NO estan en este codigo (el repo es publico): vienen de config.json.
+// aplicarConfig() los carga apenas se lee la base.
+var CONFIG_OK = false;
+var PROV_INFO = {};          // nombre -> { tipos, matPlanchas, medidasRollos }
+var PROV_ORDEN = [];         // orden de los proveedores en el desplegable
+var MEDIDAS_STOCK = {};      // N Caja -> "medida libraje" de las cajas de stock
+var CLIENTE_STOCK = "";      // N° de cliente que identifica al stock
+// Dos registros de clientes, con nombres neutros en el codigo.
+// valor: lo que se guarda en la columna "Sistema"; marca: prefijo al mostrar el cliente.
+var REG = { A: { valor: "", nombre: "A", marca: "" }, B: { valor: "", nombre: "B", marca: "" } };
+function regDeValor(v) {   // "A" | "B" | "" segun el valor guardado en "Sistema"
+  v = String(v || "").trim().toLowerCase();
+  if (v && v === String(REG.B.valor).toLowerCase()) return "B";
+  if (v && v === String(REG.A.valor).toLowerCase()) return "A";
+  return "";
+}
+function esRegB(v) { return regDeValor(v) === "B"; }
+function nombreReg(v) { var k = regDeValor(v); return k ? REG[k].nombre : String(v || ""); }
+function primerProveedor() { return PROV_ORDEN[0] || ""; }
+function claseProv(nombre) { return "prov-" + String(nombre || "").replace(/[^A-Za-z0-9]/g, ""); }
+
+// Valida config.json: devuelve "" si esta bien, o el motivo si no.
+function problemaConfig(cfg) {
+  if (!cfg || typeof cfg !== "object") return "config.json vacío";
+  var r = cfg.registros || {};
+  if (!r.A || !r.B || !r.A.valor || !r.B.valor) return "faltan los dos registros (registros.A y registros.B con su valor)";
+  if (String(r.A.valor).toLowerCase() === String(r.B.valor).toLowerCase()) return "los dos registros tienen el mismo valor";
+  if (!Array.isArray(cfg.proveedores) || !cfg.proveedores.length) return "falta la lista de proveedores";
+  for (var i = 0; i < cfg.proveedores.length; i++) {
+    var p = cfg.proveedores[i];
+    if (!p || !p.nombre || !Array.isArray(p.tipos) || !p.tipos.length) return "proveedor " + (i + 1) + " sin nombre o sin tipos";
+  }
+  if (cfg.stock && cfg.stock.medidas && typeof cfg.stock.medidas !== "object") return "stock.medidas tiene forma inesperada";
+  return "";
+}
+function aplicarConfig(cfg) {
+  var porNombre = {};
+  cfg.proveedores.forEach(function(p){ porNombre[p.nombre] = p; });
+  // Materiales "union": la lista de planchas de otros proveedores, sin duplicar, con Otro al final.
+  function unionDe(nombres) {
+    var vistos = {}, out = [];
+    (nombres || []).forEach(function(n){
+      ((porNombre[n] && porNombre[n].materialesPlanchas) || []).forEach(function(m){
+        if (m === "Otro (especificar)") return;
+        if (!vistos[m]) { vistos[m] = true; out.push(m); }
+      });
+    });
+    out.push("Otro (especificar)");
+    return out;
+  }
+  PROV_INFO = {}; PROV_ORDEN = [];
+  var css = [];
+  cfg.proveedores.forEach(function(p){
+    var info = { tipos: p.tipos.slice() };
+    if (p.unirMaterialesDe) info.matPlanchas = unionDe(p.unirMaterialesDe);
+    else if (p.materialesPlanchas) info.matPlanchas = p.materialesPlanchas.slice();
+    if (p.medidasRollos) info.medidasRollos = p.medidasRollos.slice();
+    PROV_INFO[p.nombre] = info;
+    PROV_ORDEN.push(p.nombre);
+    // Color de fila por proveedor (antes estaba fijo en el CSS)
+    if (p.color && /^#[0-9a-fA-F]{3,8}$/.test(p.color)) {
+      css.push(".prov-" + String(p.nombre).replace(/[^A-Za-z0-9]/g, "") + "{background:" + p.color + "}");
+    }
+  });
+  var st = document.getElementById("estilos-prov");
+  if (!st) { st = document.createElement("style"); st.id = "estilos-prov"; document.head.appendChild(st); }
+  st.textContent = css.join("\n");
+  MEDIDAS_STOCK = (cfg.stock && cfg.stock.medidas) || {};
+  CLIENTE_STOCK = String((cfg.stock && cfg.stock.cliente) || "").trim();
+  ["A", "B"].forEach(function(k){
+    var r = cfg.registros[k];
+    REG[k] = { valor: String(r.valor), nombre: String(r.nombre || r.valor), marca: String(r.marca || "") };
+  });
+  CONFIG_OK = true;
+  buildProvSelect();
+  if (activeProv && !PROV_INFO[activeProv]) activeProv = "";
+}
+
+// ===== COLUMNAS SEGUN TIPO DE ARTICULO =====
+// Cada tipo (planchas/cajas/rollos) define sus columnas. El material de planchas
+// y la medida de rollo dependen del proveedor (lista propia); en cajas es texto libre.
+function colsPlanchas(matList) {
+  return [
+    {key:"Pedido",label:"N Pedido",mail:true,type:"text"},
+    {key:"Fecha",label:"Fecha",mail:true,type:"text"},
+    {key:"Cantidad",label:"Cantidad",mail:true,type:"number"},
+    {key:"Tipo Material",label:"Tipo de Material",mail:true,type:"dropdown",options:matList},
+    {key:"Largo",label:"Largo",mail:true,type:"number"},
+    {key:"Ancho",label:"Ancho",mail:true,type:"number"},
+    {key:"Trazados",label:"Trazados",mail:true,type:"text"},
+    {key:"Observaciones",label:"Observaciones",mail:true,type:"textarea"},
+    {key:"Cliente",label:"Cliente",mail:false,type:"text"},
+    {key:"N Caja",label:"N Caja",mail:false,type:"text"},
+    {key:"Estado",label:"Estado",mail:false,type:"dropdown",options:["Enviado","Recibido","No recibido","Anulado"]},
+    {key:"Anotaciones",label:"Anotaciones",mail:false,type:"textarea"}
+  ];
+}
+function colsCajas(matList) {
+  var lista = (matList && matList.length) ? matList.slice() : ["Otro (especificar)"];
+  if (lista.indexOf("Otro (especificar)") === -1) lista.push("Otro (especificar)");
+  return [
+    {key:"Pedido",label:"N Pedido",mail:true,type:"text"},
+    {key:"Fecha",label:"Fecha",mail:true,type:"text"},
+    {key:"Cantidad",label:"Cantidad",mail:true,type:"number"},
+    {key:"Tipo Material",label:"Material",mail:true,type:"dropdown",options:lista},
+    {key:"Largo",label:"Medida de la caja",mail:true,type:"text"},
+    {key:"Observaciones",label:"Observaciones",mail:true,type:"textarea"},
+    {key:"Cliente",label:"Cliente",mail:false,type:"text"},
+    {key:"N Caja",label:"N Caja",mail:false,type:"text"},
+    {key:"Estado",label:"Estado",mail:false,type:"dropdown",options:["Enviado","Recibido","No recibido","Anulado"]},
+    {key:"Anotaciones",label:"Anotaciones",mail:false,type:"textarea"}
+  ];
+}
+function colsRollos(medidasList) {
+  return [
+    {key:"Pedido",label:"N Pedido",mail:true,type:"text"},
+    {key:"Fecha",label:"Fecha",mail:true,type:"text"},
+    {key:"Cantidad",label:"Cantidad",mail:true,type:"number"},
+    {key:"Tipo Material",label:"Medida de Rollo",mail:true,type:"dropdown",options:medidasList},
+    {key:"Observaciones",label:"Observaciones",mail:true,type:"textarea"},
+    {key:"Cliente",label:"Cliente",mail:false,type:"text"},
+    {key:"Estado",label:"Estado",mail:false,type:"dropdown",options:["Enviado","Recibido","No recibido","Anulado"]},
+    {key:"Anotaciones",label:"Anotaciones",mail:false,type:"textarea"}
+  ];
+}
+
+
+// Devuelve las columnas segun proveedor + tipo de articulo elegido
+function getColsFor(prov, tipo) {
+  var info = PROV_INFO[prov];
+  if (!info) return colsPlanchas(["Otro (especificar)"]);
+  if (tipo === "Cajas") return colsCajas(info.matPlanchas || ["Otro (especificar)"]);
+  if (tipo === "Rollos") return colsRollos(info.medidasRollos || ["Otro (especificar)"]);
+  // Planchas por defecto
+  return colsPlanchas(info.matPlanchas || ["Otro (especificar)"]);
+}
+
+// Compatibilidad: algunas funciones viejas llaman getCols(prov). Mantenemos un fallback
+// que usa el primer tipo del proveedor (o planchas).
+function getCols(p) {
+  var info = PROV_INFO[p];
+  var tipo = info && info.tipos && info.tipos.length ? info.tipos[0] : "Planchas";
+  return getColsFor(p, tipo);
+}
+
+function r2o(arr) {
+  var o = {};
+  COLS_ALL.forEach(function(c, i) { o[c] = arr[i] || ""; });
+  return o;
+}
+
+
+var allData = [];
+// "Cargado desde" sale de la cuenta con la que se inicio sesion (SESION.nombre).
+// El viejo ?pc=Nombre de la direccion se ignora (los favoritos siguen andando).
+var sortCol = "Fecha", sortDir = -1;
+var filterField = "todos";
+var activeProv = "";
+var tipoActivo = "";
+var itemRows = [];
+var lastPreviewText = "";
+
+var datosListos = false;
+function mostrarBanner(texto, color, fondo) {
+  var b = document.getElementById("banner-carga");
+  if (!b) return;
+  if (!texto) { b.style.display = "none"; return; }
+  b.style.display = "block";
+  b.style.color = color || "#7a5c00";
+  b.style.background = fondo || "#fff8e1";
+  b.innerHTML = texto;
+}
+// Los datos se cargan al iniciar sesion (arrancar365 -> cargarBase -> aplicarDatosEnPantallas).
+function loadData() {
+  if (DBINIT) aplicarDatosEnPantallas();
+}
+
+var provData = [];
+var clientesA = [];
+var clientesB = [];
+// Indices rapidos por numero, para buscar nombre dado el numero
+var idxAPorNum = {};
+var idxBPorNum = {};
+// Carga las dos listas de clientes ({A:[...], B:[...]}) y arma los indices por numero.
+function setClientes(c) {
+  clientesA = (c && c.A) || [];
+  clientesB = (c && c.B) || [];
+  idxAPorNum = {};
+  clientesA.forEach(function(x){ idxAPorNum[String(x.Numero).trim()] = x.Nombre; });
+  idxBPorNum = {};
+  clientesB.forEach(function(x){ idxBPorNum[String(x.Numero).trim()] = x.Nombre; });
+}
+
+function renderContactos() {
+  var cont = provData.filter(function(p){ return p["Proveedor"]; });
+  var info = document.getElementById("res-contactos");
+  var thead = document.getElementById("thead-contactos");
+  var tbody = document.getElementById("tbody-contactos");
+  if (!cont.length) {
+    if (info) info.textContent = "No hay contactos cargados todavia.";
+    if (thead) thead.innerHTML = "";
+    if (tbody) tbody.innerHTML = "";
+    return;
+  }
+  if (info) info.textContent = cont.length + " proveedor" + (cont.length !== 1 ? "es" : "");
+  var cols = ["Proveedor","Mail","WhatsApp","Telefono","Contacto"];
+  var labels = {"Proveedor":"Proveedor","Mail":"Mail","WhatsApp":"WhatsApp","Telefono":"Telefono","Contacto":"Contacto"};
+  // Detectar el nombre real de la columna telefono (puede tener tilde)
+  var keys = Object.keys(cont[0]);
+  var telKey = keys.filter(function(k){ return k.toLowerCase().indexOf("tel") === 0; })[0] || "Telefono";
+  if (thead) {
+    thead.innerHTML = "<th>Proveedor</th><th>Mail</th><th>WhatsApp</th><th>Telefono</th><th>Contacto</th><th></th>";
+  }
+  if (tbody) {
+    tbody.innerHTML = cont.map(function(p){
+      var mail = p["Mail"] || "";
+      var wa = p["WhatsApp"] || "";
+      var tel = p[telKeyDe(p)] || "";
+      var contacto = p["Contacto"] || "";
+      var prov = p["Proveedor"] || "";
+      var provClase = claseProv(prov);
+      var mailCell = mail ? '<a href="mailto:'+mail+'">'+mail+'</a>' : "";
+      var waDigits = String(wa).replace(/[^0-9]/g, "");
+      var waCell = wa ? (waDigits ? '<a href="https://wa.me/54'+waDigits+'" target="_blank">'+wa+'</a>' : wa) : "";
+      var btnEditar = '<button class="btn-editar" title="Editar contacto" data-prov="' + String(prov).replace(/"/g, "&quot;") + '" onclick="abrirContacto(this.getAttribute(\'data-prov\'))">&#9998;</button>';
+      return '<tr class="'+provClase+'"><td><strong>'+prov+'</strong></td><td>'+mailCell+'</td><td>'+waCell+'</td><td>'+tel+'</td><td>'+contacto+'</td><td>'+btnEditar+'</td></tr>';
+    }).join("");
+  }
+}
+
+function renderAll() { renderBuscar(); renderProveedores(); renderHistorial(); buildProvFilters(); buildProvSelect(); setTimeout(syncAllScrolls, 50); }
+
+function hl(t, q) {
+  if (!q) return String(t || "");
+  var re = new RegExp("(" + q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "gi");
+  return String(t || "").replace(re, "<mark>$1</mark>");
+}
+
+function sortBy(col) {
+  if (sortCol === col) sortDir *= -1; else { sortCol = col; sortDir = 1; }
+  renderAll();
+}
+
+function parseDate(s) {
+  if (!s) return null;
+  s = String(s).trim();
+  // Formato con barras: dd/mm/aa o dd/mm/aaaa
+  var p = s.split("/");
+  if (p.length === 3) {
+    var dia = parseInt(p[0], 10);
+    var mes = parseInt(p[1], 10);
+    var anio = parseInt(p[2], 10);
+    if (isNaN(dia) || isNaN(mes) || isNaN(anio)) return null;
+    // Si el anio viene con 2 digitos (ej 26), lo pasamos a 2026. Si ya tiene 4, lo dejamos.
+    if (anio < 100) anio = 2000 + anio;
+    return new Date(anio, mes - 1, dia);
+  }
+  // Formato ISO (aaaa-mm-dd), por si alguna fecha viene asi
+  var pi = s.split("-");
+  if (pi.length === 3 && pi[0].length === 4) {
+    var a = parseInt(pi[0],10), m = parseInt(pi[1],10), d = parseInt(pi[2],10);
+    if (!isNaN(a) && !isNaN(m) && !isNaN(d)) return new Date(a, m - 1, d);
+  }
+  return null;
+}
+
+function getFiltered(q, prov, field, desde, hasta, pd, ph, estado) {
+  return allData.filter(function(r) {
+    if (prov && r.Proveedor !== prov) return false;
+    if (q) {
+      var qq = q.toLowerCase();
+      var m;
+      if (field === "todos") {
+        m = Object.values(r).some(function(v) { return String(v).toLowerCase().includes(qq); });
+      } else if (field === "Cliente") {
+        // Buscar en cliente nuevo (N° y Nombre) y en el viejo
+        m = String(r["Cliente N°"] || "").toLowerCase().includes(qq)
+          || String(r["Cliente Nombre"] || "").toLowerCase().includes(qq)
+          || String(r["Cliente"] || "").toLowerCase().includes(qq);
+      } else if (field === "N Caja") {
+        // El N Caja puede tener varios codigos separados por / , ; -> coincidir por codigo o por texto
+        var valCaja = String(r["N Caja"] || "");
+        m = valCaja.toLowerCase().includes(qq)
+          || valCaja.split(/[\/,;]/).map(function(x){ return x.trim().toLowerCase(); }).indexOf(qq) !== -1;
+      } else {
+        m = String(r[field] || "").toLowerCase().includes(qq);
+      }
+      if (!m) return false;
+    }
+    if (desde || hasta) {
+      var rd = parseDate(r.Fecha);
+      if (desde && rd && rd < parseDate(desde)) return false;
+      if (hasta && rd && rd > parseDate(hasta)) return false;
+    }
+    if (pd && parseInt(r.Pedido) < parseInt(pd)) return false;
+    if (ph && parseInt(r.Pedido) > parseInt(ph)) return false;
+    if (estado) {
+      var est = String(r.Estado || "Enviado").trim();
+      if (est !== estado) return false;
+    }
+    return true;
+  });
+}
+
+function getSorted(arr) {
+  return arr.slice().sort(function(a, b) {
+    // Orden por defecto (por Fecha): 3 niveles -> Fecha desc, Proveedor, Pedido desc
+    if (sortCol === "Fecha") {
+      var da = parseDate(String(a.Fecha || "")), db = parseDate(String(b.Fecha || ""));
+      var ta = da ? da.getTime() : -Infinity, tb = db ? db.getTime() : -Infinity;
+      if (ta !== tb) return (tb - ta);                       // fecha mas nueva primero
+      var pa = String(a.Proveedor || ""), pb = String(b.Proveedor || "");
+      if (pa !== pb) return pa.localeCompare(pb, "es");       // agrupar por proveedor
+      var na = parseFloat(a.Pedido), nb = parseFloat(b.Pedido);
+      if (!isNaN(na) && !isNaN(nb)) return nb - na;           // numero mayor a menor
+      return String(b.Pedido).localeCompare(String(a.Pedido), "es");
+    }
+    // Orden manual (clic en una columna): comportamiento simple de siempre
+    var va = String(a[sortCol] || ""), vb = String(b[sortCol] || "");
+    var na2 = parseFloat(va), nb2 = parseFloat(vb);
+    if (!isNaN(na2) && !isNaN(nb2)) return (na2 - nb2) * sortDir;
+    return va.localeCompare(vb, "es") * sortDir;
+  });
+}
+
+function estadoBadge(e) {
+  if (e === "Recibido") return '<span class="badge-rec">Recibido</span>';
+  if (e === "No recibido") return '<span class="badge-nor">No recibido</span>';
+  if (e === "Anulado") return '<span class="badge-anu">Anulado</span>';
+  return '<span class="badge-env">Enviado</span>';
+}
+
+function estadoSelect(r) {
+  var id = r.ID || "";
+  var e = r.Estado || "Enviado";
+  if (!id) { return estadoBadge(e); }
+  var opts = ["Enviado","Recibido","No recibido","Anulado"].map(function(o){
+    return '<option value="'+o+'"'+(o===e?' selected':'')+'>'+o+'</option>';
+  }).join("");
+  var cls = e==="Recibido"?"sel-rec":(e==="No recibido"?"sel-nor":(e==="Anulado"?"sel-anu":"sel-env"));
+  return '<select class="estado-sel '+cls+'" data-id="'+id+'" onchange="cambiarEstado(this)">'+opts+'</select>';
+}
+
+function makeHead(cols, showProv) {
+  var h = cols.map(function(c) {
+    var clase = (c.key === "Pedido") ? ' class="col-pedido col-pedido-head"' : "";
+    return '<th' + clase + ' onclick="sortBy(\'' + c.key + '\')">' + c.label + ' <span style="opacity:.4">&#8597;</span></th>';
+  }).join("");
+  if (showProv) h += '<th onclick="sortBy(\'Proveedor\')">Proveedor <span style="opacity:.4">&#8597;</span></th>';
+  h += '<th onclick="sortBy(\'Cargado desde\')">Cargado desde <span style="opacity:.4">&#8597;</span></th>';
+  h += '<th></th>';
+  return h;
+}
+
+function mapRowsSep(arr, q, cols, showProv) {
+  var out = [];
+  var prevKey = null;
+  arr.forEach(function(r) {
+    var key = String(r.Pedido) + "|" + String(r.Proveedor || "");
+    var nuevo = (prevKey !== null && key !== prevKey);
+    out.push(makeRow(r, q, cols, showProv, nuevo));
+    prevKey = key;
+  });
+  return out.join("");
+}
+
+function makeRow(r, q, cols, showProv, nuevoPedido) {
+  var cells = cols.map(function(c) {
+    var v = r[c.key] || "";
+    // CLIENTE: mostrar el dato venga de columnas nuevas (Cliente N°/Nombre) o de la vieja (Cliente)
+    if (c.key === "Cliente") {
+      var numN = r["Cliente N°"] || "";
+      var nomN = r["Cliente Nombre"] || "";
+      var viejo = r["Cliente"] || "";
+      var marca = esRegB(r["Sistema"]) ? REG.B.marca : "";
+      var texto;
+      if (numN || nomN) { texto = marca + ((numN && nomN) ? (numN + " - " + nomN) : (numN || nomN)); }
+      else { texto = viejo; }
+      return "<td>" + hl(texto, q) + "</td>";
+    }
+    if (c.key === "Estado") return "<td>" + estadoSelect(r) + "</td>";
+    if (c.key === "Pedido") return '<td class="col-pedido"><span class="badge">' + hl(v, q) + "</span></td>";
+    if (c.key === "Observaciones" || c.key === "Anotaciones") return '<td class="obs-cell">' + hl(v, q) + "</td>";
+    if (c.key === "Cantidad") return '<td style="font-weight:600">' + hl(v, q) + "</td>";
+    return "<td>" + hl(v, q) + "</td>";
+  }).join("");
+  if (showProv) {
+    cells += '<td><span class="badge badge-prov">' + (r.Proveedor || "") + "</span></td>";
+    cells += '<td style="white-space:nowrap;color:#555">' + hl(r["Cargado desde"] || "", q) + "</td>";
+  }
+  var pedEsc = String(r.Pedido).replace(/'/g, "");
+  var provEsc = String(r.Proveedor || "").replace(/'/g, "");
+  var btnRepetir = '<button class="btn-editar" title="Repetir este pedido" onclick="repetirPedido(\'' + pedEsc + '\',\'' + provEsc + '\')" style="margin-right:4px">&#8635;</button>';
+  var btnImprimir = '<button class="btn-editar" title="Imprimir este pedido" onclick="imprimirPedidoGuardado(\'' + pedEsc + '\',\'' + provEsc + '\')" style="margin-right:4px">&#128424;</button>';
+  var btnMail = '<button class="btn-editar" title="Enviar este pedido por mail" onclick="enviarPedidoGuardado(\'' + pedEsc + '\',\'' + provEsc + '\')" style="margin-right:4px">&#9993;</button>';
+  if (r.ID) { cells += '<td style="white-space:nowrap">' + btnRepetir + btnImprimir + btnMail + '<button class="btn-editar" title="Editar notas" onclick="abrirEditar(\'' + String(r.ID).replace(/'/g, "") + '\')">&#9998;</button></td>'; }
+  else { cells += '<td style="white-space:nowrap">' + btnRepetir + btnImprimir + btnMail + "</td>"; }
+  var provClase = claseProv(r.Proveedor);
+  var clsList = [provClase];
+  if (r.Estado === "Anulado") clsList.push("anulado");
+  if (nuevoPedido) clsList.push("sep-pedido");
+  var cls = ' class="' + clsList.join(" ") + '"';
+  return "<tr" + cls + ">" + cells + "</tr>";
+}
+
+function setFB(f, btn) {
+  filterField = f;
+  document.querySelectorAll(".fbtn").forEach(function(b) { b.classList.remove("active"); });
+  btn.classList.add("active");
+  renderBuscar();
+}
+
+function renderBuscar() {
+  var q = document.getElementById("q-buscar").value.trim().toLowerCase();
+  var prov = document.getElementById("prov-filter-b").value;
+  var estado = document.getElementById("estado-filter-b").value;
+  var cols = getCols(prov || primerProveedor());
+  var filtered = getSorted(getFiltered(q, prov, filterField, "", "", "", "", estado));
+  document.getElementById("res-buscar").textContent = filtered.length + " resultado" + (filtered.length !== 1 ? "s" : "") + " de " + allData.length + " registros";
+  document.getElementById("thead-buscar").innerHTML = makeHead(cols, true);
+  var tb = document.getElementById("tbody-buscar");
+  tb.innerHTML = filtered.length ? mapRowsSep(filtered, q, cols, true) : '<tr><td colspan="20" class="empty-state">Sin resultados</td></tr>';
+}
+
+function buildProvFilters() {
+  var provs = Array.from(new Set(allData.map(function(r) { return r.Proveedor; }).filter(Boolean))).sort();
+  ["prov-filter-b", "prov-filter-h"].forEach(function(id) {
+    var sel = document.getElementById(id);
+    if (!sel) return;
+    var cur = sel.value;
+    sel.innerHTML = '<option value="">Todos los proveedores</option>' + provs.map(function(p) {
+      return '<option value="' + p + '"' + (p === cur ? " selected" : "") + ">" + p + "</option>";
+    }).join("");
+  });
+}
+
+function renderProveedores() {
+  var provs = Array.from(new Set(allData.map(function(r) { return r.Proveedor; }).filter(Boolean))).sort();
+  if (!activeProv || !provs.includes(activeProv)) activeProv = provs[0] || "";
+  document.getElementById("prov-tabs").innerHTML = provs.map(function(p) {
+    return '<button class="ptab' + (p === activeProv ? " active" : "") + '" onclick="setProv(\'' + p + '\')">' + p + "</button>";
+  }).join("");
+  var cols = getCols(activeProv);
+  var rows = getSorted(allData.filter(function(r) { return r.Proveedor === activeProv; }));
+  document.getElementById("res-prov").textContent = rows.length + " registro" + (rows.length !== 1 ? "s" : "");
+  document.getElementById("thead-prov").innerHTML = makeHead(cols, false);
+  var tb = document.getElementById("tbody-prov");
+  tb.innerHTML = rows.length ? mapRowsSep(rows, "", cols, false) : '<tr><td colspan="15" class="empty-state">Sin registros</td></tr>';
+}
+
+function setProv(p) { activeProv = p; renderProveedores(); }
+
+function renderHistorial() {
+  var q = document.getElementById("q-hist").value.trim().toLowerCase();
+  var prov = document.getElementById("prov-filter-h").value;
+  var desde = document.getElementById("h-desde").value.trim();
+  var hasta = document.getElementById("h-hasta").value.trim();
+  var pd = document.getElementById("h-ped-desde").value.trim();
+  var ph = document.getElementById("h-ped-hasta").value.trim();
+  var estado = document.getElementById("estado-filter-h").value;
+  var cols = getCols(prov || primerProveedor());
+  var filtered = getSorted(getFiltered(q, prov, "todos", desde, hasta, pd, ph, estado));
+  document.getElementById("res-hist").textContent = filtered.length + " registro" + (filtered.length !== 1 ? "s" : "");
+  document.getElementById("thead-hist").innerHTML = makeHead(cols, true);
+  var tb = document.getElementById("tbody-hist");
+  tb.innerHTML = filtered.length ? mapRowsSep(filtered, q, cols, true) : '<tr><td colspan="20" class="empty-state">Sin resultados</td></tr>';
+  setTimeout(function(){ syncScroll("stop-hist", "twrap-hist"); }, 50);
+}
+
+function clearHistFilters() {
+  ["h-desde", "h-hasta", "h-ped-desde", "h-ped-hasta", "q-hist"].forEach(function(id) {
+    document.getElementById(id).value = "";
+  });
+  var ef = document.getElementById("estado-filter-h");
+  if (ef) ef.value = "";
+  renderHistorial();
+}
+
+// Junta las filas segun la pantalla (respetando los filtros activos)
+function filasParaExportar(page) {
+  var rows = [];
+  if (page === "buscar") {
+    var q = document.getElementById("q-buscar").value.trim().toLowerCase();
+    var prov = document.getElementById("prov-filter-b").value;
+    var estB = document.getElementById("estado-filter-b") ? document.getElementById("estado-filter-b").value : "";
+    rows = getSorted(getFiltered(q, prov, filterField, "", "", "", "", estB));
+  } else if (page === "prov") {
+    rows = getSorted(allData.filter(function(r) { return r.Proveedor === activeProv; }));
+  } else if (page === "hist") {
+    var qh = document.getElementById("q-hist").value.trim().toLowerCase();
+    var provh = document.getElementById("prov-filter-h").value;
+    var dh = document.getElementById("h-desde").value.trim();
+    var hh = document.getElementById("h-hasta").value.trim();
+    var pdh = document.getElementById("h-ped-desde").value.trim();
+    var phh = document.getElementById("h-ped-hasta").value.trim();
+    var estH = document.getElementById("estado-filter-h") ? document.getElementById("estado-filter-h").value : "";
+    rows = getSorted(getFiltered(qh, provh, "todos", dh, hh, pdh, phh, estH));
+  } else {
+    rows = getSorted(allData);
+  }
+  return rows;
+}
+
+function nombreArchivo(ext) {
+  var d = new Date();
+  var dd = String(d.getDate()).padStart(2,"0");
+  var mm = String(d.getMonth()+1).padStart(2,"0");
+  var yy = d.getFullYear();
+  return "pedidos_eg_" + dd + "-" + mm + "-" + yy + "." + ext;
+}
+
+function exportCSV(page) {
+  var rows = filasParaExportar(page);
+  if (!rows.length) { alert("No hay pedidos para exportar con los filtros actuales."); return; }
+  var csv = [COLS_ALL.join(",")].concat(rows.map(function(r) {
+    return COLS_ALL.map(function(c) { return '"' + String(r[c] || "").replace(/"/g, '""') + '"'; }).join(",");
+  })).join("\n");
+  var a = document.createElement("a");
+  a.href = "data:text/csv;charset=utf-8,﻿" + encodeURIComponent(csv);
+  a.download = nombreArchivo("csv");
+  a.click();
+}
+
+function exportExcel(page) {
+  var rows = filasParaExportar(page);
+  if (!rows.length) { alert("No hay pedidos para exportar con los filtros actuales."); return; }
+  function esc(v) {
+    return String(v === undefined || v === null ? "" : v)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+  var thead = "<tr>" + COLS_ALL.map(function(c){
+    return "<th style='background:#D5E8F0;border:1px solid #999;font-weight:bold;padding:4px'>" + esc(c) + "</th>";
+  }).join("") + "</tr>";
+  var tbody = rows.map(function(r){
+    return "<tr>" + COLS_ALL.map(function(c){
+      // Texto para que Excel no convierta numeros de pedido/caja en fechas u otros formatos
+      return "<td style='border:1px solid #ccc;padding:3px' x:str>" + esc(r[c] || "") + "</td>";
+    }).join("") + "</tr>";
+  }).join("");
+  var html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">' +
+    '<head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>' +
+    '<x:Name>Pedidos</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>' +
+    '</x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>' +
+    '<body><table border="1">' + thead + tbody + '</table></body></html>';
+  var blob = new Blob(["\ufeff", html], {type: "application/vnd.ms-excel;charset=utf-8"});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url;
+  a.download = nombreArchivo("xls");
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+}
+
+function onProvChange() {
+  var prov = document.getElementById("f-proveedor").value;
+  var selTipo = document.getElementById("f-tipo");
+  var info = PROV_INFO[prov];
+  if (!prov || !info) {
+    selTipo.innerHTML = "<option value=''>- Elegí proveedor -</option>";
+    selTipo.disabled = true;
+    tipoActivo = "";
+    updateProvFields();
+    return;
+  }
+  var tipos = info.tipos || ["Planchas"];
+  // Si el proveedor tiene un solo tipo, lo elegimos automaticamente
+  if (tipos.length === 1) {
+    selTipo.innerHTML = "<option value='" + tipos[0] + "'>" + tipos[0] + "</option>";
+    selTipo.value = tipos[0];
+    selTipo.disabled = true;
+    tipoActivo = tipos[0];
+  } else {
+    selTipo.innerHTML = "<option value=''>- Elegí tipo -</option>" +
+      tipos.map(function(t){ return "<option value='" + t + "'>" + t + "</option>"; }).join("");
+    selTipo.value = "";
+    selTipo.disabled = false;
+    tipoActivo = "";
+  }
+  updateProvFields();
+}
+
+function updateProvFields() {
+  var prov = document.getElementById("f-proveedor").value;
+  tipoActivo = document.getElementById("f-tipo").value;
+  // Si no hay proveedor o no hay tipo elegido, limpiar el formulario y no mostrar numero
+  if (!prov || !tipoActivo) {
+    document.getElementById("items-thead").innerHTML = "";
+    document.getElementById("items-body").innerHTML = "";
+    itemRows = [];
+    var inpP = document.getElementById("f-pedido");
+    inpP.value = "";
+    inpP.placeholder = "Elegí un proveedor primero";
+    inpP.style.background = "";
+    var emailInp0 = document.getElementById("f-email");
+    if (emailInp0) emailInp0.value = "";
+    return;
+  }
+  var cols = getColsFor(prov, tipoActivo).filter(function(c) { return !["Pedido", "Fecha", "Estado", "Proveedor"].includes(c.key); });
+  document.getElementById("items-thead").innerHTML = "<tr><th>N°</th>" + cols.map(function(c) { return "<th>" + c.label + "</th>"; }).join("") + "<th></th></tr>";
+  document.getElementById("items-body").innerHTML = "";
+  itemRows = [];
+  addItemRow();
+  var inp = document.getElementById("f-pedido");
+  if (!datosListos) {
+    // Los datos todavia no cargaron: NO calcular el numero (saldria 001 erroneo). Avisar.
+    inp.value = "";
+    inp.placeholder = "Esperá a que carguen los datos...";
+    inp.style.background = "#fff8e1";
+    mostrarBanner("⏳ Todavía cargando datos. Esperá unos segundos y volvé a elegir el proveedor para que el N° de pedido salga correcto.", "#7a5c00", "#fff8e1");
+  } else {
+    var peds = allData.filter(function(r) { return r.Proveedor === prov; }).map(function(r) { return parseInt(r.Pedido); }).filter(function(n) { return !isNaN(n); });
+    var sig = peds.length ? Math.max.apply(null, peds) + 1 : 1;
+    inp.value = String(sig).padStart(3, "0");
+    inp.style.background = "#f0f7ff";
+  }
+  // Completar el mail del proveedor desde la agenda de contactos
+  var emailInp = document.getElementById("f-email");
+  if (emailInp) {
+    var pc = (provData || []).filter(function(x){ return String(x["Proveedor"]||"").trim() === String(prov).trim(); })[0];
+    emailInp.value = pc && pc["Mail"] ? pc["Mail"] : "";
+  }
+}
+
+function repetirPedido(pedido, proveedor) {
+  // Buscar todos los items de ese pedido (mismo N de pedido + proveedor)
+  var items = allData.filter(function(r) {
+    return String(r.Pedido) === String(pedido) && String(r.Proveedor) === String(proveedor);
+  });
+  if (!items.length) { alert("No se encontraron los items de ese pedido."); return; }
+
+  // Ir a la solapa Nuevo pedido
+  var navBtns = document.querySelectorAll("nav button");
+  var btnNuevo = null;
+  navBtns.forEach(function(b){ if (b.textContent.trim() === "Nuevo pedido") btnNuevo = b; });
+  if (btnNuevo) goTo("nuevo", btnNuevo);
+
+  // Seleccionar proveedor y disparar onProvChange (calcula N° de pedido y email del proveedor)
+  var selProv = document.getElementById("f-proveedor");
+  selProv.value = proveedor;
+  onProvChange();
+
+  // Determinar el tipo de articulo del primer item (si lo tiene guardado)
+  var tipo = items[0]["Tipo Articulo"] || "";
+  var selTipo = document.getElementById("f-tipo");
+  if (tipo && selTipo && !selTipo.disabled) {
+    // Verificar que ese tipo este entre las opciones
+    var existe = false;
+    for (var k = 0; k < selTipo.options.length; k++) { if (selTipo.options[k].value === tipo) { existe = true; break; } }
+    if (existe) { selTipo.value = tipo; tipoActivo = tipo; updateProvFields(); }
+  }
+
+  // Limpiar los items que dejo updateProvFields y cargar los del pedido
+  document.getElementById("items-body").innerHTML = "";
+  itemRows = [];
+  items.forEach(function(it) {
+    var data = {};
+    // Copiar los campos del item
+    Object.keys(it).forEach(function(key){ data[key] = it[key]; });
+    // El campo visible "Cliente" se llena con N° (preferido) o nombre o el viejo
+    var numN = it["Cliente N°"] || "";
+    var nomN = it["Cliente Nombre"] || "";
+    var viejo = it["Cliente"] || "";
+    data["Cliente"] = numN || nomN || viejo || "";
+    // Sistema para el casillero
+    data["Sistema"] = String(it["Sistema"] || "").trim().toLowerCase();
+    addItemRow(data);
+  });
+
+  // Recalcular cliente de cada fila para mostrar el nombre
+  itemRows.forEach(function(rid){
+    var tr = document.getElementById(rid);
+    if (!tr) return;
+    var inpCli = tr.querySelector(".cli-input");
+    if (inpCli) onClienteInput(inpCli, rid);
+  });
+
+  showStatus("ok", "Pedido copiado. Revisá los datos y guardá como pedido nuevo.");
+}
+
+function addItemRow(data) {
+  var prov = document.getElementById("f-proveedor").value;
+  var cols = getColsFor(prov, tipoActivo).filter(function(c) { return !["Pedido", "Fecha", "Estado", "Proveedor"].includes(c.key); });
+  var id = "item_" + Date.now() + "_" + Math.floor(Math.random() * 9999);
+  itemRows.push(id);
+  var d = data || {};
+  var tr = document.createElement("tr");
+  tr.id = id;
+  var sisGuardado = d["Sistema"] || "";
+  var chkB = esRegB(sisGuardado) ? " checked" : "";
+  var cells = "<td style='text-align:center;white-space:nowrap'><span class='item-num' style='color:#888;font-weight:600'></span> <input type='checkbox' class='chk-sistema' title='Marcar' onchange=\"onSistemaToggle('" + id + "')\"" + chkB + " style='vertical-align:middle;transform:scale(0.9)'></td>" + cols.map(function(c) {
+    var v = d[c.key] || "";
+    // CLIENTE: celda especial con casillero de registro (A/B) + campo numero/nombre
+    if (c.key === "Cliente") {
+      var inpCli = "<input type='text' class='cli-input' placeholder='N° o nombre' value=\"" + v + "\" oninput=\"onClienteInput(this,'" + id + "')\">";
+      var resultado = "<div class='cli-result' style='font-size:11px;color:#555;margin-top:2px;min-height:14px'></div>";
+      return "<td style='min-width:150px'>" + inpCli + resultado + "</td>";
+    }
+    if (c.type === "dropdown") {
+      var opts = c.options.map(function(o) { return "<option" + (o === v ? " selected" : "") + ">" + o + "</option>"; }).join("");
+      var onch = c.key === "Tipo Material" ? " onchange=\"toggleOtro(this)\"" : "";
+      var extra = "<input type=\"text\" placeholder=\"Especificar...\" style=\"margin-top:4px;display:none\" class=\"otro-input\">";
+      return "<td><select" + onch + ">" + opts + "</select>" + extra + "</td>";
+    }
+    if (c.type === "textarea") return "<td><textarea rows=\"4\">" + v + "</textarea></td>";
+    var onin = c.key === "N Caja" ? " oninput=\"autocompleteCaja(this,'" + id + "')\" class=\"caja-input\"" : "";
+    return "<td><input type=\"" + (c.type || "text") + "\" placeholder=\"" + c.label + "\" value=\"" + v + "\"" + onin + "></td>";
+  }).join("");
+  tr.innerHTML = cells + "<td><button class=\"btn-remove\" onclick=\"removeRow('" + id + "')\">x</button></td>";
+  document.getElementById("items-body").appendChild(tr);
+  renumItems();
+}
+
+function renumItems() {
+  var body = document.getElementById("items-body");
+  if (!body) return;
+  var filas = body.querySelectorAll("tr");
+  filas.forEach(function(tr, idx) {
+    var celdaNum = tr.querySelector(".item-num");
+    if (celdaNum) celdaNum.textContent = (idx + 1);
+  });
+}
+
+// Maneja el campo de cliente: busca por numero o por nombre en el sistema elegido
+function onSistemaToggle(id) {
+  var tr = document.getElementById(id);
+  if (!tr) return;
+  var inpCli = tr.querySelector(".cli-input");
+  if (inpCli) onClienteInput(inpCli, id);
+  // Si ya hay un N de caja cargado, volver a autocompletar segun el nuevo sistema
+  var inpCaja = tr.querySelector(".caja-input");
+  if (inpCaja && inpCaja.value.trim()) autocompleteCaja(inpCaja, id);
+}
+
+function onClienteInput(elem, id) {
+  var tr = document.getElementById(id);
+  if (!tr) return;
+  var inpCli = tr.querySelector(".cli-input");
+  var result = tr.querySelector(".cli-result");
+  var chk = tr.querySelector(".chk-sistema");
+  if (!inpCli || !result) return;
+  var texto = inpCli.value.trim();
+  if (!texto) { result.textContent = ""; return; }
+  // El casillero tildado marca el registro B. Sin tildar = registro A.
+  var esB = chk ? chk.checked : false;
+  var lista = esB ? clientesB : clientesA;
+  var idxNum = esB ? idxBPorNum : idxAPorNum;
+  var etiqueta = "";
+  // Si es puramente numerico, buscamos por numero
+  if (/^\d+$/.test(texto)) {
+    var nombre = idxNum[texto];
+    if (nombre) {
+      result.innerHTML = "<span style='color:#2a7'>✓ " + nombre + "</span>" + etiqueta;
+    } else {
+      result.innerHTML = "<span style='color:#b00'>Cliente no encontrado. Escribí el nombre y se guardará.</span>" + etiqueta;
+    }
+  } else {
+    // Es texto: buscamos coincidencia por nombre (exacta o que empiece igual)
+    var t = texto.toLowerCase();
+    var match = lista.filter(function(c){ return String(c.Nombre).toLowerCase().indexOf(t) >= 0; });
+    if (match.length === 1) {
+      result.innerHTML = "<span style='color:#2a7'>✓ N° " + match[0].Numero + " — " + match[0].Nombre + "</span>" + etiqueta;
+    } else if (match.length > 1 && match.length <= 6) {
+      result.innerHTML = "<span style='color:#888'>" + match.length + " coincidencias: " + match.slice(0,6).map(function(c){ return c.Numero + " " + c.Nombre; }).join(" / ") + "</span>" + etiqueta;
+    } else if (match.length > 6) {
+      result.innerHTML = "<span style='color:#888'>" + match.length + " coincidencias, seguí escribiendo...</span>" + etiqueta;
+    } else {
+      result.innerHTML = "<span style='color:#b00'>Cliente nuevo. Se guardará al confirmar el pedido.</span>" + etiqueta;
+    }
+  }
+}
+
+function removeRow(id) {
+  var el = document.getElementById(id);
+  if (el) el.remove();
+  itemRows = itemRows.filter(function(i) { return i !== id; });
+  renumItems();
+}
+
+function toggleOtro(sel) {
+  var extra = sel.parentElement.querySelector(".otro-input");
+  if (!extra) return;
+  extra.style.display = sel.value === "Otro (especificar)" ? "block" : "none";
+  if (sel.value !== "Otro (especificar)") extra.value = "";
+}
+
+function autocompleteCaja(input, id) {
+  var caja = input.value.trim();
+  if (!caja) return;
+  // Determinar el sistema a partir del CASILLERO del MISMO item.
+  var trAuto = document.getElementById(id);
+  var chkAuto = trAuto ? trAuto.querySelector(".chk-sistema") : null;
+  var regAuto = (chkAuto && chkAuto.checked) ? "B" : "A";
+  // El N Caja de un pedido viejo puede tener VARIOS codigos separados por "/"
+  // (ej: "140/128/230"). Coincide si el codigo escrito esta entre ellos.
+  function tieneCodigo(valorCaja, buscado) {
+    if (!valorCaja) return false;
+    var lista = String(valorCaja).split(/[\/,;]/).map(function(x){ return x.trim(); });
+    return lista.indexOf(String(buscado).trim()) !== -1;
+  }
+  // Buscar SOLO entre pedidos cuyo Sistema este EXPLICITAMENTE marcado igual al casillero.
+  // Los pedidos historicos sin marca NO autocompletan (para no mezclar los dos registros).
+  var matches = allData.filter(function(r) {
+    return tieneCodigo(r["N Caja"], caja) && regDeValor(r["Sistema"]) === regAuto;
+  });
+  // Revisar si esa misma caja figura en el OTRO registro (sistema contrario), para avisar.
+  var regOtro = (regAuto === "B") ? "A" : "B";
+  var existeEnOtro = allData.some(function(r) {
+    return tieneCodigo(r["N Caja"], caja) && regDeValor(r["Sistema"]) === regOtro;
+  });
+  var avisoOtro = existeEnOtro ? " <span style='color:#c47f00'>(Atenci\u00f3n: este N° tambi\u00e9n figura en el otro registro. Verific\u00e1 la marca.)</span>" : "";
+  if (!matches.length) {
+    // No hay coincidencia en este sistema: avisar en el resultado del cliente (neutro)
+    var resVacio = trAuto ? trAuto.querySelector(".cli-result") : null;
+    if (resVacio) resVacio.innerHTML = "<span style='color:#b00'>Ese N° de caja no figura para este cliente.</span>" + avisoOtro;
+    return;
+  }
+  matches.sort(function(a, b) {
+    var na = parseFloat(a.Pedido), nb = parseFloat(b.Pedido);
+    if (!isNaN(na) && !isNaN(nb)) return nb - na;
+    return String(b.Pedido).localeCompare(String(a.Pedido), "es");
+  });
+  var match = matches[0];
+  var prov = document.getElementById("f-proveedor").value;
+  var cols = getColsFor(prov, tipoActivo).filter(function(c) { return !["Pedido", "Fecha", "Estado", "Proveedor"].includes(c.key); });
+  var tr = document.getElementById(id);
+  if (!tr) return;
+  var rellenar = ["Cliente", "Tipo Material", "Largo", "Ancho", "Trazados", "Observaciones"];
+  var huboCampoOcupado = false;
+  // Recorremos celda por celda (cada td es una columna del formulario, en orden de cols).
+  var celdas = tr.querySelectorAll("td");
+  cols.forEach(function(c, i) {
+    if (c.key === "N Caja") return;
+    if (rellenar.indexOf(c.key) === -1) return;
+    var celda = celdas[i + 1];
+    if (!celda) return;
+    // CLIENTE: completar desde el pedido viejo (el sistema lo lleva el casillero, no el texto)
+    if (c.key === "Cliente") {
+      var inpCli = celda.querySelector(".cli-input");
+      var numViejo = match["Cliente N°"] || "";
+      var nomViejo = match["Cliente Nombre"] || "";
+      if (inpCli) {
+        // EMPAREJAMIENTO: si el pedido viejo tenia varias cajas y varios clientes
+        // separados por / , tomamos el cliente en la MISMA posicion que la caja pedida.
+        var listaCajasV = String(match["N Caja"] || "").split(/[\/,;]/).map(function(x){ return x.trim(); }).filter(function(x){ return x !== ""; });
+        var listaNumV = String(numViejo).split(/[\/,;]/).map(function(x){ return x.trim(); }).filter(function(x){ return x !== ""; });
+        var listaNomV = String(nomViejo).split(/[\/,;]/).map(function(x){ return x.trim(); }).filter(function(x){ return x !== ""; });
+        var base = numViejo || nomViejo || "";
+        var pos = listaCajasV.indexOf(String(caja).trim());
+        // Solo emparejamos si: la caja esta en un grupo, hay mas de un cliente,
+        // y la cantidad de cajas coincide con la de clientes (para no adivinar mal).
+        if (pos !== -1 && listaCajasV.length > 1) {
+          if (listaNumV.length === listaCajasV.length && listaNumV[pos]) {
+            base = listaNumV[pos];
+          } else if (listaNomV.length === listaCajasV.length && listaNomV[pos]) {
+            base = listaNomV[pos];
+          }
+          // Si las cantidades no coinciden, base queda como el grupo completo (se ajusta a mano).
+        }
+        if (base) {
+          inpCli.value = base;
+          onClienteInput(inpCli, id);
+          // AVISO REFORZADO: si el cliente es un numero suelto sin nombre asociado, avisar bien claro.
+          var resCli2 = tr.querySelector(".cli-result");
+          if (resCli2 && /^\d+$/.test(String(base).trim())) {
+            var esBC = (function(){ var ck = tr.querySelector(".chk-sistema"); return ck ? ck.checked : false; })();
+            var idxC = esBC ? idxBPorNum : idxAPorNum;
+            if (!idxC[String(base).trim()]) {
+              resCli2.innerHTML = "<span style='color:#fff;background:#c0392b;padding:2px 8px;border-radius:6px;font-weight:600'>\u26A0 El cliente " + base + " no tiene nombre cargado. Escribilo antes de guardar.</span>";
+            }
+          }
+        }
+      }
+      return;
+    }
+    if (match[c.key] === undefined || match[c.key] === "") return;
+    // El campo principal de la celda es el primer input/select/textarea.
+    var campo = celda.querySelector("select, textarea, input");
+    if (!campo) return;
+    // SEGURIDAD: si el campo YA tiene un valor cargado por la persona, NO lo pisamos.
+    // El autocompletado solo llena lo que esta vacio (evita cambiar medidas sin querer).
+    if (String(campo.value || "").trim() !== "") { huboCampoOcupado = true; return; }
+    var valor = match[c.key];
+    // Si es un desplegable (select) y el valor no esta entre las opciones,
+    // lo agregamos como opcion para poder seleccionarlo igual.
+    if (campo.tagName === "SELECT") {
+      var existe = false;
+      for (var j = 0; j < campo.options.length; j++) {
+        if (campo.options[j].value === valor) { existe = true; break; }
+      }
+      if (!existe) {
+        var opt = document.createElement("option");
+        opt.value = valor;
+        opt.textContent = valor;
+        campo.appendChild(opt);
+      }
+    }
+    campo.value = valor;
+  });
+  // Si habia campos ya cargados, avisar que NO se pisaron (para que la persona sepa).
+  if (huboCampoOcupado) {
+    var resAv = tr.querySelector(".cli-result");
+    if (resAv) resAv.innerHTML = (resAv.innerHTML || "") + " <span style='color:#7a5c00;background:#fff8e1;padding:2px 6px;border-radius:5px'>Se respetaron los datos que ya habías cargado (no se sobrescribieron).</span>";
+  }
+  // Si la caja tambien figura en el otro registro, sumar aviso al resultado del cliente.
+  if (avisoOtro) {
+    var resCli = tr.querySelector(".cli-result");
+    if (resCli) resCli.innerHTML = (resCli.innerHTML || "") + avisoOtro;
+  }
+}
+
+function getItems() {
+  var prov = document.getElementById("f-proveedor").value;
+  var cols = getColsFor(prov, tipoActivo).filter(function(c) { return !["Pedido", "Fecha", "Estado", "Proveedor"].includes(c.key); });
+  return itemRows.map(function(id) {
+    var tr = document.getElementById(id);
+    if (!tr) return null;
+    var obj = {};
+    // La primera celda (indice 0) es el N de item (solo visual), por eso arrancamos en 1.
+    var celdas = tr.querySelectorAll("td");
+    cols.forEach(function(c, i) {
+      var celda = celdas[i + 1];
+      if (!celda) return;
+      // CLIENTE: leer sistema + resolver numero y nombre
+      if (c.key === "Cliente") {
+        var inpCli = celda.querySelector(".cli-input");
+        var chkSis = tr.querySelector(".chk-sistema");
+        var texto = inpCli ? inpCli.value.trim() : "";
+        var esB = chkSis ? chkSis.checked : false;
+        var sistema = esB ? REG.B.valor : REG.A.valor;
+        obj["Sistema"] = sistema;
+        var idxNum = esB ? idxBPorNum : idxAPorNum;
+        var lista = esB ? clientesB : clientesA;
+        var numero = "", nombre = "";
+        if (/^\d+$/.test(texto)) {
+          // Escribio un numero
+          numero = texto;
+          nombre = idxNum[texto] || "";
+        } else if (texto) {
+          // Escribio un nombre: buscar coincidencia exacta o unica
+          var t = texto.toLowerCase();
+          var exacta = lista.filter(function(x){ return String(x.Nombre).toLowerCase() === t; });
+          var parcial = lista.filter(function(x){ return String(x.Nombre).toLowerCase().indexOf(t) >= 0; });
+          if (exacta.length === 1) { numero = exacta[0].Numero; nombre = exacta[0].Nombre; }
+          else if (parcial.length === 1) { numero = parcial[0].Numero; nombre = parcial[0].Nombre; }
+          else { nombre = texto; }
+        }
+        obj["Cliente N°"] = numero;
+        obj["Cliente Nombre"] = nombre || texto;
+        obj["Sistema"] = sistema;
+        obj["_clienteTexto"] = texto;
+        return;
+      }
+      var campo = celda.querySelector("select, textarea, input");
+      if (!campo) return;
+      if (c.key === "Tipo Material" && campo.value === "Otro (especificar)") {
+        var extra = celda.querySelector(".otro-input");
+        obj[c.key] = extra && extra.value ? extra.value : campo.value;
+      } else {
+        obj[c.key] = campo.value;
+      }
+    });
+    // Guardar el tipo de articulo elegido en cada item
+    obj["Tipo Articulo"] = tipoActivo;
+    return obj;
+  }).filter(Boolean);
+}
+
+function fmtDate(v) {
+  if (!v) return new Date().toLocaleDateString("es-AR");
+  return v.split("-").reverse().join("/");
+}
+
+function buildPreviewHTML(ped, fecha, prov, items, mailCols) {
+  function thStyle(){ return "padding:7px 10px;background:#f0f0ec;border:1px solid #ddd;font-size:12px;text-align:left;white-space:nowrap"; }
+  function tdStyle(){ return "padding:6px 10px;border:1px solid #ddd;font-size:12px"; }
+  var heads = "<th style='" + thStyle() + "'>N°</th>" + mailCols.map(function(c) {
+    if (c.key === "Cliente") {
+      return "<th style='" + thStyle() + "'>Cliente</th>";
+    }
+    return "<th style='" + thStyle() + "'>" + c.label + "</th>";
+  }).join("");
+  var rows = items.map(function(it, idx) {
+    return "<tr><td style='padding:6px 10px;border:1px solid #ddd;font-size:12px;text-align:center'>" + (idx + 1) + "</td>" + mailCols.map(function(c) {
+      if (c.key === "Cliente") {
+        var marca = esRegB(it["Sistema"]) ? REG.B.marca : "";
+        var numN = it["Cliente N°"] || "";
+        var nomN = it["Cliente Nombre"] || "";
+        var cli = (numN && nomN) ? (numN + " - " + nomN) : (numN || nomN || "");
+        return "<td style='" + tdStyle() + "'>" + marca + cli + "</td>";
+      }
+      var valCelda = it[c.key] || "";
+      // En Observaciones y Anotaciones respetamos los saltos de linea (los pasamos a <br>)
+      if (c.key === "Observaciones" || c.key === "Anotaciones") {
+        valCelda = String(valCelda).replace(/\r\n|\r|\n/g, "<br>");
+      }
+      // STOCK (cliente de stock, ver config): al lado del N Caja mostrar la medida del listado interno.
+      if (c.key === "N Caja") {
+        var numClienteIt = String(it["Cliente N°"] || "").trim();
+        var esStock = String(it["Cliente N°"] || "").split(/[\/,;]/).map(function(x){return x.trim();}).indexOf(CLIENTE_STOCK) !== -1 && CLIENTE_STOCK !== "";
+        if (esStock) {
+          var codigos = String(valCelda).split(/[\/,;]/).map(function(x){ return x.trim(); }).filter(function(x){ return x!==""; });
+          var conMedida = codigos.map(function(cod){
+            var med = MEDIDAS_STOCK[cod];
+            return med ? (cod + " (" + med + ")") : cod;
+          });
+          valCelda = conMedida.join(" / ");
+        }
+      }
+      return "<td style='" + tdStyle() + "'>" + valCelda + "</td>";
+    }).join("") + "</tr>";
+  }).join("");
+  // Deducir el tipo de pedido de los items (Cajas / Planchas / Rollos)
+  var tipoPed = "";
+  for (var ti = 0; ti < items.length; ti++) { if (items[ti]["Tipo Articulo"]) { tipoPed = items[ti]["Tipo Articulo"]; break; } }
+  var lineaTipo = tipoPed ? ("<p style='margin-bottom:8px;font-size:15px;font-weight:bold'>PEDIDO DE " + String(tipoPed).toUpperCase() + "</p>") : "";
+  return "<div style='font-family:Arial,sans-serif;font-size:13px'>" +
+    "<p style='margin-bottom:4px'><strong>E.G. CORRUGADOS S.R.L.</strong></p>" +
+    "<p style='margin-bottom:4px;font-size:18px;font-weight:bold'>" + String(prov || "").toUpperCase() + " PEDIDO N " + ped + "</p>" +
+    "<p style='margin-bottom:4px'>Fecha: " + fecha + "</p>" +
+    "<p style='margin-bottom:8px'>Proveedor: " + prov + "</p>" +
+    lineaTipo +
+    "<table style='border-collapse:collapse;width:100%'><thead><tr>" + heads + "</tr></thead><tbody>" + rows + "</tbody></table>" +
+    "<p style='margin-top:16px;font-size:12px'>ENVIADO VIA E-MAIL</p>" +
+    "</div>";
+}
+
+function previewMail() {
+  var ped = document.getElementById("f-pedido").value || "--";
+  var fecha = fmtDate(document.getElementById("f-fecha").value);
+  var prov = document.getElementById("f-proveedor").value;
+  var items = getItems();
+  if (!items.length) { alert("Agrega al menos un item"); return; }
+  var mailCols = getColsFor(prov, tipoActivo).filter(function(c) { return c.mail && c.key !== "Pedido" && c.key !== "Fecha"; });
+  // Vista INTERNA en pantalla: incluye Cliente (y Sistema). El mail al proveedor NO.
+  var internCols = getColsFor(prov, tipoActivo).filter(function(c) { return (c.mail || c.key === "Cliente") && c.key !== "Pedido" && c.key !== "Fecha"; });
+  var html = buildPreviewHTML(ped, fecha, prov, items, internCols);
+  document.getElementById("preview-box").innerHTML = "<div style='background:#fff8e1;border:1px solid #f0d000;padding:6px 10px;font-size:11px;margin-bottom:8px;border-radius:4px'>Vista interna (incluye cliente). El mail al proveedor NO lo muestra.</div>" + html;
+  var txt = "E.G. CORRUGADOS S.R.L.\n" + String(prov || "").toUpperCase() + " PEDIDO N " + ped + "\nFecha " + fecha + "\nProveedor: " + prov + "\n\n";
+  txt += "N°\t" + mailCols.map(function(c) { return c.label; }).join("\t") + "\n";
+  items.forEach(function(it, idx) {
+    txt += (idx + 1) + "\t" + mailCols.map(function(c) { return it[c.key] || ""; }).join("\t") + "\n";
+  });
+  txt += "\nENVIADO VIA E-MAIL";
+  lastPreviewText = txt;
+}
+
+// Copia el pedido GUARDADO (tabla con formato) y abre el mail. destinoForzado: el mail que se eligio
+// en el formulario; soloCopiar: copia sin abrir el correo (boton "Copiar para mail").
+function enviarPedidoGuardado(pedido, proveedor, destinoForzado, soloCopiar) {
+  // Juntar los items de ese pedido
+  var items = allData.filter(function(r) {
+    return String(r.Pedido) === String(pedido) && String(r.Proveedor) === String(proveedor);
+  });
+  if (!items.length) { alert("No se encontraron los items de ese pedido."); return; }
+  var fecha = items[0].Fecha || "";
+  var tipo = items[0]["Tipo Articulo"] || "";
+  // Columnas que ve el PROVEEDOR (sin cliente ni sistema)
+  var mailCols = getColsFor(proveedor, tipo).filter(function(c) { return c.mail && c.key !== "Pedido" && c.key !== "Fecha"; });
+  var html = buildPreviewHTML(pedido, fecha, proveedor, items, mailCols);
+  // Buscar el mail del proveedor en la agenda
+  var destino = "";
+  for (var i = 0; i < provData.length; i++) {
+    if (String(provData[i]["Proveedor"]).trim() === String(proveedor).trim()) { destino = (provData[i]["Mail"] || "").trim(); break; }
+  }
+  if (destinoForzado) destino = destinoForzado;
+  // VERSION DE PRUEBA: el mail se abre SIN destinatario (los contactos son reales y
+  // los pedidos de prueba no tienen que llegarle a ningun proveedor).
+  if (ES_PRUEBA) destino = "";
+  var asunto = (ES_PRUEBA ? "PRUEBA - " : "") + "PEDIDO N° " + pedido;
+  function abrirOutlook() {
+    if (soloCopiar) return;
+    abrirMail("mailto:" + encodeURIComponent(destino) + "?subject=" + encodeURIComponent(asunto));
+  }
+  // Texto plano de respaldo
+  var txt = "E.G. CORRUGADOS S.R.L.\n" + String(proveedor || "").toUpperCase() + " PEDIDO N " + pedido + "\nFecha " + fecha + "\nProveedor: " + proveedor + "\n\n";
+  txt += "N°\t" + mailCols.map(function(c){ return c.label; }).join("\t") + "\n";
+  items.forEach(function(it, idx) { txt += (idx+1) + "\t" + mailCols.map(function(c){ return it[c.key] || ""; }).join("\t") + "\n"; });
+  txt += "\nENVIADO VIA E-MAIL";
+  try {
+    var blob = new Blob([html], {type: "text/html"});
+    var clipItem = new ClipboardItem({"text/html": blob});
+    navigator.clipboard.write([clipItem]).then(function() {
+      alert((soloCopiar ? "Pedido copiado. Pegalo en el mail y se va a ver con las columnas alineadas." : "Pedido copiado. Se abre el mail: hace clic derecho > Pegar en el cuerpo.") +
+            (ES_PRUEBA && !soloCopiar ? "\n\nVERSIÓN DE PRUEBA: el mail se abre SIN destinatario. No lo envíes a ningún proveedor." : ""));
+      abrirOutlook();
+    }).catch(function() {
+      navigator.clipboard.writeText(txt).then(function(){
+        alert("Pedido copiado como texto. Se abre el mail: clic derecho > Pegar." +
+              (ES_PRUEBA && !soloCopiar ? "\n\nVERSIÓN DE PRUEBA: el mail se abre SIN destinatario. No lo envíes a ningún proveedor." : ""));
+        abrirOutlook();
+      }).catch(function(){ abrirOutlook(); });
+    });
+  } catch(e) { abrirOutlook(); }
+}
+
+function imprimirPedidoGuardado(pedido, proveedor) {
+  // Juntar los items de ese pedido (mismo N y proveedor)
+  var items = allData.filter(function(r) {
+    return String(r.Pedido) === String(pedido) && String(r.Proveedor) === String(proveedor);
+  });
+  if (!items.length) { alert("No se encontraron los items de ese pedido."); return; }
+  var fecha = items[0].Fecha || "";
+  var tipo = items[0]["Tipo Articulo"] || "";
+  // Preparar cada item para que buildPreviewHTML lo lea igual que los nuevos
+  var itemsPrep = items.map(function(it) {
+    var o = {};
+    Object.keys(it).forEach(function(k){ o[k] = it[k]; });
+    // Cliente: si tiene columnas nuevas las usa; si no, el viejo en Cliente Nombre
+    if (!o["Cliente N°"] && !o["Cliente Nombre"] && o["Cliente"]) { o["Cliente Nombre"] = o["Cliente"]; }
+    o["Sistema"] = String(it["Sistema"] || "").trim().toLowerCase();
+    return o;
+  });
+  // Columnas FIJAS para imprimir (no dependen del tipo guardado, asi siempre sale el N Caja).
+  // Tomamos las etiquetas del tipo del pedido si existe, para que digan "Material"/"Medida" segun corresponda.
+  var baseCols = getColsFor(proveedor, tipo);
+  function labelDe(key, porDefecto) {
+    for (var i = 0; i < baseCols.length; i++) { if (baseCols[i].key === key) return baseCols[i].label; }
+    return porDefecto;
+  }
+  var printCols = [
+    {key:"Cantidad", label:"CANT."},
+    {key:"Tipo Material", label:labelDe("Tipo Material","Material")},
+    {key:"Largo", label:labelDe("Largo","Largo")},
+    {key:"Ancho", label:labelDe("Ancho","Ancho")},
+    {key:"Trazados", label:labelDe("Trazados","Trazados")},
+    {key:"Observaciones", label:"Observaciones"},
+    {key:"Cliente", label:"Cliente"},
+    {key:"N Caja", label:"N° Caja"},
+    {key:"Anotaciones", label:"Anotaciones"}
+  ];
+  // Quitar columnas que esten totalmente vacias en todos los items (para no mostrar columnas de mas)
+  printCols = printCols.filter(function(col){
+    if (col.key === "Cliente" || col.key === "N Caja") return true; // siempre mostrar estas
+    return itemsPrep.some(function(it){ return String(it[col.key] || "").trim() !== ""; });
+  });
+  var html = buildPreviewHTML(pedido, fecha, proveedor, itemsPrep, printCols);
+  var iframe = document.getElementById("print-iframe");
+  if (!iframe) {
+    iframe = document.createElement("iframe");
+    iframe.id = "print-iframe";
+    iframe.style.cssText = "position:fixed;top:-9999px;left:-9999px;width:800px;height:600px;border:none";
+    document.body.appendChild(iframe);
+  }
+  iframe.contentDocument.open();
+  iframe.contentDocument.write("<html><head><title>Pedido " + pedido + "</title><style>body{font-family:Arial,sans-serif;padding:24px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:7px 10px;font-size:13px}th{background:#f0f0ec}</style></head><body>" + html + "</body></html>");
+  iframe.contentDocument.close();
+  setTimeout(function() { iframe.contentWindow.focus(); iframe.contentWindow.print(); }, 500);
+}
+
+function showStatus(type, msg) {
+  var s = document.getElementById("status-nuevo");
+  s.className = "status " + type;
+  s.textContent = msg;
+}
+
+var guardando = false;
+// Ultimo pedido guardado desde el formulario: {numero, proveedor, email}. Mail e impresion
+// salen SIEMPRE de un pedido ya guardado (con su N° definitivo), nunca del formulario.
+var pedidoGuardado = null;
+function ahoraISO() { return new Date().toISOString(); }
+
+// Proximo N° de pedido de un proveedor: el mas alto + 1 (minimo 3 digitos, como siempre).
+function siguienteNumero(datos, prov) {
+  var peds = datos.filter(function(r) { return String(r.Proveedor).trim() === String(prov).trim(); })
+                  .map(function(r) { return parseInt(r.Pedido); })
+                  .filter(function(n) { return !isNaN(n); });
+  var sig = peds.length ? Math.max.apply(null, peds) + 1 : 1;
+  return String(sig).padStart(3, "0");
+}
+
+function limpiarFormularioCarga() {
+  // Vacia los items y vuelve a preparar el formulario con una fila limpia
+  // y el proximo numero de pedido recalculado, manteniendo el proveedor y tipo elegidos.
+  var prov = document.getElementById("f-proveedor").value;
+  var tipo = document.getElementById("f-tipo").value;
+  document.getElementById("items-body").innerHTML = "";
+  itemRows = [];
+  if (prov && tipo) {
+    addItemRow();
+    document.getElementById("f-pedido").value = siguienteNumero(allData, prov);
+  }
+  // Limpiar la previsualizacion en pantalla
+  var pv = document.getElementById("preview-box");
+  if (pv) pv.innerHTML = "";
+}
+
+// ¿El formulario tiene algo cargado a mano? (los desplegables con su valor por defecto no cuentan)
+function formTieneDatos() {
+  return itemRows.some(function(id) {
+    var tr = document.getElementById(id);
+    if (!tr) return false;
+    return Array.prototype.some.call(tr.querySelectorAll("input[type=text], input[type=number], textarea"), function(el) {
+      return String(el.value || "").trim() !== "";
+    });
+  });
+}
+
+// Botones sueltos (Copiar para mail / Copiar + abrir Outlook / Imprimir pedido):
+// trabajan sobre el ultimo pedido GUARDADO, porque el N° recien existe al guardar.
+function accionSuelta(tipo) {
+  if (formTieneDatos()) {
+    showStatus("err", "Primero guardá el pedido (Finalizar → 1. Guardar): el N° se asigna al guardar. Después lo enviás e imprimís.");
+    return;
+  }
+  if (!pedidoGuardado) { showStatus("err", "No hay un pedido guardado recién. Para uno anterior, usá ✉ o 🖨 en el Buscador o el Historial."); return; }
+  var p = pedidoGuardado;
+  if (tipo === "imprimir") imprimirPedidoGuardado(p.numero, p.proveedor);
+  else enviarPedidoGuardado(p.numero, p.proveedor, p.email, tipo === "copiar");
+}
+
+// Motivo por el que hoy no se puede guardar ("" si se puede). Se revisa ANTES de pedir datos de clientes.
+function motivoNoGuardar() {
+  if (!navigator.onLine) return "Sin conexión: no se guarda.";
+  if (!SESION.ok) return "No hay sesión iniciada: tocá \"Iniciar sesión\" arriba a la derecha.";
+  if (DBERROR) return "La base tiene problemas: " + DBERROR;
+  if (!DBINIT) return "La base todavía no está importada: no se guarda.";
+  return "";
+}
+
+// Guarda clientes nuevos [{sis, numero, nombre}] en una sola operacion.
+// Si el N° ya existe en ese registro, NO se cambia (se avisa si el nombre es otro).
+async function guardarClientesNuevos(nuevos) {
+  if (!nuevos.length) return [];
+  var avisos = [];
+  var res = await operar("clientes", function(d) {
+    avisos = [];
+    var agregados = 0;
+    nuevos.forEach(function(c) {
+      var lista = esRegB(c.sis) ? d.B : d.A;
+      var ex = lista.filter(function(x){ return String(x.Numero).trim() === c.numero; })[0];
+      if (ex) {
+        if (String(ex.Nombre).trim().toLowerCase() !== c.nombre.toLowerCase()) {
+          avisos.push("El cliente N° " + c.numero + " ya existía como \"" + ex.Nombre + "\": no se cambió.");
+        }
+        return;
+      }
+      lista.push({ Numero: c.numero, Nombre: c.nombre });
+      agregados++;
+    });
+    return agregados ? agregados : operar.SIN_CAMBIOS;
+  });
+  setClientes(res.datos);
+  return avisos;
+}
+
+var ultimoGuardadoCompleto = false;
+function mostrarCartelExito(ped, cant, provisorio) {
+  var prev = document.getElementById("cartel-exito");
+  if (prev) prev.remove();
+  var ov = document.createElement("div");
+  ov.id = "cartel-exito";
+  ov.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:3000;display:flex;align-items:center;justify-content:center";
+  // Si a este pedido le toco otro N° (otra persona guardo antes), avisarlo bien grande.
+  var cambio = provisorio && provisorio !== ped
+    ? "<div style='font-size:15px;font-weight:700;color:#fff;background:#c0392b;border-radius:8px;padding:8px 12px;margin-top:12px'>Ojo: en pantalla decía N° " + provisorio + ".<br>Otra persona guardó antes y a este pedido le tocó el N° " + ped + ".</div>"
+    : "";
+  ov.innerHTML =
+    "<div style='background:#fff;border-radius:16px;padding:40px 48px;text-align:center;box-shadow:0 12px 50px rgba(0,0,0,.35);max-width:90%;animation:cartelPop .25s ease-out'>" +
+      "<div style='font-size:56px;line-height:1;margin-bottom:12px'>✅</div>" +
+      "<div style='font-size:26px;font-weight:800;color:#1b8a4b;margin-bottom:6px'>PEDIDO N° " + ped + "</div>" +
+      "<div style='font-size:22px;font-weight:700;color:#333;margin-bottom:10px'>GUARDADO EXITOSAMENTE</div>" +
+      "<div style='font-size:15px;color:#666'>Se guardaron " + cant + " de " + cant + " ítem(s) ✓</div>" +
+      cambio +
+    "</div>";
+  document.body.appendChild(ov);
+  // Se cierra solo (mas tarde si cambio el numero), o al tocar
+  var cerrar = function(){ if (ov && ov.parentNode) ov.remove(); };
+  ov.addEventListener("click", cerrar);
+  setTimeout(cerrar, cambio ? 8000 : 3000);
+}
+
+// Guarda el pedido del formulario. El N° se asigna ADENTRO de la operacion (lee fresco, toma el
+// mas alto del proveedor + 1 y graba con eTag): si dos personas guardan a la vez, la segunda
+// reintenta y recibe el N° siguiente. Todos los renglones entran juntos o ninguno.
+// desdeFinalizar: el formulario se limpia al cerrar la ventanita (no aca).
+async function guardarPedido(desdeFinalizar) {
+  // Proteccion anti-doble-guardado: si ya esta guardando, ignorar nuevos clics.
+  ultimoGuardadoCompleto = false;
+  if (guardando) return;
+  var fecha = fmtDate(document.getElementById("f-fecha").value);
+  var prov = document.getElementById("f-proveedor").value;
+  var items = getItems();
+  if (!prov) { showStatus("err", "Elegí un proveedor antes de guardar."); return; }
+  if (!items.length) { showStatus("err", "Agrega al menos un item."); return; }
+  var motivo = motivoNoGuardar();
+  if (motivo) { showStatus("err", motivo); estadoBaseEnBadge(); return; }
+  // --- Detectar clientes NUEVOS (tienen registro y nombre, pero no numero en la lista) ---
+  var nuevos = [];
+  for (var ci = 0; ci < items.length; ci++) {
+    var it = items[ci];
+    var sis = it["Sistema"];
+    var num = it["Cliente N°"];
+    var nom = it["Cliente Nombre"];
+    var txt = it["_clienteTexto"];
+    if (!sis || !txt) continue; // sin registro o sin nada escrito: nada que guardar
+    var idxNum = esRegB(sis) ? idxBPorNum : idxAPorNum;
+    // Caso 1: escribio un numero que NO existe -> pedir nombre para guardarlo
+    if (num && !idxNum[num]) {
+      var nombreNuevo = window.prompt("El cliente N° " + num + " (" + nombreReg(sis) + ") no está en la lista.\n\nEscribí el NOMBRE para guardarlo (o Cancelar para dejarlo sin guardar):", "");
+      if (nombreNuevo && nombreNuevo.trim()) {
+        nuevos.push({ sis: sis, numero: String(num).trim(), nombre: nombreNuevo.trim() });
+        it["Cliente Nombre"] = nombreNuevo.trim();
+      }
+      continue;
+    }
+    // Caso 2: escribio un nombre sin numero (cliente nuevo) -> pedir numero
+    if (!num && nom) {
+      var numNuevo = window.prompt("El cliente \"" + nom + "\" (" + nombreReg(sis) + ") no tiene número asignado.\n\nEscribí el N° de cliente para guardarlo (o Cancelar para dejarlo sin guardar):", "");
+      if (numNuevo && numNuevo.trim()) {
+        nuevos.push({ sis: sis, numero: numNuevo.trim(), nombre: nom });
+        it["Cliente N°"] = numNuevo.trim();
+      }
+      continue;
+    }
+  }
+  guardando = true;
+  var btn = document.getElementById("btn-guardar");
+  if (btn) { btn.disabled = true; btn.textContent = "Guardando..."; btn.style.opacity = "0.6"; }
+  var provisorio = document.getElementById("f-pedido").value.trim();
+  var avisosCli = [];
+  try {
+    // 1) Clientes nuevos primero (si despues falla el pedido, el cliente queda cargado: no hace daño).
+    if (nuevos.length) {
+      showStatus("loading", "Guardando cliente(s) nuevo(s)...");
+      avisosCli = await guardarClientesNuevos(nuevos);
+    }
+    // 2) El pedido, todo junto. Cada renglon lleva un ID unico generado UNA vez
+    //    (si la operacion se reintenta, no se duplica).
+    showStatus("loading", "Guardando...");
+    var base = Date.now();
+    var filas = items.map(function(it, idx){
+      var r = Object.assign({}, it);
+      delete r["_clienteTexto"];
+      r["ID"] = "EG-" + base + "-" + idx + "-" + Math.floor(Math.random() * 9999);
+      r["Fecha"] = fecha;
+      r["Estado"] = "Enviado";
+      r["Proveedor"] = prov;
+      r["Cargado desde"] = SESION.nombre;
+      r["Creado el"] = ahoraISO();
+      return r;
+    });
+    var ids = {};
+    filas.forEach(function(f){ ids[f.ID] = true; });
+    var res = await operar("pedidos", function(d) {
+      if (d.some(function(r){ return ids[r.ID]; })) return operar.SIN_CAMBIOS;   // ya estaba guardado
+      var numero = siguienteNumero(d, prov);
+      filas.forEach(function(f){ f["Pedido"] = numero; d.push(f); });
+      return numero;
+    });
+    var numFinal = filas[0]["Pedido"];
+    allData = res.datos;
+    // 3) Verificacion: releer de SharePoint y contar los renglones por su ID.
+    showStatus("loading", "Verificando que se guardaron todos los ítems...");
+    var verif = null;
+    try { verif = await leerArchivo("pedidos.json"); } catch (e) {}
+    var faltan = verif ? filas.filter(function(f){ return !verif.data.some(function(r){ return r.ID === f.ID; }); }).length : -1;
+    if (faltan > 0) throw new Error("La verificación encontró " + faltan + " ítem(s) sin guardar.");
+    pedidoGuardado = { numero: numFinal, proveedor: prov, email: (document.getElementById("f-email").value || "").trim() };
+    document.getElementById("f-pedido").value = numFinal;
+    ultimoGuardadoCompleto = true;
+    var msg = "Pedido N " + numFinal + " guardado" + (faltan === 0 ? " y verificado" : " (no se pudo releer para verificar; revisá el Historial)") + ": " + filas.length + " de " + filas.length + " ítem(s). ✓";
+    if (avisosCli.length) msg += " " + avisosCli.join(" ");
+    showStatus("ok", msg);
+    mostrarCartelExito(numFinal, filas.length, provisorio);
+    renderListas();
+    if (!desdeFinalizar) limpiarFormularioCarga();
+  } catch (e) {
+    var m = (e && e.message) || String(e);
+    showStatus("err", "ATENCIÓN: el pedido NO se guardó. " + m + " El formulario queda como estaba: revisá y volvé a guardar.");
+    alert("ATENCIÓN\n\nEl pedido NO se guardó.\n\n" + m + "\n\nNo se borró nada del formulario.");
+  } finally {
+    // Reactivar el boton al terminar
+    guardando = false;
+    if (btn) { btn.disabled = false; btn.textContent = "Guardar pedido"; btn.style.opacity = "1"; }
+  }
+}
+
+/* ---- Finalizar pedido: 1. Guardar  2. Enviar por mail  3. Imprimir ---- */
+var finGuardadoOk = false;
+function abrirFinalizar() {
+  // Validar que haya proveedor e items antes de abrir
+  var prov = document.getElementById("f-proveedor").value;
+  if (!prov) { showStatus("err", "Elegí un proveedor antes de finalizar."); return; }
+  var items = getItems();
+  if (!items.length) { showStatus("err", "Agregá al menos un ítem."); return; }
+  // Reset de tildes
+  resetPasoFin("fin-paso-guardar", "1.");
+  resetPasoFin("fin-paso-mail", "2.");
+  resetPasoFin("fin-paso-imp", "3.");
+  finGuardadoOk = false;
+  habilitarPasosFin(false);
+  document.getElementById("fin-aviso").textContent = "";
+  document.getElementById("modal-finalizar").style.display = "flex";
+}
+function habilitarPasosFin(si) {
+  ["fin-btn-mail", "fin-btn-imp"].forEach(function(id){
+    var b = document.getElementById(id);
+    if (b) { b.disabled = !si; b.style.opacity = si ? "1" : "0.4"; b.style.cursor = si ? "pointer" : "not-allowed"; }
+  });
+  var g = document.getElementById("fin-btn-guardar");
+  if (g) { g.disabled = si; g.style.opacity = si ? "0.4" : "1"; }
+}
+function cerrarFinalizar() {
+  if (finGuardadoOk) {
+    var mailHecho = document.querySelector("#fin-paso-mail .fin-done");
+    var impHecho = document.querySelector("#fin-paso-imp .fin-done");
+    if (!mailHecho || !impHecho) {
+      var faltan = [];
+      if (!mailHecho) faltan.push("enviar por mail");
+      if (!impHecho) faltan.push("imprimir");
+      var ok = confirm("El pedido N° " + pedidoGuardado.numero + " ya está guardado, pero falta " + faltan.join(" y ") + ".\n\nPodés hacerlo después con ✉ y 🖨 en el Buscador o el Historial.\n\n¿Cerrar igual?");
+      if (!ok) return;
+    }
+  }
+  document.getElementById("modal-finalizar").style.display = "none";
+  // Recien al cerrar (con el pedido ya guardado) se limpia el formulario.
+  if (finGuardadoOk) { finGuardadoOk = false; limpiarFormularioCarga(); }
+}
+function resetPasoFin(id, nro) {
+  var p = document.getElementById(id);
+  if (!p) return;
+  var chk = p.querySelector(".fin-check");
+  if (chk) { chk.textContent = nro; chk.className = "fin-check"; chk.style.fontSize = "20px"; }
+}
+function marcarPasoFin(id) {
+  var p = document.getElementById(id);
+  if (!p) return;
+  var chk = p.querySelector(".fin-check");
+  if (chk) { chk.textContent = "✓"; chk.className = "fin-check fin-done"; }
+}
+async function finGuardar() {
+  if (finGuardadoOk || guardando) return;
+  var aviso = document.getElementById("fin-aviso");
+  aviso.textContent = "Guardando...";
+  await guardarPedido(true);
+  if (!ultimoGuardadoCompleto) { aviso.textContent = "No se guardó. Mirá el aviso en la pantalla."; return; }
+  finGuardadoOk = true;
+  marcarPasoFin("fin-paso-guardar");
+  habilitarPasosFin(true);
+  aviso.textContent = "Guardado como pedido N° " + pedidoGuardado.numero + ". Ahora podés enviarlo e imprimirlo.";
+}
+function finEnviar() {
+  if (!finGuardadoOk) return;
+  enviarPedidoGuardado(pedidoGuardado.numero, pedidoGuardado.proveedor, pedidoGuardado.email);
+  marcarPasoFin("fin-paso-mail");
+}
+function finImprimir() {
+  if (!finGuardadoOk) return;
+  imprimirPedidoGuardado(pedidoGuardado.numero, pedidoGuardado.proveedor);
+  marcarPasoFin("fin-paso-imp");
+}
+
+/* ---- Cambiar el estado de un renglon (por ID) ---- */
+// Si otra persona lo cambio desde que lo estas viendo, avisa antes de pisarlo.
+async function cambiarEstado(sel, forzar) {
+  var id = sel.getAttribute("data-id");
+  var nuevo = sel.value;
+  if (!id) return;
+  var rec = allData.find(function(r){ return String(r.ID) === String(id); });
+  var visto = rec ? (rec.Estado || "Enviado") : "";
+  var motivo = motivoNoGuardar();
+  if (motivo) { alert("No se pudo cambiar el estado.\n\n" + motivo); renderListas(); return; }
+  sel.disabled = true;
+  try {
+    var res = await operar("pedidos", function(d) {
+      var r = d.filter(function(x){ return String(x.ID) === String(id); })[0];
+      if (!r) throw new Error("No se encontró ese renglón en SharePoint.");
+      var actual = r.Estado || "Enviado";
+      if (actual === nuevo) return operar.SIN_CAMBIOS;
+      if (actual !== visto && !forzar) {
+        var ec = new Error("conflicto"); ec.conflicto = { actual: actual, por: r["Modificado por"] || "" }; throw ec;
+      }
+      r.Estado = nuevo;
+      r["Modificado por"] = SESION.nombre;
+      r["Modificado el"] = ahoraISO();
+    });
+    allData = res.datos;
+  } catch (e) {
+    if (e.conflicto) {
+      estadoBaseEnBadge();
+      var quien = e.conflicto.por || "otra persona";
+      if (confirm("Mientras tanto, " + quien + " cambió este renglón a \"" + e.conflicto.actual + "\".\n\n¿Lo cambiás igual a \"" + nuevo + "\"?")) {
+        sel.disabled = false;
+        return cambiarEstado(sel, true);
+      }
+      await refrescarDesdeSharePoint();
+    } else {
+      alert("No se pudo cambiar el estado.\n\n" + ((e && e.message) || e));
+    }
+  }
+  sel.disabled = false;
+  renderListas();
+}
+
+function syncScroll(topId, wrapId) {
+  var top = document.getElementById(topId);
+  var wrap = document.getElementById(wrapId);
+  if (!top || !wrap) return;
+  var table = wrap.querySelector("table");
+  if (!table) return;
+  // Solo tiene sentido si la tabla es mas ancha que el contenedor (hay scroll horizontal)
+  function ajustar() {
+    var ancho = table.scrollWidth;
+    top.firstElementChild.style.width = ancho + "px";
+    // Si la tabla entra completa, ocultar la barra de arriba (no hace falta)
+    if (ancho <= wrap.clientWidth + 2) { top.style.display = "none"; }
+    else { top.style.display = "block"; }
+  }
+  ajustar();
+  // Reintentar un par de veces por si la tabla recien se hizo visible (medidas en 0)
+  setTimeout(ajustar, 150);
+  setTimeout(ajustar, 400);
+  var lock = false;
+  top.onscroll = function(){ if(lock) return; lock=true; wrap.scrollLeft = top.scrollLeft; lock=false; };
+  wrap.onscroll = function(){ if(lock) return; lock=true; top.scrollLeft = wrap.scrollLeft; lock=false; };
+}
+function syncAllScrolls() {
+  syncScroll("stop-buscar", "twrap-buscar");
+  syncScroll("stop-prov", "twrap-prov");
+  syncScroll("stop-hist", "twrap-hist");
+}
+
+var editId = null;
+var notasVistas = null;   // lo que habia cuando se abrio la ventanita (para detectar cambios de otra persona)
+function abrirEditar(id) {
+  editId = id;
+  var rec = allData.find(function(r){ return String(r.ID) === String(id); });
+  if (!rec) return;
+  notasVistas = { obs: String(rec.Observaciones || ""), ano: String(rec.Anotaciones || "") };
+  document.getElementById("modal-ped-num").textContent = "N° " + (rec.Pedido || "") + " - " + (rec.Cliente || rec["Tipo Material"] || "");
+  document.getElementById("modal-obs").value = rec.Observaciones || "";
+  document.getElementById("modal-ano").value = rec.Anotaciones || "";
+  var st = document.getElementById("modal-status"); st.style.display = "none";
+  document.getElementById("modal-editar").classList.add("open");
+}
+function cerrarEditar() {
+  document.getElementById("modal-editar").classList.remove("open");
+  editId = null;
+  notasVistas = null;
+}
+// Si otra persona cambio las notas de este renglon mientras editabas, muestra las dos versiones y elegis.
+async function guardarNotas(forzar) {
+  if (!editId) return;
+  var obs = document.getElementById("modal-obs").value;
+  var ano = document.getElementById("modal-ano").value;
+  var btn = document.getElementById("modal-guardar");
+  var st = document.getElementById("modal-status");
+  var motivo = motivoNoGuardar();
+  if (motivo) { st.style.display = "block"; st.style.color = "#c62828"; st.textContent = motivo; return; }
+  var id = editId, vistas = notasVistas;
+  btn.disabled = true;
+  st.style.display = "block"; st.style.color = "#1565c0"; st.textContent = "Guardando...";
+  try {
+    var res = await operar("pedidos", function(d) {
+      var r = d.filter(function(x){ return String(x.ID) === String(id); })[0];
+      if (!r) throw new Error("No se encontró ese renglón en SharePoint.");
+      var oActual = String(r.Observaciones || ""), aActual = String(r.Anotaciones || "");
+      if (oActual === obs && aActual === ano) return operar.SIN_CAMBIOS;
+      if (!forzar && vistas && (oActual !== vistas.obs || aActual !== vistas.ano)) {
+        var ec = new Error("conflicto"); ec.conflicto = { obs: oActual, ano: aActual, por: r["Modificado por"] || "" }; throw ec;
+      }
+      r.Observaciones = obs;
+      r.Anotaciones = ano;
+      r["Modificado por"] = SESION.nombre;
+      r["Modificado el"] = ahoraISO();
+    });
+    allData = res.datos;
+    st.style.color = "#2e7d32"; st.textContent = "Guardado.";
+    renderListas();
+    setTimeout(cerrarEditar, 700);
+  } catch (e) {
+    if (e.conflicto) {
+      estadoBaseEnBadge();
+      var quien = e.conflicto.por || "Otra persona";
+      var elegir = confirm(quien + " cambió las notas de este renglón mientras las editabas.\n\n" +
+        "LO QUE GUARDÓ " + quien.toUpperCase() + ":\nObservaciones: " + (e.conflicto.obs || "(vacío)") + "\nAnotaciones: " + (e.conflicto.ano || "(vacío)") + "\n\n" +
+        "LO TUYO:\nObservaciones: " + (obs || "(vacío)") + "\nAnotaciones: " + (ano || "(vacío)") + "\n\n" +
+        "Aceptar = guardar lo tuyo (reemplaza lo de " + quien + ")\nCancelar = dejar lo de " + quien);
+      btn.disabled = false;
+      if (elegir) return guardarNotas(true);
+      await refrescarDesdeSharePoint();
+      cerrarEditar();
+      return;
+    }
+    st.style.color = "#c62828"; st.textContent = "No se guardó: " + ((e && e.message) || e);
+  }
+  btn.disabled = false;
+}
+
+/* ---- Pasar los datos de SharePoint a las pantallas ---- */
+// Redibuja las listas SIN tocar el formulario de "Nuevo pedido".
+function renderListas() {
+  renderBuscar(); renderProveedores(); renderHistorial(); buildProvFilters();
+  setTimeout(syncAllScrolls, 50);
+}
+function aplicarDatosEnPantallas() {
+  allData = DB.pedidos;
+  setClientes(DB.clientes);
+  provData = DB.proveedores;
+  datosListos = true;
+  renderListas();
+  renderContactos();
+  // Si el formulario esta esperando los datos para calcular el N°, recalcularlo ahora.
+  var prov = document.getElementById("f-proveedor").value;
+  if (prov && !formTieneDatos() && !finGuardadoOk) document.getElementById("f-pedido").value = siguienteNumero(allData, prov);
+}
+// Relee la base de SharePoint (cambios de las otras personas) y redibuja las listas.
+var ultimaLectura = 0;
+async function refrescarDesdeSharePoint() {
+  if (!SESION.ok || _operando > 0) return;
+  try { await cargarBase(); } catch (e) {}
+  ultimaLectura = Date.now();
+  estadoBaseEnBadge();
+  if (DBINIT) aplicarDatosEnPantallas();
+}
+// Al volver a la pestaña despues de un rato, traer lo que cargaron los demas.
+document.addEventListener("visibilitychange", function(){
+  if (document.visibilityState !== "visible") return;
+  if (Date.now() - ultimaLectura < 90000) return;
+  var modalAbierto = document.getElementById("modal-editar").classList.contains("open") ||
+                     document.getElementById("modal-contacto").classList.contains("open") ||
+                     document.getElementById("modal-finalizar").style.display === "flex";
+  if (!modalAbierto) refrescarDesdeSharePoint();
+});
+
+/* ---- Contactos de proveedores (editables) ---- */
+var contactoEditando = null;   // nombre original del proveedor que se edita (null = nuevo)
+var contactoVisto = null;      // como estaba al abrir (para detectar cambios de otra persona)
+var CAMPOS_CONTACTO = ["Proveedor", "Mail", "WhatsApp", "Teléfono", "Contacto"];
+function telKeyDe(row) {
+  var k = Object.keys(row || {}).filter(function(x){ return x.toLowerCase().indexOf("tel") === 0; })[0];
+  return k || "Teléfono";
+}
+function filaContacto(d, nombre) {
+  return d.filter(function(p){ return String(p.Proveedor || "").trim() === String(nombre || "").trim(); })[0];
+}
+function abrirContacto(nombre) {
+  var motivo = motivoNoGuardar();
+  if (motivo) { alert("No se pueden editar los contactos.\n\n" + motivo); return; }
+  contactoEditando = nombre || null;
+  var p = nombre ? filaContacto(provData, nombre) : null;
+  contactoVisto = p ? JSON.stringify(p) : null;
+  document.getElementById("mc-titulo").textContent = nombre ? "Editar contacto" : "Agregar proveedor";
+  document.getElementById("mc-proveedor").value = p ? (p.Proveedor || "") : "";
+  document.getElementById("mc-mail").value = p ? (p.Mail || "") : "";
+  document.getElementById("mc-wa").value = p ? (p.WhatsApp || "") : "";
+  document.getElementById("mc-tel").value = p ? (p[telKeyDe(p)] || "") : "";
+  document.getElementById("mc-contacto").value = p ? (p.Contacto || "") : "";
+  document.getElementById("mc-quitar").style.display = nombre ? "inline-block" : "none";
+  var st = document.getElementById("mc-status"); st.style.display = "none";
+  document.getElementById("modal-contacto").classList.add("open");
+}
+function cerrarContacto() {
+  document.getElementById("modal-contacto").classList.remove("open");
+  contactoEditando = null; contactoVisto = null;
+}
+async function guardarContacto(forzar) {
+  var st = document.getElementById("mc-status");
+  var datos = {
+    Proveedor: document.getElementById("mc-proveedor").value.trim(),
+    Mail: document.getElementById("mc-mail").value.trim(),
+    WhatsApp: document.getElementById("mc-wa").value.trim(),
+    tel: document.getElementById("mc-tel").value.trim(),
+    Contacto: document.getElementById("mc-contacto").value.trim()
+  };
+  if (!datos.Proveedor) { st.style.display = "block"; st.style.color = "#c62828"; st.textContent = "Falta el nombre del proveedor."; return; }
+  var original = contactoEditando, visto = contactoVisto;
+  var btn = document.getElementById("mc-guardar");
+  btn.disabled = true;
+  st.style.display = "block"; st.style.color = "#1565c0"; st.textContent = "Guardando...";
+  try {
+    var res = await operar("proveedores", function(d) {
+      var otro = filaContacto(d, datos.Proveedor);
+      if (original === null) {
+        if (otro) throw new Error("Ya existe un contacto para \"" + datos.Proveedor + "\".");
+        var nueva = { Proveedor: datos.Proveedor, Mail: datos.Mail, WhatsApp: datos.WhatsApp, Contacto: datos.Contacto };
+        nueva[d.length ? telKeyDe(d[0]) : "Teléfono"] = datos.tel;
+        nueva["Modificado por"] = SESION.nombre; nueva["Modificado el"] = ahoraISO();
+        d.push(nueva);
+        return;
+      }
+      var p = filaContacto(d, original);
+      if (!p) throw new Error("Ese contacto ya no existe (lo quitó otra persona).");
+      if (otro && otro !== p) throw new Error("Ya existe otro contacto con el nombre \"" + datos.Proveedor + "\".");
+      if (!forzar && visto && JSON.stringify(p) !== visto) {
+        var ec = new Error("conflicto"); ec.conflicto = { por: p["Modificado por"] || "" }; throw ec;
+      }
+      p.Proveedor = datos.Proveedor; p.Mail = datos.Mail; p.WhatsApp = datos.WhatsApp; p.Contacto = datos.Contacto;
+      p[telKeyDe(p)] = datos.tel;
+      p["Modificado por"] = SESION.nombre; p["Modificado el"] = ahoraISO();
+    });
+    provData = res.datos;
+    renderContactos();
+    st.style.color = "#2e7d32"; st.textContent = "Guardado.";
+    setTimeout(cerrarContacto, 700);
+  } catch (e) {
+    btn.disabled = false;
+    if (e.conflicto) {
+      estadoBaseEnBadge();
+      var quien = e.conflicto.por || "Otra persona";
+      if (confirm(quien + " cambió este contacto mientras lo editabas.\n\nAceptar = guardar lo tuyo igual\nCancelar = descartar lo tuyo y ver lo de " + quien)) return guardarContacto(true);
+      await refrescarDesdeSharePoint();
+      cerrarContacto();
+      return;
+    }
+    st.style.color = "#c62828"; st.textContent = "No se guardó: " + ((e && e.message) || e);
+    return;
+  }
+  btn.disabled = false;
+}
+async function quitarContacto() {
+  var nombre = contactoEditando;
+  if (!nombre) return;
+  if (!confirm("¿Quitar el contacto de \"" + nombre + "\"?\n\nSolo se borran sus datos de contacto (mail, WhatsApp, teléfono). Los pedidos y el desplegable de proveedores no cambian.")) return;
+  var st = document.getElementById("mc-status");
+  st.style.display = "block"; st.style.color = "#1565c0"; st.textContent = "Quitando...";
+  try {
+    var res = await operar("proveedores", function(d) {
+      var i = d.indexOf(filaContacto(d, nombre));
+      if (i < 0) return operar.SIN_CAMBIOS;
+      d.splice(i, 1);
+    });
+    provData = res.datos;
+    renderContactos();
+    cerrarContacto();
+  } catch (e) {
+    st.style.color = "#c62828"; st.textContent = "No se quitó: " + ((e && e.message) || e);
+  }
+}
+
+/* =====================================================================
+   IMPORTADOR DESDE GOOGLE (Herramientas)
+   Una sola lectura del Apps Script en vivo -> copia cruda en importaciones/
+   -> pedidos.json, clientes.json y proveedores.json en la carpeta de datos.
+   Todo lo que se normaliza queda listado en el informe; lo crudo no se toca.
+   ===================================================================== */
+function escHTML(s) {
+  return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+// Fecha real de la planilla (llega como "2026-02-20T03:00:00.000Z") -> dd/mm/aaaa en horario de Argentina.
+function isoAFecha(s) {
+  var d = new Date(s);
+  if (isNaN(d.getTime())) return null;
+  var partes = {};
+  new Intl.DateTimeFormat("es-AR", { timeZone: "America/Argentina/Buenos_Aires", day: "2-digit", month: "2-digit", year: "numeric" })
+    .formatToParts(d).forEach(function(p){ partes[p.type] = p.value; });
+  return partes.day + "/" + partes.month + "/" + partes.year;
+}
+// Fecha de texto d/m/aa o d/m/aaaa -> dd/mm/aaaa (null si no tiene esa forma).
+function normFechaTexto(s) {
+  var m = /^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/.exec(String(s || "").trim());
+  if (!m) return null;
+  var anio = m[3].length === 2 ? "20" + m[3] : m[3];
+  return ("0" + m[1]).slice(-2) + "/" + ("0" + m[2]).slice(-2) + "/" + anio;
+}
+function aTexto(v) { return (v === null || v === undefined) ? "" : String(v); }
+function numeroDe(v) {
+  var s = String(v == null ? "" : v).trim();
+  if (s === "") return 0;
+  var n = Number(s.replace(",", "."));
+  return isFinite(n) ? n : NaN;
+}
+
+// Tabla de control (para el informe y el comparador): por proveedor, por estado, por registro y el mes en curso.
+function datosControl(pedidos) {
+  var hoy = new Date();
+  var mesActual = ("0" + (hoy.getMonth() + 1)).slice(-2) + "/" + hoy.getFullYear();
+  var c = { porProv: {}, porEstado: {}, porReg: {}, mes: { pedidos: 0, renglones: 0, cantidad: 0 }, mesNombre: mesActual,
+            total: { pedidos: 0, renglones: 0, cantidad: 0, cantNoNumericas: 0 } };
+  var vistos = {}, vistosMes = {};
+  pedidos.forEach(function(r) {
+    var prov = aTexto(r.Proveedor) || "(sin proveedor)";
+    var p = c.porProv[prov] || (c.porProv[prov] = { pedidos: 0, renglones: 0, cantidad: 0, ultimo: 0 });
+    var clave = aTexto(r.Pedido) + "|" + prov;
+    var cant = numeroDe(r.Cantidad);
+    if (isNaN(cant)) { c.total.cantNoNumericas++; cant = 0; }
+    p.renglones++; p.cantidad += cant;
+    if (!vistos[clave]) { vistos[clave] = true; p.pedidos++; c.total.pedidos++; }
+    var n = parseInt(r.Pedido); if (!isNaN(n) && n > p.ultimo) p.ultimo = n;
+    c.total.renglones++; c.total.cantidad += cant;
+    var est = aTexto(r.Estado) || "Enviado";
+    c.porEstado[est] = (c.porEstado[est] || 0) + 1;
+    var reg = regDeValor(r.Sistema); var regN = reg ? REG[reg].nombre : "(sin marca)";
+    c.porReg[regN] = (c.porReg[regN] || 0) + 1;
+    var f = aTexto(r.Fecha);
+    if (f.slice(3) === mesActual) {
+      c.mes.renglones++; c.mes.cantidad += cant;
+      if (!vistosMes[clave]) { vistosMes[clave] = true; c.mes.pedidos++; }
+    }
+  });
+  return c;
+}
+function htmlControl(c, titulo) {
+  var fmt = function(n){ return Number(n).toLocaleString("es-AR"); };
+  var th = "style='background:#f0f0ec;border:1px solid #ddd;padding:5px 8px;text-align:left'";
+  var td = "style='border:1px solid #ddd;padding:5px 8px'";
+  var tdn = "style='border:1px solid #ddd;padding:5px 8px;text-align:right'";
+  var filas = Object.keys(c.porProv).sort().map(function(p){
+    var x = c.porProv[p];
+    return "<tr><td " + td + ">" + escHTML(p) + "</td><td " + tdn + ">" + fmt(x.pedidos) + "</td><td " + tdn + ">" + fmt(x.renglones) + "</td><td " + tdn + ">" + fmt(x.cantidad) + "</td><td " + tdn + ">" + x.ultimo + "</td></tr>";
+  }).join("");
+  var tot = "<tr style='font-weight:700'><td " + td + ">Total</td><td " + tdn + ">" + fmt(c.total.pedidos) + "</td><td " + tdn + ">" + fmt(c.total.renglones) + "</td><td " + tdn + ">" + fmt(c.total.cantidad) + "</td><td " + td + "></td></tr>";
+  var lista = function(o){ return Object.keys(o).sort().map(function(k){ return escHTML(k) + ": " + fmt(o[k]); }).join(" · "); };
+  return "<h3 style='margin-top:14px'>" + escHTML(titulo || "Datos de control") + "</h3>" +
+    "<table style='border-collapse:collapse;font-size:12px;margin-bottom:8px'><thead><tr><th " + th + ">Proveedor</th><th " + th + ">Pedidos</th><th " + th + ">Renglones</th><th " + th + ">Suma de Cantidad</th><th " + th + ">Último N°</th></tr></thead><tbody>" + filas + tot + "</tbody></table>" +
+    "<div style='font-size:12px;color:#444;line-height:1.7'>" +
+    "<strong>Por estado:</strong> " + lista(c.porEstado) + "<br>" +
+    "<strong>Por registro:</strong> " + lista(c.porReg) + "<br>" +
+    "<strong>Mes en curso (" + c.mesNombre + "):</strong> " + fmt(c.mes.pedidos) + " pedidos, " + fmt(c.mes.renglones) + " renglones, " + fmt(c.mes.cantidad) + " unidades" +
+    (c.total.cantNoNumericas ? "<br><strong>Cantidades no numéricas</strong> (cuentan como 0 en la suma): " + c.total.cantNoNumericas : "") +
+    "</div>";
+}
+
+// Lee el Apps Script y devuelve {raw, json} validado. Lanza error con el motivo si algo no cierra.
+async function leerGoogle(url) {
+  url = String(url || "").trim();
+  if (!/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(url)) {
+    throw new Error("La dirección no parece la del Apps Script (tiene que empezar con https://script.google.com/macros/s/ y terminar en /exec).");
+  }
+  var corte = new Promise(function(_, rej){ setTimeout(function(){ rej(new Error("Google no respondió en 90 segundos.")); }, 90000); });
+  var r = await Promise.race([fetch(url, { cache: "no-store" }), corte]);
+  if (!r.ok) throw new Error("Google respondió HTTP " + r.status + ".");
+  var raw = await r.text();
+  var json;
+  try { json = JSON.parse(raw); } catch (e) { throw new Error("Lo que devolvió Google no es JSON (¿la dirección es la correcta?)."); }
+  if (!json || json.ok !== true) throw new Error("Google respondió sin ok=true.");
+  if (!Array.isArray(json.data) || !json.data.length) throw new Error("Google no devolvió pedidos (data vacío). No se importa una base vacía.");
+  if (!Array.isArray(json.proveedores)) throw new Error("Google no devolvió la lista de contactos (proveedores).");
+  var cl = json.clientes || {};
+  if (!Array.isArray(cl[REG.A.valor]) || !Array.isArray(cl[REG.B.valor])) throw new Error("Google no devolvió las dos listas de clientes con los nombres de config.json.");
+  return { raw: raw, json: json };
+}
+
+// Arma las tres tablas y el detalle de lo normalizado.
+function transformarGoogle(json) {
+  var info = { vacias: 0, numerosATexto: 0, fechasISO: 0, fechasTexto: [], isoOtras: [], idsAsignados: [], sinPedido: [], idsRepetidos: [], clientesRepetidos: [] };
+  var pedidos = [], nImp = 0, idsVistos = {};
+  json.data.forEach(function(row, i) {
+    var claves = Object.keys(row);
+    if (claves.every(function(k){ return aTexto(row[k]).trim() === ""; })) { info.vacias++; return; }
+    var r = {};
+    claves.forEach(function(k) {
+      var v = row[k];
+      if (typeof v === "number") info.numerosATexto++;
+      v = aTexto(v);
+      if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(v)) {
+        var f = isoAFecha(v);
+        if (f) {
+          if (k === "Fecha") info.fechasISO++;
+          else info.isoOtras.push("fila " + (i + 2) + ", " + k + ": " + v + " → " + f);
+          v = f;
+        }
+      } else if (k === "Fecha") {
+        var n = normFechaTexto(v);
+        if (n && n !== v) { info.fechasTexto.push("fila " + (i + 2) + ": " + v + " → " + n); v = n; }
+      }
+      r[k] = v;
+    });
+    if (!r.ID) { nImp++; r.ID = "EG-IMP-" + nImp; info.idsAsignados.push("fila " + (i + 2) + " (pedido " + (r.Pedido || "sin N°") + " de " + (r.Proveedor || "?") + ") → " + r.ID); }
+    if (idsVistos[r.ID]) info.idsRepetidos.push(r.ID);
+    idsVistos[r.ID] = true;
+    if (!r.Pedido) info.sinPedido.push("fila " + (i + 2) + " (ID " + r.ID + ")");
+    pedidos.push(r);
+  });
+  var lista = function(arr, cual) {
+    var vistos = {};
+    return (arr || []).map(function(c) {
+      var x = { Numero: aTexto(c.Numero).trim(), Nombre: aTexto(c.Nombre).trim() };
+      if (vistos[x.Numero]) info.clientesRepetidos.push(cual + " N° " + x.Numero);
+      vistos[x.Numero] = true;
+      return x;
+    });
+  };
+  var clientes = { A: lista(json.clientes[REG.A.valor], REG.A.nombre), B: lista(json.clientes[REG.B.valor], REG.B.nombre) };
+  var proveedores = json.proveedores.filter(function(p){ return aTexto(p.Proveedor).trim() !== ""; }).map(function(p) {
+    var o = {}; Object.keys(p).forEach(function(k){ o[k] = aTexto(p[k]); }); return o;
+  });
+  return { pedidos: pedidos, clientes: clientes, proveedores: proveedores, info: info };
+}
+
+var importando = false;
+async function importarDesdeGoogle() {
+  if (importando) return;
+  var st = document.getElementById("imp-status");
+  var inf = document.getElementById("imp-informe");
+  var btn = document.getElementById("imp-btn");
+  function estado(tipo, msg) { st.className = "status " + tipo; st.textContent = msg; }
+  if (!SESION.ok) { estado("err", "Primero iniciá sesión (arriba a la derecha)."); return; }
+  if (!CONFIG_OK) { estado("err", "Falta una config.json válida en " + M365.carpeta + ": sin ella no se sabe qué lista de clientes es cada registro."); return; }
+  if (!navigator.onLine) { estado("err", "Sin conexión."); return; }
+  importando = true; btn.disabled = true; inf.innerHTML = "";
+  try {
+    estado("loading", "Leyendo Google (puede tardar unos segundos)...");
+    var g = await leerGoogle(document.getElementById("imp-url").value);
+    var t = transformarGoogle(g.json);
+    // ¿Ya hay datos en SharePoint? Entonces es una REIMPORTACION: se confirma escribiendo la palabra.
+    estado("loading", "Revisando qué hay en SharePoint...");
+    var existentes = {};
+    for (var i = 0; i < 3; i++) { var tb = ["pedidos", "clientes", "proveedores"][i]; existentes[tb] = await leerArchivo(tb + ".json").catch(function(e){ return { error: e }; }); }
+    var hay = ["pedidos", "clientes", "proveedores"].filter(function(tb){ return existentes[tb] !== null; });
+    // PROTECCION (version real): despues del pasaje, Google queda congelado y los pedidos nuevos
+    // viven solo en SharePoint. Reimportar los borraria: si hay alguno que Google no tiene, NO se reimporta.
+    if (!ES_PRUEBA && existentes.pedidos && existentes.pedidos.data && Array.isArray(existentes.pedidos.data)) {
+      var idsGoogle = {};
+      t.pedidos.forEach(function(r){ idsGoogle[r.ID] = true; });
+      var soloSP = existentes.pedidos.data.filter(function(r){ return !idsGoogle[r.ID]; });
+      if (soloSP.length) {
+        estado("err", "NO se reimporta: en " + M365.carpeta + " hay " + soloSP.length + " renglón(es) cargados en la app nueva que no están en Google " +
+          "(por ejemplo el pedido N° " + (soloSP[0].Pedido || "?") + " de " + (soloSP[0].Proveedor || "?") + "). Reimportar los borraría. No se tocó nada.");
+        return;
+      }
+    }
+    if (hay.length) {
+      var nPedSP = (existentes.pedidos && existentes.pedidos.data && existentes.pedidos.data.length) || 0;
+      var resp = window.prompt("En " + M365.carpeta + " YA hay datos (" + hay.join(", ") + "; pedidos: " + nPedSP + " renglones).\n\n" +
+        "Si seguís, se REEMPLAZAN por lo que hay hoy en Google (" + t.pedidos.length + " renglones). Lo que haya en SharePoint queda en backups/.\n\n" +
+        "Para seguir escribí REIMPORTAR:", "");
+      if (String(resp || "").trim().toUpperCase() !== "REIMPORTAR") { estado("err", "Importación cancelada: no se tocó nada."); return; }
+    }
+    // 1) Copia cruda de lo que llego de Google (evidencia para el comparador).
+    estado("loading", "Guardando la copia exacta de Google en importaciones/...");
+    var ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 23);   // con milisegundos: nunca pisa una copia anterior
+    await escribirArchivo("importaciones/google-" + ts + ".json", g.raw, null);
+    // 2) Las tres tablas. Si ya existian: respaldo + If-Match (no pisa si alguien grabo en el medio).
+    var orden = [["clientes", t.clientes], ["proveedores", t.proveedores], ["pedidos", t.pedidos]];
+    for (var j = 0; j < orden.length; j++) {
+      var nombre = orden[j][0], contenido = JSON.stringify(orden[j][1]);
+      estado("loading", "Guardando " + nombre + ".json...");
+      var ex = existentes[nombre];
+      if (ex && ex.error) throw new Error("No se pudo leer " + nombre + ".json existente: " + (ex.error.message || ex.error));
+      if (ex) await respaldarTabla(nombre, ex.raw);
+      await escribirArchivo(nombre + ".json", contenido, ex ? ex.etag : null);
+    }
+    // 3) Releer todo como lo va a ver la app y mostrar el informe.
+    estado("loading", "Releyendo la base desde SharePoint...");
+    await cargarBase();
+    ultimaLectura = Date.now();
+    estadoBaseEnBadge();
+    if (!DBINIT) throw new Error("Después de importar, la base no quedó usable: " + (DBERROR || "motivo desconocido"));
+    aplicarDatosEnPantallas();
+    mostrarBanner("", null, null);
+    if (DB.pedidos.length !== t.pedidos.length) throw new Error("Se releyeron " + DB.pedidos.length + " renglones pero se importaron " + t.pedidos.length + ".");
+    estado("ok", "Importación terminada: " + t.pedidos.length + " renglones de pedidos, " + t.clientes.A.length + " + " + t.clientes.B.length + " clientes y " + t.proveedores.length + " contactos en " + M365.carpeta + ". ✓");
+    inf.innerHTML = htmlInforme(t, "importaciones/google-" + ts + ".json");
+  } catch (e) {
+    estado("err", "La importación NO terminó: " + ((e && e.message) || e) + " Si quedó a medias, la app bloquea el guardado hasta reimportar.");
+    estadoBaseEnBadge();
+  } finally {
+    importando = false; btn.disabled = false;
+  }
+}
+function htmlInforme(t, copia) {
+  var info = t.info;
+  var det = function(titulo, arr, explicacion) {
+    if (!arr.length) return "";
+    var max = 60;
+    return "<details style='margin:4px 0'><summary style='cursor:pointer'><strong>" + escHTML(titulo) + ": " + arr.length + "</strong> — " + escHTML(explicacion) + "</summary>" +
+      "<div style='font-size:11px;color:#555;padding:4px 0 4px 14px;line-height:1.6'>" + arr.slice(0, max).map(escHTML).join("<br>") +
+      (arr.length > max ? "<br>… y " + (arr.length - max) + " más" : "") + "</div></details>";
+  };
+  return "<h3>Informe de la importación</h3>" +
+    "<div style='font-size:12px;color:#444;line-height:1.7'>" +
+    "Copia exacta de Google: <code>" + escHTML(copia) + "</code><br>" +
+    "Pedidos: <strong>" + t.pedidos.length + "</strong> renglones · Clientes " + escHTML(REG.A.nombre) + ": <strong>" + t.clientes.A.length + "</strong> · Clientes " + escHTML(REG.B.nombre) + ": <strong>" + t.clientes.B.length + "</strong> · Contactos: <strong>" + t.proveedores.length + "</strong>" +
+    "</div>" +
+    "<h3 style='margin-top:12px'>Normalizaciones (lo crudo queda en la copia exacta)</h3>" +
+    "<div style='font-size:12px;color:#444'>" +
+    "<div>Fechas reales de la planilla pasadas a dd/mm/aaaa (horario de Argentina): <strong>" + info.fechasISO + "</strong></div>" +
+    "<div>Valores numéricos guardados como texto (se ven igual): <strong>" + info.numerosATexto + "</strong></div>" +
+    "<div>Filas totalmente vacías que no se importaron: <strong>" + info.vacias + "</strong></div>" +
+    det("Fechas de texto completadas", info.fechasTexto, "llevadas a dd/mm/aaaa") +
+    det("Otras celdas con fecha real", info.isoOtras, "la planilla las había convertido en fecha") +
+    det("IDs asignados", info.idsAsignados, "renglones sin ID (sin ID no se les puede cambiar el estado)") +
+    "</div>" +
+    ((info.sinPedido.length || info.idsRepetidos.length || info.clientesRepetidos.length) ?
+      "<h3 style='margin-top:12px;color:#b71c1c'>Para revisar</h3><div style='font-size:12px'>" +
+      det("Renglones sin N° de pedido", info.sinPedido, "se importaron igual (la app de Google no los mostraba)") +
+      det("IDs repetidos", info.idsRepetidos, "dos renglones con el mismo ID") +
+      det("Números de cliente repetidos", info.clientesRepetidos, "en la misma lista") +
+      "</div>" : "") +
+    htmlControl(datosControl(t.pedidos), "Datos de control (lo importado)");
+}
+
+/* =====================================================================
+   COMPARADOR "IDENTICOS" (Herramientas)
+   Google en vivo vs SharePoint, sin grabar nada.
+   - Pedidos por ID, campo por campo (las columnas de Google).
+   - Una diferencia que es exactamente la normalizacion del importador
+     (ej. fecha real -> dd/mm/aaaa) cuenta como "normalizado", no como error.
+   - Los campos que agrega la app 365 (Creado el, Modificado por/el) no se comparan.
+   ===================================================================== */
+var CAMPOS_SOLO_365 = ["Creado el", "Modificado por", "Modificado el"];
+
+function compararDatos(json, t, sp) {
+  var r = { pedidos: { soloGoogle: [], soloSP: [], distintos: [], normalizados: 0, iguales: 0 },
+            clientes: { soloGoogle: [], soloSP: [], distintos: [] },
+            contactos: { soloGoogle: [], soloSP: [], distintos: [] } };
+  // --- Pedidos ---
+  // t.pedidos sale de transformarGoogle (mismo orden que json.data sin las filas vacias),
+  // asi que se puede volver al valor crudo de Google para saber si una diferencia es normalizacion.
+  var crudos = json.data.filter(function(row){
+    return !Object.keys(row).every(function(k){ return aTexto(row[k]).trim() === ""; });
+  });
+  var spPorId = {};
+  sp.pedidos.forEach(function(x){ spPorId[x.ID] = x; });
+  var vistos = {};
+  t.pedidos.forEach(function(g, i) {
+    var crudo = crudos[i] || {};
+    var s = spPorId[g.ID];
+    var etiqueta = "N° " + (g.Pedido || "s/N°") + " " + (g.Proveedor || "") + " (ID " + g.ID + ")";
+    if (!s) { r.pedidos.soloGoogle.push(etiqueta); return; }
+    vistos[g.ID] = true;
+    var difs = [], norm = 0;
+    Object.keys(g).forEach(function(k) {
+      var vSP = aTexto(s[k]), vNorm = aTexto(g[k]), vCrudo = aTexto(crudo[k]);
+      if (vSP === vCrudo) return;
+      if (vSP === vNorm) { norm++; return; }
+      difs.push(k + ": Google \"" + vCrudo + "\" / SharePoint \"" + vSP + "\"");
+    });
+    // Campos que SharePoint tiene y Google no (salvo los propios de la app 365)
+    Object.keys(s).forEach(function(k) {
+      if (k in g || CAMPOS_SOLO_365.indexOf(k) !== -1) return;
+      if (aTexto(s[k]) !== "") difs.push(k + ": solo en SharePoint \"" + aTexto(s[k]) + "\"");
+    });
+    if (difs.length) r.pedidos.distintos.push(etiqueta + " → " + difs.join(" · "));
+    else { r.pedidos.iguales++; if (norm) r.pedidos.normalizados++; }
+  });
+  sp.pedidos.forEach(function(s){
+    if (!vistos[s.ID]) r.pedidos.soloSP.push("N° " + (s.Pedido || "s/N°") + " " + (s.Proveedor || "") + " (ID " + s.ID + ", cargado por " + (s["Cargado desde"] || "?") + ")");
+  });
+  // --- Clientes (cada registro por separado, por numero) ---
+  ["A", "B"].forEach(function(k) {
+    var nombre = REG[k].nombre;
+    var g = {}, s = {};
+    t.clientes[k].forEach(function(c){ g[c.Numero] = c.Nombre; });
+    (sp.clientes[k] || []).forEach(function(c){ s[aTexto(c.Numero).trim()] = aTexto(c.Nombre).trim(); });
+    Object.keys(g).forEach(function(n){
+      if (!(n in s)) r.clientes.soloGoogle.push(nombre + " N° " + n + " " + g[n]);
+      else if (s[n] !== g[n]) r.clientes.distintos.push(nombre + " N° " + n + ": Google \"" + g[n] + "\" / SharePoint \"" + s[n] + "\"");
+    });
+    Object.keys(s).forEach(function(n){ if (!(n in g)) r.clientes.soloSP.push(nombre + " N° " + n + " " + s[n]); });
+  });
+  // --- Contactos (por nombre de proveedor) ---
+  var gc = {}, sc = {};
+  t.proveedores.forEach(function(p){ gc[p.Proveedor.trim()] = p; });
+  sp.proveedores.forEach(function(p){ sc[aTexto(p.Proveedor).trim()] = p; });
+  Object.keys(gc).forEach(function(n){
+    if (!sc[n]) { r.contactos.soloGoogle.push(n); return; }
+    var difs = [];
+    Object.keys(gc[n]).forEach(function(k){
+      if (aTexto(sc[n][k]) !== aTexto(gc[n][k])) difs.push(k + ": Google \"" + aTexto(gc[n][k]) + "\" / SharePoint \"" + aTexto(sc[n][k]) + "\"");
+    });
+    if (difs.length) r.contactos.distintos.push(n + " → " + difs.join(" · "));
+  });
+  Object.keys(sc).forEach(function(n){ if (!gc[n]) r.contactos.soloSP.push(n); });
+  r.cantidadDiferencias =
+    r.pedidos.soloGoogle.length + r.pedidos.soloSP.length + r.pedidos.distintos.length +
+    r.clientes.soloGoogle.length + r.clientes.soloSP.length + r.clientes.distintos.length +
+    r.contactos.soloGoogle.length + r.contactos.soloSP.length + r.contactos.distintos.length;
+  return r;
+}
+
+var comparando = false;
+async function compararConGoogle() {
+  if (comparando) return;
+  var st = document.getElementById("cmp-status");
+  var inf = document.getElementById("cmp-informe");
+  var btn = document.getElementById("cmp-btn");
+  function estado(tipo, msg) { st.className = "status " + tipo; st.textContent = msg; }
+  if (!SESION.ok) { estado("err", "Primero iniciá sesión (arriba a la derecha)."); return; }
+  if (!CONFIG_OK) { estado("err", "Falta una config.json válida en " + M365.carpeta + "."); return; }
+  comparando = true; btn.disabled = true; inf.innerHTML = "";
+  try {
+    estado("loading", "Leyendo Google...");
+    var g = await leerGoogle(document.getElementById("imp-url").value);
+    var t = transformarGoogle(g.json);
+    estado("loading", "Leyendo SharePoint...");
+    var sp = {};
+    var tablas = ["pedidos", "clientes", "proveedores"];
+    for (var i = 0; i < tablas.length; i++) {
+      var a = await leerArchivo(tablas[i] + ".json");
+      if (!a) throw new Error("No existe " + tablas[i] + ".json en " + M365.carpeta + ": primero hay que importar.");
+      if (!formaValida(tablas[i], a.data)) throw new Error(tablas[i] + ".json tiene forma inesperada.");
+      sp[tablas[i]] = a.data;
+    }
+    var r = compararDatos(g.json, t, sp);
+    var cG = datosControl(t.pedidos), cS = datosControl(sp.pedidos);
+    var controlIgual = JSON.stringify(cG) === JSON.stringify(cS);
+    var ok = r.cantidadDiferencias === 0 && controlIgual;
+    estado(ok ? "ok" : "err", ok
+      ? "IDÉNTICOS ✓ — Google y SharePoint tienen exactamente los mismos datos."
+      : "HAY DIFERENCIAS: " + r.cantidadDiferencias + " (detalle abajo). No se grabó nada.");
+    inf.innerHTML = htmlComparacion(r, ok, cG, cS, controlIgual, t, sp);
+  } catch (e) {
+    estado("err", "No se pudo comparar: " + ((e && e.message) || e));
+  } finally {
+    comparando = false; btn.disabled = false;
+  }
+}
+function htmlComparacion(r, ok, cG, cS, controlIgual, t, sp) {
+  var det = function(titulo, arr) {
+    if (!arr.length) return "";
+    var max = 80;
+    return "<details open style='margin:4px 0'><summary style='cursor:pointer;color:#b71c1c'><strong>" + escHTML(titulo) + ": " + arr.length + "</strong></summary>" +
+      "<div style='font-size:11px;color:#555;padding:4px 0 4px 14px;line-height:1.6'>" + arr.slice(0, max).map(escHTML).join("<br>") +
+      (arr.length > max ? "<br>… y " + (arr.length - max) + " más" : "") + "</div></details>";
+  };
+  var cartel = ok
+    ? "<div style='background:#e8f5e9;border:2px solid #2e7d32;border-radius:10px;padding:16px;text-align:center;font-size:24px;font-weight:800;color:#1b5e20'>IDÉNTICOS ✓</div>"
+    : "<div style='background:#ffebee;border:2px solid #c62828;border-radius:10px;padding:16px;text-align:center;font-size:22px;font-weight:800;color:#b71c1c'>HAY DIFERENCIAS</div>";
+  return cartel +
+    "<div style='font-size:12px;color:#444;line-height:1.7;margin-top:10px'>" +
+    "<strong>Pedidos:</strong> Google " + t.pedidos.length + " renglones · SharePoint " + sp.pedidos.length + " · iguales " + r.pedidos.iguales +
+    " (de esos, " + r.pedidos.normalizados + " con alguna normalización del importador, que no cuenta como diferencia)<br>" +
+    "<strong>Clientes:</strong> " + escHTML(REG.A.nombre) + " " + t.clientes.A.length + "/" + (sp.clientes.A || []).length +
+    " · " + escHTML(REG.B.nombre) + " " + t.clientes.B.length + "/" + (sp.clientes.B || []).length + " (Google/SharePoint)<br>" +
+    "<strong>Contactos:</strong> " + t.proveedores.length + "/" + sp.proveedores.length + " (Google/SharePoint)<br>" +
+    "<span style='color:#888'>No se comparan los campos propios de la app 365: " + CAMPOS_SOLO_365.join(", ") + ".</span>" +
+    "</div>" +
+    det("Pedidos solo en Google (faltan en SharePoint)", r.pedidos.soloGoogle) +
+    det("Pedidos solo en SharePoint (no están en Google)", r.pedidos.soloSP) +
+    det("Pedidos con campos distintos", r.pedidos.distintos) +
+    det("Clientes solo en Google", r.clientes.soloGoogle) +
+    det("Clientes solo en SharePoint", r.clientes.soloSP) +
+    det("Clientes con nombre distinto", r.clientes.distintos) +
+    det("Contactos solo en Google", r.contactos.soloGoogle) +
+    det("Contactos solo en SharePoint", r.contactos.soloSP) +
+    det("Contactos con datos distintos", r.contactos.distintos) +
+    "<div style='display:flex;gap:24px;flex-wrap:wrap'>" +
+      "<div>" + htmlControl(cG, "Control — Google") + "</div>" +
+      "<div>" + htmlControl(cS, "Control — SharePoint") + "</div>" +
+    "</div>" +
+    "<div style='font-size:12px;margin-top:6px;font-weight:700;color:" + (controlIgual ? "#2e7d32" : "#b71c1c") + "'>" +
+      (controlIgual ? "Las dos tablas de control son iguales ✓" : "Las tablas de control NO son iguales") + "</div>";
+}
+
+function buildProvSelect() {
+  var provs = PROV_ORDEN.slice();
+  var sel = document.getElementById("f-proveedor");
+  var cur = sel.value;   // no perder el proveedor elegido si se redibuja con un pedido a medio cargar
+  sel.innerHTML = "<option value=''>- Elegí un proveedor -</option>" +
+    provs.map(function(p) { return "<option value='" + p + "'>" + p + "</option>"; }).join("");
+  sel.value = (cur && provs.indexOf(cur) !== -1) ? cur : "";
+}
+
+function goTo(page, btn) {
+  document.querySelectorAll(".page").forEach(function(p) { p.classList.remove("active"); });
+  document.querySelectorAll("nav button").forEach(function(b) { b.classList.remove("active"); });
+  document.getElementById("page-" + page).classList.add("active");
+  btn.classList.add("active");
+  if (page === "proveedores") renderProveedores();
+  if (page === "herramientas") {
+    document.getElementById("imp-carpeta").textContent = M365.carpeta;
+    document.getElementById("cmp-carpeta").textContent = M365.carpeta;
+  }
+  setTimeout(syncAllScrolls, 80);
+  setTimeout(syncAllScrolls, 300);
+}
+
+document.getElementById("f-fecha").valueAsDate = new Date();
+buildProvSelect();
+updateProvFields();
+loadData();
+// Al abrir solo se reanuda una sesion ya iniciada (sin popup: el navegador lo bloquearia).
+// Si no hay sesion, aparece el boton "Iniciar sesión" arriba a la derecha.
+arrancar365(false);
+</script>
+</body>
+</html>
