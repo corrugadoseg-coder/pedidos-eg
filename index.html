@@ -142,7 +142,7 @@ tbody tr[class*="prov-"]:hover{filter:brightness(0.97)}
 </style>
 </head>
 <body>
-<div class="cartel-prueba" id="cartel-prueba">VERSIÓN DE PRUEBA — datos de prueba, no es la app real<span id="version-365">365 · v1.0 (2026-10-20)</span></div>
+<div class="cartel-prueba" id="cartel-prueba">VERSIÓN DE PRUEBA — datos de prueba, no es la app real<span id="version-365">365 · v1.1 (2026-10-22)</span></div>
 <script>
 // ¿Version de prueba o real? Se decide por la DIRECCION, asi el mismo archivo sirve para las dos:
 //   .../pedidos-eg/365/  -> PRUEBA: carpeta pedidos/datos-prueba, franja roja, mail sin destinatario
@@ -405,7 +405,7 @@ else document.getElementById("cartel-prueba").style.display = "none";
    - Nunca se inventa una base vacia: si los archivos no existen, se
      bloquea el guardado hasta importar.
    ===================================================================== */
-var VERSION_365 = "365 · v1.0 (2026-10-20)";
+var VERSION_365 = "365 · v1.1 (2026-10-22)";
 var M365 = {
   tenant: "f943f6a4-62dd-4a9b-ba93-c2640a30c7cf",
   client: "4dfd2f42-3c4e-4071-b364-1747688ef8da",
@@ -775,6 +775,7 @@ function aplicarConfig(cfg) {
     if (p.unirMaterialesDe) info.matPlanchas = unionDe(p.unirMaterialesDe);
     else if (p.materialesPlanchas) info.matPlanchas = p.materialesPlanchas.slice();
     if (p.medidasRollos) info.medidasRollos = p.medidasRollos.slice();
+    if (p.materialesCartulina) info.matCartulina = p.materialesCartulina.slice();
     PROV_INFO[p.nombre] = info;
     PROV_ORDEN.push(p.nombre);
     // Color de fila por proveedor (antes estaba fijo en el CSS)
@@ -843,6 +844,24 @@ function colsRollos(medidasList) {
     {key:"Anotaciones",label:"Anotaciones",mail:false,type:"textarea"}
   ];
 }
+// Cartulina: lista cerrada (sin "Otro"). El gramaje se guarda en la columna "Trazados"
+// y se muestra como "Grs", al lado del tipo, con sugerencias de los ya usados.
+function colsCartulina(matList) {
+  return [
+    {key:"Pedido",label:"N Pedido",mail:true,type:"text"},
+    {key:"Fecha",label:"Fecha",mail:true,type:"text"},
+    {key:"Cantidad",label:"Cantidad",mail:true,type:"number"},
+    {key:"Tipo Material",label:"Tipo de Material",mail:true,type:"dropdown",options:matList},
+    {key:"Trazados",label:"Grs",mail:true,type:"text"},
+    {key:"Largo",label:"Largo",mail:true,type:"number"},
+    {key:"Ancho",label:"Ancho",mail:true,type:"number"},
+    {key:"Observaciones",label:"Observaciones",mail:true,type:"textarea"},
+    {key:"Cliente",label:"Cliente",mail:false,type:"text"},
+    {key:"N Caja",label:"N Caja",mail:false,type:"text"},
+    {key:"Estado",label:"Estado",mail:false,type:"dropdown",options:["Enviado","Recibido","No recibido","Anulado"]},
+    {key:"Anotaciones",label:"Anotaciones",mail:false,type:"textarea"}
+  ];
+}
 
 
 // Devuelve las columnas segun proveedor + tipo de articulo elegido
@@ -851,6 +870,7 @@ function getColsFor(prov, tipo) {
   if (!info) return colsPlanchas(["Otro (especificar)"]);
   if (tipo === "Cajas") return colsCajas(info.matPlanchas || ["Otro (especificar)"]);
   if (tipo === "Rollos") return colsRollos(info.medidasRollos || ["Otro (especificar)"]);
+  if (tipo === "Cartulina") return colsCartulina(info.matCartulina || ["Duplex", "Triplex"]);
   // Planchas por defecto
   return colsPlanchas(info.matPlanchas || ["Otro (especificar)"]);
 }
@@ -1424,6 +1444,10 @@ function addItemRow(data) {
       return "<td><select" + onch + ">" + opts + "</select>" + extra + "</td>";
     }
     if (c.type === "textarea") return "<td><textarea rows=\"4\">" + v + "</textarea></td>";
+    // GRS (cartulina): texto libre con sugerencias de los gramajes ya usados con ese tipo
+    if (c.key === "Trazados" && tipoActivo === "Cartulina") {
+      return "<td><input type=\"text\" placeholder=\"Grs\" value=\"" + v + "\" list=\"grs_" + id + "\" onfocus=\"sugerirGrs(this,'" + id + "')\"><datalist id=\"grs_" + id + "\"></datalist></td>";
+    }
     var onin = c.key === "N Caja" ? " oninput=\"autocompleteCaja(this,'" + id + "')\" class=\"caja-input\"" : "";
     return "<td><input type=\"" + (c.type || "text") + "\" placeholder=\"" + c.label + "\" value=\"" + v + "\"" + onin + "></td>";
   }).join("");
@@ -1498,6 +1522,23 @@ function removeRow(id) {
   renumItems();
 }
 
+// Llena las sugerencias de Grs con los gramajes ya pedidos para el tipo de cartulina de la fila.
+function sugerirGrs(input, id) {
+  var tr = document.getElementById(id);
+  var dl = document.getElementById("grs_" + id);
+  if (!tr || !dl) return;
+  var sel = tr.querySelector("select");
+  var mat = sel ? sel.value : "";
+  var vistos = {}, grs = [];
+  allData.forEach(function(r) {
+    if (r["Tipo Articulo"] !== "Cartulina" || r["Tipo Material"] !== mat) return;
+    var g = String(r["Trazados"] || "").trim();
+    if (g && !vistos[g]) { vistos[g] = true; grs.push(g); }
+  });
+  grs.sort(function(a, b) { return (parseFloat(a) - parseFloat(b)) || a.localeCompare(b, "es"); });
+  dl.innerHTML = grs.map(function(g) { return "<option value=\"" + g.replace(/"/g, "&quot;") + "\">"; }).join("");
+}
+
 function toggleOtro(sel) {
   var extra = sel.parentElement.querySelector(".otro-input");
   if (!extra) return;
@@ -1542,6 +1583,10 @@ function autocompleteCaja(input, id) {
     return String(b.Pedido).localeCompare(String(a.Pedido), "es");
   });
   var match = matches[0];
+  // Cartulina y el resto no comparten material, medidas ni Grs/Trazados: esos campos se copian
+  // solo de un pedido del mismo grupo. El cliente se toma igual del pedido mas reciente.
+  var esCartActual = tipoActivo === "Cartulina";
+  var matchDatos = matches.filter(function(r) { return (r["Tipo Articulo"] === "Cartulina") === esCartActual; })[0] || null;
   var prov = document.getElementById("f-proveedor").value;
   var cols = getColsFor(prov, tipoActivo).filter(function(c) { return !["Pedido", "Fecha", "Estado", "Proveedor"].includes(c.key); });
   var tr = document.getElementById(id);
@@ -1594,14 +1639,14 @@ function autocompleteCaja(input, id) {
       }
       return;
     }
-    if (match[c.key] === undefined || match[c.key] === "") return;
+    if (!matchDatos || matchDatos[c.key] === undefined || matchDatos[c.key] === "") return;
     // El campo principal de la celda es el primer input/select/textarea.
     var campo = celda.querySelector("select, textarea, input");
     if (!campo) return;
     // SEGURIDAD: si el campo YA tiene un valor cargado por la persona, NO lo pisamos.
     // El autocompletado solo llena lo que esta vacio (evita cambiar medidas sin querer).
     if (String(campo.value || "").trim() !== "") { huboCampoOcupado = true; return; }
-    var valor = match[c.key];
+    var valor = matchDatos[c.key];
     // Si es un desplegable (select) y el valor no esta entre las opciones,
     // lo agregamos como opcion para poder seleccionarlo igual.
     if (campo.tagName === "SELECT") {
@@ -1731,7 +1776,7 @@ function buildPreviewHTML(ped, fecha, prov, items, mailCols) {
       return "<td style='" + tdStyle() + "'>" + valCelda + "</td>";
     }).join("") + "</tr>";
   }).join("");
-  // Deducir el tipo de pedido de los items (Cajas / Planchas / Rollos)
+  // Deducir el tipo de pedido de los items (Cajas / Planchas / Rollos / Cartulina)
   var tipoPed = "";
   for (var ti = 0; ti < items.length; ti++) { if (items[ti]["Tipo Articulo"]) { tipoPed = items[ti]["Tipo Articulo"]; break; } }
   var lineaTipo = tipoPed ? ("<p style='margin-bottom:8px;font-size:15px;font-weight:bold'>PEDIDO DE " + String(tipoPed).toUpperCase() + "</p>") : "";
@@ -1850,6 +1895,11 @@ function imprimirPedidoGuardado(pedido, proveedor) {
     {key:"N Caja", label:"N° Caja"},
     {key:"Anotaciones", label:"Anotaciones"}
   ];
+  // Cartulina: los Grs van al lado del tipo, como en el formulario
+  if (tipo === "Cartulina") {
+    var colGrs = printCols.splice(4, 1)[0];
+    printCols.splice(2, 0, colGrs);
+  }
   // Quitar columnas que esten totalmente vacias en todos los items (para no mostrar columnas de mas)
   printCols = printCols.filter(function(col){
     if (col.key === "Cliente" || col.key === "N Caja") return true; // siempre mostrar estas
@@ -1995,6 +2045,19 @@ function mostrarCartelExito(ped, cant, provisorio) {
 // mas alto del proveedor + 1 y graba con eTag): si dos personas guardan a la vez, la segunda
 // reintenta y recibe el N° siguiente. Todos los renglones entran juntos o ninguno.
 // desdeFinalizar: el formulario se limpia al cerrar la ventanita (no aca).
+// Todo renglon tiene que tener cantidad (mayor que 0). Devuelve el aviso, o "" si estan todos bien.
+function faltaCantidad(items) {
+  var sin = [];
+  items.forEach(function(it, i) {
+    var n = parseFloat(String(it["Cantidad"] || "").replace(",", "."));
+    if (!(n > 0)) sin.push(i + 1);
+  });
+  if (!sin.length) return "";
+  return sin.length === 1 ?
+    "Al renglón " + sin[0] + " le falta la cantidad. Completala o borrá el renglón con la x." :
+    "A los renglones " + sin.join(", ") + " les falta la cantidad. Completalas o borrá esos renglones con la x.";
+}
+
 async function guardarPedido(desdeFinalizar) {
   // Proteccion anti-doble-guardado: si ya esta guardando, ignorar nuevos clics.
   ultimoGuardadoCompleto = false;
@@ -2004,6 +2067,8 @@ async function guardarPedido(desdeFinalizar) {
   var items = getItems();
   if (!prov) { showStatus("err", "Elegí un proveedor antes de guardar."); return; }
   if (!items.length) { showStatus("err", "Agrega al menos un item."); return; }
+  var faltaCant = faltaCantidad(items);
+  if (faltaCant) { showStatus("err", faltaCant); return; }
   var motivo = motivoNoGuardar();
   if (motivo) { showStatus("err", motivo); estadoBaseEnBadge(); return; }
   // --- Detectar clientes NUEVOS (tienen registro y nombre, pero no numero en la lista) ---
@@ -2105,6 +2170,8 @@ function abrirFinalizar() {
   if (!prov) { showStatus("err", "Elegí un proveedor antes de finalizar."); return; }
   var items = getItems();
   if (!items.length) { showStatus("err", "Agregá al menos un ítem."); return; }
+  var faltaCant = faltaCantidad(items);
+  if (faltaCant) { showStatus("err", faltaCant); return; }
   // Reset de tildes
   resetPasoFin("fin-paso-guardar", "1.");
   resetPasoFin("fin-paso-mail", "2.");
