@@ -2045,6 +2045,19 @@ function mostrarCartelExito(ped, cant, provisorio) {
 // mas alto del proveedor + 1 y graba con eTag): si dos personas guardan a la vez, la segunda
 // reintenta y recibe el N° siguiente. Todos los renglones entran juntos o ninguno.
 // desdeFinalizar: el formulario se limpia al cerrar la ventanita (no aca).
+// Todo renglon tiene que tener cantidad (mayor que 0). Devuelve el aviso, o "" si estan todos bien.
+function faltaCantidad(items) {
+  var sin = [];
+  items.forEach(function(it, i) {
+    var n = parseFloat(String(it["Cantidad"] || "").replace(",", "."));
+    if (!(n > 0)) sin.push(i + 1);
+  });
+  if (!sin.length) return "";
+  return sin.length === 1 ?
+    "Al renglón " + sin[0] + " le falta la cantidad. Completala o borrá el renglón con la x." :
+    "A los renglones " + sin.join(", ") + " les falta la cantidad. Completalas o borrá esos renglones con la x.";
+}
+
 async function guardarPedido(desdeFinalizar) {
   // Proteccion anti-doble-guardado: si ya esta guardando, ignorar nuevos clics.
   ultimoGuardadoCompleto = false;
@@ -2054,6 +2067,8 @@ async function guardarPedido(desdeFinalizar) {
   var items = getItems();
   if (!prov) { showStatus("err", "Elegí un proveedor antes de guardar."); return; }
   if (!items.length) { showStatus("err", "Agrega al menos un item."); return; }
+  var faltaCant = faltaCantidad(items);
+  if (faltaCant) { showStatus("err", faltaCant); return; }
   var motivo = motivoNoGuardar();
   if (motivo) { showStatus("err", motivo); estadoBaseEnBadge(); return; }
   // --- Detectar clientes NUEVOS (tienen registro y nombre, pero no numero en la lista) ---
@@ -2155,6 +2170,8 @@ function abrirFinalizar() {
   if (!prov) { showStatus("err", "Elegí un proveedor antes de finalizar."); return; }
   var items = getItems();
   if (!items.length) { showStatus("err", "Agregá al menos un ítem."); return; }
+  var faltaCant = faltaCantidad(items);
+  if (faltaCant) { showStatus("err", faltaCant); return; }
   // Reset de tildes
   resetPasoFin("fin-paso-guardar", "1.");
   resetPasoFin("fin-paso-mail", "2.");
