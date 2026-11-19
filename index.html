@@ -14,6 +14,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>E.G. Corrugados — Pedidos</title>
 <script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.4/lib/msal-browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Arial,sans-serif;background:#f5f5f0;color:#222;font-size:14px}
@@ -244,6 +245,16 @@ else document.getElementById("cartel-prueba").style.display = "none";
           <div style="flex:1"><strong>Enviar por mail</strong><div style="font-size:12px;color:#888">Copia el pedido y abre el correo</div></div>
           <button class="btn btn-green" id="fin-btn-mail" onclick="finEnviar()">Enviar</button>
         </div>
+        <div id="fin-paso-wa" style="display:none;padding:12px;border:1px solid #e0e0e0;border-radius:8px;margin-bottom:10px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="fin-check" style="font-size:20px;width:24px">2.</span>
+            <div style="flex:1"><strong>Enviar por WhatsApp</strong><div style="font-size:12px;color:#888">a) Generá la imagen &nbsp; b) Abrí el chat &nbsp; c) Ctrl+V y enviar</div></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:8px;padding-left:34px;flex-wrap:wrap">
+            <button class="btn btn-green" id="fin-btn-waimg" onclick="finWAImagen()">a) Generar imagen del pedido</button>
+            <button class="btn btn-green" id="fin-btn-waabrir" onclick="finWAAbrir()">b) Abrir WhatsApp</button>
+          </div>
+        </div>
         <div id="fin-paso-imp" style="display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #e0e0e0;border-radius:8px;margin-bottom:16px">
           <span class="fin-check" style="font-size:20px;width:24px">3.</span>
           <div style="flex:1"><strong>Imprimir</strong><div style="font-size:12px;color:#888">Abre la impresión del pedido</div></div>
@@ -361,6 +372,21 @@ else document.getElementById("cartel-prueba").style.display = "none";
   </div>
 </div>
 
+<div id="modal-wa" class="modal-bg">
+  <div class="modal-box">
+    <h3>Enviar por WhatsApp <span id="mwa-num" style="color:#888;font-weight:400;font-size:13px"></span></h3>
+    <p style="font-size:13px;color:#555;margin-bottom:12px">a) Generá la imagen (queda copiada y descargada) &nbsp; b) Abrí el chat &nbsp; c) En WhatsApp Web pegá con <strong>Ctrl+V</strong> y enviá. Si no pega, adjuntá la imagen descargada con el clip 📎.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-green" onclick="generarImagenPedido(waModalPed.numero, waModalPed.proveedor, document.getElementById('mwa-aviso'))">a) Generar imagen del pedido</button>
+      <button class="btn btn-green" id="mwa-abrir" onclick="abrirWhatsAppPedido(waModalPed.numero, waModalPed.proveedor)">b) Abrir WhatsApp</button>
+    </div>
+    <div id="mwa-aviso" style="font-size:12px;color:#1b6b3a;margin-top:10px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-dark" onclick="cerrarModalWA()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
 <div id="modal-editar" class="modal-bg">
   <div class="modal-box">
     <h3>Editar pedido <span id="modal-ped-num" style="color:#888;font-weight:400"></span></h3>
@@ -405,7 +431,7 @@ else document.getElementById("cartel-prueba").style.display = "none";
    - Nunca se inventa una base vacia: si los archivos no existen, se
      bloquea el guardado hasta importar.
    ===================================================================== */
-var VERSION_365 = "365 · v1.2 (2026-11-17)";
+var VERSION_365 = "365 · v1.3 (2026-11-19)";
 // ¿Esta pagina se abrio DENTRO de la ventanita de login de Microsoft? (MSAL la nombra "msal.…")
 // En ese caso NO se arranca la app: la ventana principal tiene que leer la respuesta del login
 // de la direccion (#code=…) y cerrar la ventanita. Si la app arrancara aca, la libreria de login
@@ -804,6 +830,7 @@ function aplicarConfig(cfg) {
     else if (p.materialesPlanchas) info.matPlanchas = p.materialesPlanchas.slice();
     if (p.medidasRollos) info.medidasRollos = p.medidasRollos.slice();
     if (p.materialesCartulina) info.matCartulina = p.materialesCartulina.slice();
+    if (p.envio) info.envio = String(p.envio);   // "whatsapp-imagen": el pedido se manda como imagen por WhatsApp
     PROV_INFO[p.nombre] = info;
     PROV_ORDEN.push(p.nombre);
     // Color de fila por proveedor (antes estaba fijo en el CSS)
@@ -988,8 +1015,8 @@ function renderContactos() {
       var prov = p["Proveedor"] || "";
       var provClase = claseProv(prov);
       var mailCell = mail ? '<a href="mailto:'+mail+'">'+mail+'</a>' : "";
-      var waDigits = String(wa).replace(/[^0-9]/g, "");
-      var waCell = wa ? (waDigits ? '<a href="https://wa.me/54'+waDigits+'" target="_blank">'+wa+'</a>' : wa) : "";
+      var waNum = numeroWA(wa);
+      var waCell = wa ? (waNum ? '<a href="https://wa.me/'+waNum+'" target="_blank">'+wa+'</a>' : wa) : "";
       var btnEditar = '<button class="btn-editar" title="Editar contacto" data-prov="' + String(prov).replace(/"/g, "&quot;") + '" onclick="abrirContacto(this.getAttribute(\'data-prov\'))">&#9998;</button>';
       return '<tr class="'+provClase+'"><td><strong>'+prov+'</strong></td><td>'+mailCell+'</td><td>'+waCell+'</td><td>'+tel+'</td><td>'+contacto+'</td><td>'+btnEditar+'</td></tr>';
     }).join("");
@@ -1160,7 +1187,9 @@ function makeRow(r, q, cols, showProv, nuevoPedido) {
   var provEsc = String(r.Proveedor || "").replace(/'/g, "");
   var btnRepetir = '<button class="btn-editar" title="Repetir este pedido" onclick="repetirPedido(\'' + pedEsc + '\',\'' + provEsc + '\')" style="margin-right:4px">&#8635;</button>';
   var btnImprimir = '<button class="btn-editar" title="Imprimir este pedido" onclick="imprimirPedidoGuardado(\'' + pedEsc + '\',\'' + provEsc + '\')" style="margin-right:4px">&#128424;</button>';
-  var btnMail = '<button class="btn-editar" title="Enviar este pedido por mail" onclick="enviarPedidoGuardado(\'' + pedEsc + '\',\'' + provEsc + '\')" style="margin-right:4px">&#9993;</button>';
+  var btnMail = esEnvioWA(r.Proveedor)
+    ? '<button class="btn-editar" title="Enviar este pedido por WhatsApp (imagen)" onclick="abrirModalWA(\'' + pedEsc + '\',\'' + provEsc + '\')" style="margin-right:4px">&#128247;</button>'
+    : '<button class="btn-editar" title="Enviar este pedido por mail" onclick="enviarPedidoGuardado(\'' + pedEsc + '\',\'' + provEsc + '\')" style="margin-right:4px">&#9993;</button>';
   if (r.ID) { cells += '<td style="white-space:nowrap">' + btnRepetir + btnImprimir + btnMail + '<button class="btn-editar" title="Editar notas" onclick="abrirEditar(\'' + String(r.ID).replace(/'/g, "") + '\')">&#9998;</button></td>'; }
   else { cells += '<td style="white-space:nowrap">' + btnRepetir + btnImprimir + btnMail + "</td>"; }
   var provClase = claseProv(r.Proveedor);
@@ -1815,7 +1844,7 @@ function buildPreviewHTML(ped, fecha, prov, items, mailCols) {
     "<p style='margin-bottom:8px'>Proveedor: " + prov + "</p>" +
     lineaTipo +
     "<table style='border-collapse:collapse;width:100%'><thead><tr>" + heads + "</tr></thead><tbody>" + rows + "</tbody></table>" +
-    "<p style='margin-top:16px;font-size:12px'>ENVIADO VIA E-MAIL</p>" +
+    "<p style='margin-top:16px;font-size:12px'>" + (esEnvioWA(prov) ? "ENVIADO VIA WHATSAPP" : "ENVIADO VIA E-MAIL") + "</p>" +
     "</div>";
 }
 
@@ -2203,14 +2232,21 @@ function abrirFinalizar() {
   // Reset de tildes
   resetPasoFin("fin-paso-guardar", "1.");
   resetPasoFin("fin-paso-mail", "2.");
+  resetPasoFin("fin-paso-wa", "2.");
   resetPasoFin("fin-paso-imp", "3.");
+  // Paso 2: por mail o por WhatsApp (imagen), segun el proveedor
+  var porWA = esEnvioWA(prov);
+  document.getElementById("fin-paso-mail").style.display = porWA ? "none" : "flex";
+  document.getElementById("fin-paso-wa").style.display = porWA ? "block" : "none";
+  var bAbrir = document.getElementById("fin-btn-waabrir");
+  if (bAbrir) bAbrir.textContent = "b) Abrir WhatsApp de " + nombreCortoProv(prov);
   finGuardadoOk = false;
   habilitarPasosFin(false);
   document.getElementById("fin-aviso").textContent = "";
   document.getElementById("modal-finalizar").style.display = "flex";
 }
 function habilitarPasosFin(si) {
-  ["fin-btn-mail", "fin-btn-imp"].forEach(function(id){
+  ["fin-btn-mail", "fin-btn-waimg", "fin-btn-waabrir", "fin-btn-imp"].forEach(function(id){
     var b = document.getElementById(id);
     if (b) { b.disabled = !si; b.style.opacity = si ? "1" : "0.4"; b.style.cursor = si ? "pointer" : "not-allowed"; }
   });
@@ -2219,13 +2255,13 @@ function habilitarPasosFin(si) {
 }
 function cerrarFinalizar() {
   if (finGuardadoOk) {
-    var mailHecho = document.querySelector("#fin-paso-mail .fin-done");
+    var mailHecho = document.querySelector("#fin-paso-mail .fin-done") || document.querySelector("#fin-paso-wa .fin-done");
     var impHecho = document.querySelector("#fin-paso-imp .fin-done");
     if (!mailHecho || !impHecho) {
       var faltan = [];
-      if (!mailHecho) faltan.push("enviar por mail");
+      if (!mailHecho) faltan.push(esEnvioWA(pedidoGuardado.proveedor) ? "enviar por WhatsApp" : "enviar por mail");
       if (!impHecho) faltan.push("imprimir");
-      var ok = confirm("El pedido N° " + pedidoGuardado.numero + " ya está guardado, pero falta " + faltan.join(" y ") + ".\n\nPodés hacerlo después con ✉ y 🖨 en el Buscador o el Historial.\n\n¿Cerrar igual?");
+      var ok = confirm("El pedido N° " + pedidoGuardado.numero + " ya está guardado, pero falta " + faltan.join(" y ") + ".\n\nPodés hacerlo después con ✉ (o 📷 si va por WhatsApp) y 🖨 en el Buscador o el Historial.\n\n¿Cerrar igual?");
       if (!ok) return;
     }
   }
@@ -2266,6 +2302,123 @@ function finImprimir() {
   imprimirPedidoGuardado(pedidoGuardado.numero, pedidoGuardado.proveedor);
   marcarPasoFin("fin-paso-imp");
 }
+function finWAImagen() {
+  if (!finGuardadoOk) return;
+  generarImagenPedido(pedidoGuardado.numero, pedidoGuardado.proveedor, document.getElementById("fin-aviso"));
+}
+function finWAAbrir() {
+  if (!finGuardadoOk) return;
+  if (abrirWhatsAppPedido(pedidoGuardado.numero, pedidoGuardado.proveedor)) marcarPasoFin("fin-paso-wa");
+}
+
+/* ---- Envio por WhatsApp como IMAGEN (proveedores con "envio": "whatsapp-imagen" en config.json) ----
+   WhatsApp no muestra tablas en el texto, asi que el pedido va como foto de la tabla:
+   a) se genera la imagen (PNG), se copia al portapapeles y se descarga de respaldo;
+   b) se abre el chat del proveedor con "Hola, enviamos pedido N° X";
+   c) la persona pega la imagen (Ctrl+V) en WhatsApp Web y envia.
+   El numero sale de la solapa Contactos (columna WhatsApp), no del codigo. */
+function esEnvioWA(prov) {
+  var info = PROV_INFO[String(prov || "").trim()];
+  return !!(info && info.envio === "whatsapp-imagen");
+}
+function nombreCortoProv(prov) {
+  // "Compañía Distribuidora Aconcagua S.R.L." -> "Aconcagua" (para botones y archivo); si no, el nombre entero
+  var s = String(prov || "").replace(/\s+(S\.?\s?R\.?\s?L\.?|S\.?\s?A\.?)$/i, "").trim();
+  var partes = s.split(/\s+/);
+  return partes.length > 2 ? partes[partes.length - 1] : s;
+}
+// Numero en formato internacional para wa.me (Argentina, celular): 11 6544-6801 -> 5491165446801
+function numeroWA(texto) {
+  var d = String(texto || "").replace(/[^0-9]/g, "");
+  if (!d) return "";
+  if (d.indexOf("549") === 0) return d;
+  if (d.indexOf("54") === 0) return "549" + d.slice(2);
+  d = d.replace(/^0+/, "");
+  return "549" + d;
+}
+function whatsappDeProveedor(prov) {
+  for (var i = 0; i < provData.length; i++) {
+    if (String(provData[i]["Proveedor"]).trim() === String(prov).trim()) return String(provData[i]["WhatsApp"] || "").trim();
+  }
+  return "";
+}
+// a) Imagen del pedido: solo las columnas que ve el proveedor (sin Cliente, N Caja, Anotaciones ni sistema).
+var ultimaImagenWA = null;
+function generarImagenPedido(pedido, proveedor, avisoEl) {
+  var items = allData.filter(function(r) {
+    return String(r.Pedido) === String(pedido) && String(r.Proveedor) === String(proveedor);
+  });
+  if (!items.length) { alert("No se encontraron los items de ese pedido."); return; }
+  if (typeof html2canvas !== "function") { alert("No se pudo cargar la herramienta para generar la imagen (¿sin internet?). Recargá la página y probá de nuevo."); return; }
+  var fecha = items[0].Fecha || "";
+  var tipo = items[0]["Tipo Articulo"] || "";
+  var cols = getColsFor(proveedor, tipo).filter(function(c) { return c.mail && c.key !== "Pedido" && c.key !== "Fecha"; });
+  var html = buildPreviewHTML(pedido, fecha, proveedor, items, cols);
+  var caja = document.createElement("div");
+  caja.style.cssText = "position:fixed;left:-10000px;top:0;width:820px;background:#fff;padding:24px;color:#222";
+  caja.innerHTML = (ES_PRUEBA ? "<p style='color:#c0392b;font-weight:bold;font-family:Arial;margin-bottom:8px'>PRUEBA — NO ENVIAR</p>" : "") + html;
+  document.body.appendChild(caja);
+  var nombreArch = "Pedido " + nombreCortoProv(proveedor) + " N " + pedido + ".png";
+  function decir(t) { if (avisoEl) avisoEl.textContent = t; }
+  decir("Generando la imagen...");
+  var promesaBlob = html2canvas(caja, { backgroundColor: "#ffffff", scale: 2, logging: false }).then(function(canvas) {
+    return new Promise(function(ok, mal) {
+      canvas.toBlob(function(b) { b ? ok(b) : mal(new Error("No se pudo crear la imagen")); }, "image/png");
+    });
+  });
+  promesaBlob.then(function(blob) {
+    // Respaldo: siempre se descarga, por si el Ctrl+V no la toma
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = nombreArch;
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+  }).catch(function(){}).then(function(){ caja.remove(); });
+  // Copiar al portapapeles: se llama YA (dentro del clic) con la imagen "en camino"
+  var copia;
+  try {
+    copia = navigator.clipboard.write([new ClipboardItem({ "image/png": promesaBlob })]);
+  } catch (e) { copia = Promise.reject(e); }
+  copia.then(function() {
+    ultimaImagenWA = { pedido: String(pedido), proveedor: String(proveedor) };
+    decir("✓ Imagen copiada (y descargada de respaldo). Ahora abrí WhatsApp y pegá con Ctrl+V.");
+  }).catch(function() {
+    promesaBlob.then(function() {
+      ultimaImagenWA = { pedido: String(pedido), proveedor: String(proveedor) };
+      decir("La imagen se descargó (\"" + nombreArch + "\") pero no se pudo copiar. En WhatsApp adjuntala con el clip 📎.");
+    }).catch(function(e) {
+      decir("");
+      alert("No se pudo generar la imagen del pedido.\n\n" + (e && e.message ? e.message : e));
+    });
+  });
+}
+// b) Abre el chat del proveedor con el texto fijo. Devuelve true si se abrio.
+function abrirWhatsAppPedido(pedido, proveedor) {
+  var texto = (ES_PRUEBA ? "PRUEBA - " : "") + "Hola, enviamos pedido N° " + pedido;
+  var num = numeroWA(whatsappDeProveedor(proveedor));
+  if (!num && !ES_PRUEBA) {
+    alert("Falta el WhatsApp de \"" + proveedor + "\".\n\nCargalo en la solapa Contactos (columna WhatsApp) y volvé a probar.");
+    return false;
+  }
+  if (!ultimaImagenWA || ultimaImagenWA.pedido !== String(pedido) || ultimaImagenWA.proveedor !== String(proveedor)) {
+    if (!confirm("Todavía no generaste la imagen de ESTE pedido (N° " + pedido + ").\n\n¿Abrir WhatsApp igual?")) return false;
+  }
+  // VERSION DE PRUEBA: se abre SIN destinatario (WhatsApp pide elegir el chat), como el mail.
+  var url = "https://wa.me/" + (ES_PRUEBA ? "" : num) + "?text=" + encodeURIComponent(texto);
+  window.open(url, "whatsapp_pedidos");
+  if (ES_PRUEBA) alert("VERSIÓN DE PRUEBA: WhatsApp se abre SIN destinatario. No lo envíes al proveedor.");
+  return true;
+}
+// Ventanita para enviar por WhatsApp un pedido ya guardado (desde Buscador / Historial)
+var waModalPed = null;
+function abrirModalWA(pedido, proveedor) {
+  waModalPed = { numero: pedido, proveedor: proveedor };
+  document.getElementById("mwa-num").textContent = "N° " + pedido + " · " + proveedor;
+  document.getElementById("mwa-aviso").textContent = "";
+  document.getElementById("mwa-abrir").textContent = "b) Abrir WhatsApp de " + nombreCortoProv(proveedor);
+  document.getElementById("modal-wa").classList.add("open");
+}
+function cerrarModalWA() { document.getElementById("modal-wa").classList.remove("open"); }
 
 /* ---- Cambiar el estado de un renglon (por ID) ---- */
 // Si otra persona lo cambio desde que lo estas viendo, avisa antes de pisarlo.
